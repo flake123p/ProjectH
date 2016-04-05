@@ -1,0 +1,30 @@
+$date
+	Tue Apr 05 14:16:37 2016
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	10ps
+$end
+$scope module simple_tb $end
+$scope module M1 $end
+$var wire 1 ! IN1 $end
+$var wire 1 " IN2 $end
+$var wire 1 # OUT_OR $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+x#
+0"
+0!
+$end
+#2000
+0#
+#5000
+1"
+#7000
+1#
+#8000

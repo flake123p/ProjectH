@@ -3,7 +3,6 @@
 #include <iostream>
 #include <My_Basics.hpp>
 
-// Abstract class = there is virtual function inside
 class abc
 {
 	public:
@@ -13,14 +12,12 @@ class abc
 class v1:public abc
 {
 	public:
-		// Must implement show()
 		void show() { std::cout << "this is v1" << std::endl; }
 };
 
 class v2:public abc
 {
 	public:
-		// Must implement show()
 		void show() { std::cout << "this is v2" << std::endl; }
 };
 
