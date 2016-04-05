@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 	double j[3] = {0.0, 0.8, 1.2};
 	
 	//carryCompensate for rounding
-	MyMemcpy(i, j, 3, 0.5);
+	MyMemcpy<int, double>(i, j, 3, 0.5);
 	
 	for (int k = 0; k < 3; k++)
 		std::cout << i[k] << std::endl;
