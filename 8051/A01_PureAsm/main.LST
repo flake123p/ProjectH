@@ -1,0 +1,42 @@
+A51 MACRO ASSEMBLER  MAIN                                                                 04/06/2016 20:43:54 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02b
+OBJECT MODULE PLACED IN main.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE main.s SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     
+                       2     PROG            SEGMENT CODE
+                       3     
+----                   4     CSEG AT 0
+0000 020000   F        5             JMP MAIN
+----                   6     CSEG AT 3
+0003 020000   F        7             JMP DUMMY
+                       8     
+----                   9     RSEG  PROG
+0000                  10     DUMMY:
+0000 80FE             11         JMP DUMMY
+0002                  12     MAIN:
+0002 04               13         INC A
+0003 04               14         INC A
+                      15     
+                      16     END
+A51 MACRO ASSEMBLER  MAIN                                                                 04/06/2016 20:43:54 PAGE     2
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+DUMMY. . . . . . .  C ADDR   0000H   R   SEG=PROG
+MAIN . . . . . . .  C ADDR   0002H   R   SEG=PROG
+PROG . . . . . . .  C SEG    0004H       REL=UNIT
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
