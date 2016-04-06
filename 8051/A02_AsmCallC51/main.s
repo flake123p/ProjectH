@@ -1,6 +1,8 @@
 
 PROG SEGMENT CODE
 
+EXTRN CODE (_func)
+
 ;Reset vector(0x0000) to MAIN
 CSEG AT 0
 	JMP MAIN
@@ -14,5 +16,6 @@ DUMMY:
 MAIN:
     INC A
     INC A
+    LCALL _func
 
 END

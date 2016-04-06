@@ -356,6 +356,11 @@
               <FileType>2</FileType>
               <FilePath>.\main.s</FilePath>
             </File>
+            <File>
+              <FileName>func.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\func.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
