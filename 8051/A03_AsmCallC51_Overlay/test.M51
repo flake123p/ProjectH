@@ -1,8 +1,8 @@
-BL51 BANKED LINKER/LOCATER V6.22                                                        04/07/2016  10:00:29  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22                                                        04/07/2016  16:12:15  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
-C:\KEIL\C51\BIN\BL51.EXE main.obj, func.obj TO test RAMSIZE (256)
+C:\KEIL\C51\BIN\BL51.EXE main.obj, func.obj TO test RAMSIZE (256) OVERLAY (* ! ?PR?_FUNC?FUNC)
 
 
 MEMORY MODEL: SMALL
@@ -47,19 +47,19 @@ SYMBOL TABLE OF MODULE:  test (MAIN)
   C:0006H         SEGMENT       PROG
   C:0006H         SYMBOL        DUMMY
   C:0008H         SYMBOL        MAIN
-  C:0000H         LINE#         8
-  C:0003H         LINE#         10
-  C:0006H         LINE#         15
-  C:0008H         LINE#         17
-  C:0009H         LINE#         18
-  C:000AH         LINE#         19
+  C:0000H         LINE#         16
+  C:0003H         LINE#         18
+  C:0006H         LINE#         23
+  C:0008H         LINE#         25
+  C:0009H         LINE#         26
+  C:000AH         LINE#         27
   -------         ENDMOD        MAIN
 
   -------         MODULE        FUNC
   C:0000H         SYMBOL        _ICE_DUMMY_
   C:000DH         PUBLIC        _func
   -------         PROC          _FUNC
-BL51 BANKED LINKER/LOCATER V6.22                                                      04/07/2016  10:00:29  PAGE 2
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/07/2016  16:12:15  PAGE 2
 
 
   D:0007H         SYMBOL        arg0
@@ -70,10 +70,5 @@ SYMBOL TABLE OF MODULE:  test (MAIN)
   -------         ENDPROC       _FUNC
   -------         ENDMOD        FUNC
 
-*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
-    SEGMENT: ?PR?_FUNC?FUNC
-
-*** WARNING L10: CANNOT DETERMINE ROOT SEGMENT
-
 Program Size: data=8.0 xdata=0 code=18
-LINK/LOCATE RUN COMPLETE.  2 WARNING(S),  0 ERROR(S)
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

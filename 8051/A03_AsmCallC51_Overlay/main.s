@@ -4,7 +4,9 @@
 ;    SEGMENT: ?PR?_FUNC?FUNC
 ; *** WARNING L10: CANNOT DETERMINE ROOT SEGMENT
 ;
-; WARNING L10 will be fixed in example A03
+; 2 Way to fix warning:
+;   1.[Target Option] -> [BL51 Misc] -> [Misc controls], add: NOOVERLAY
+;   2.[Target Option] -> [BL51 Misc] -> [Overlay], add: * ! ?PR?_FUNC?FUNC
 ;
 
 PROG SEGMENT CODE

@@ -1,0 +1,85 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        04/07/2016  16:49:53  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE main.obj, func.obj TO test RAMSIZE (256) OVERLAY (* ! ?PR?_FUNC?FUNC)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  main.obj (MAIN)
+  func.obj (FUNC)
+
+
+LINK MAP OF MODULE:  test (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0001H     UNIT         _DATA_GROUP_
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0003H     ABSOLUTE     
+            CODE    0006H     000FH     UNIT         PROG
+            CODE    0015H     000DH     UNIT         ?PR?_FUNC?FUNC
+
+
+
+OVERLAY MAP OF MODULE:   test (MAIN)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?PR?_FUNC?FUNC                 0008H    0001H
+
+
+
+SYMBOL TABLE OF MODULE:  test (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0006H         SEGMENT       PROG
+  C:0008H         PUBLIC        _ASM_FUNC
+  D:00E0H         SYMBOL        ACC
+  C:0006H         SYMBOL        DUMMY
+  C:000DH         SYMBOL        MAIN
+  C:0000H         LINE#         19
+  C:0003H         LINE#         21
+  C:0006H         LINE#         26
+  C:0008H         LINE#         28
+  C:0009H         LINE#         29
+  C:000BH         LINE#         30
+  C:000CH         LINE#         31
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/07/2016  16:49:53  PAGE 2
+
+
+  C:000DH         LINE#         33
+  C:000EH         LINE#         34
+  C:0010H         LINE#         35
+  C:0012H         LINE#         36
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        FUNC
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:0015H         PUBLIC        _func
+  -------         PROC          _FUNC
+  D:0008H         SYMBOL        arg0
+  C:0015H         LINE#         4
+  C:0017H         LINE#         5
+  C:0017H         LINE#         6
+  C:001CH         LINE#         8
+  C:0021H         LINE#         9
+  -------         ENDPROC       _FUNC
+  -------         ENDMOD        FUNC
+
+Program Size: data=9.0 xdata=0 code=34
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

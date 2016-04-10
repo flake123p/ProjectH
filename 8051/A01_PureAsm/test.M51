@@ -1,4 +1,4 @@
-BL51 BANKED LINKER/LOCATER V6.22                                                        04/06/2016  20:43:54  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22                                                        04/06/2016  21:10:11  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
@@ -34,11 +34,11 @@ SYMBOL TABLE OF MODULE:  test (MAIN)
   C:0006H         SEGMENT       PROG
   C:0006H         SYMBOL        DUMMY
   C:0008H         SYMBOL        MAIN
-  C:0000H         LINE#         5
-  C:0003H         LINE#         7
-  C:0006H         LINE#         11
-  C:0008H         LINE#         13
-  C:0009H         LINE#         14
+  C:0000H         LINE#         6
+  C:0003H         LINE#         8
+  C:0006H         LINE#         13
+  C:0008H         LINE#         15
+  C:0009H         LINE#         16
   -------         ENDMOD        MAIN
 
 Program Size: data=8.0 xdata=0 code=10
