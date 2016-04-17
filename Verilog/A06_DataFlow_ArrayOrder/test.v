@@ -14,16 +14,17 @@ Basic Gates
   Tri-state
     bufif0, bufif1, notif0, notif1
 */
-module 
-mux_tri(OUT1, OUT2, OUT_TRI, IN1, IN2, IN_SELECT);  //<- semicolon !!
 
-   input   IN1, IN2, IN_SELECT;
-   output  OUT1, OUT2, OUT_TRI;
-   tri     OUT_TRI;
+module 
+array_order_test(OUT1, OUT2, IN1, IN2);  //<- semicolon !!
+
+   input   IN1, IN2;
+   output  [0:1]OUT1; //Display order (%b) is [1:0]
+   output  [1:0]OUT2;
    
-   bufif1(OUT1, IN1, IN_SELECT);
-   bufif1(OUT_TRI, IN1, IN_SELECT);
-   bufif0(OUT2, IN2, IN_SELECT);
-   bufif0(OUT_TRI, IN2, IN_SELECT);
+   assign OUT1[0] = IN1,
+          OUT1[1] = IN2,
+		  OUT2[0] = IN1,
+		  OUT2[1] = IN2;
 
 endmodule  //<- NO semicolon !!
