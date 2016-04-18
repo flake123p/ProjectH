@@ -1,0 +1,5 @@
+
+VPATH = SomeDir : SomeDir2 : SomeDir3
+
+xxx: a.txt
+	@echo hihi
