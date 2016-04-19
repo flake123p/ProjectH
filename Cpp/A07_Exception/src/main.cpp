@@ -3,35 +3,35 @@
 #include <iostream>
 #include <My_Basics.hpp>
 
-class abc
-{
-	public:
-		virtual void show() = 0;
-};
-
-class v1:public abc
-{
-	public:
-		void show() { std::cout << "this is v1" << std::endl; }
-};
-
-class v2:public abc
-{
-	public:
-		void show() { std::cout << "this is v2" << std::endl; }
-};
-
 int main(int argc, char *argv[])
 {
-	abc *p;
-	v1 obj1;
-	v2 obj2;
+	const int mixNum = 5;
+	const int maxNum = 20;
+	int setNum = 22;
 	
-	p = &obj1;
-	p->show();
-	
-	p = &obj2;
-	p->show();
+	try
+	{
+		if(setNum > maxNum)
+			throw 0;
+		if(setNum < mixNum)
+			throw 1;
+		std::cout << "setNum = " << setNum << std::endl;
+	}
+	catch(int err)
+	{
+		switch(err)
+		{
+			case 0:
+				std::cout << "value too big" << std::endl;
+				break;
+			case 1:
+				std::cout << "value too small" << std::endl;
+				break;
+			default:
+				std::cout << "unknow value" << std::endl;
+				break;
+		}
+	}
 	
 	return 0;
 }

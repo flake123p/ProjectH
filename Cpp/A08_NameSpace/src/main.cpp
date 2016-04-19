@@ -3,35 +3,18 @@
 #include <iostream>
 #include <My_Basics.hpp>
 
-class abc
-{
-	public:
-		virtual void show() = 0;
-};
+#define USE_NAME_SPACE 0
 
-class v1:public abc
-{
-	public:
-		void show() { std::cout << "this is v1" << std::endl; }
-};
-
-class v2:public abc
-{
-	public:
-		void show() { std::cout << "this is v2" << std::endl; }
-};
+#if USE_NAME_SPACE
+using namespace std;
+#endif
 
 int main(int argc, char *argv[])
 {
-	abc *p;
-	v1 obj1;
-	v2 obj2;
-	
-	p = &obj1;
-	p->show();
-	
-	p = &obj2;
-	p->show();
-	
+#if USE_NAME_SPACE
+	cout << "using namespace" << endl;
+#else
+	std::cout << "unusing namespace" << std::endl;
+#endif	
 	return 0;
 }
