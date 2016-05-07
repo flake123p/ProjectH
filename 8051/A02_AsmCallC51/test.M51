@@ -1,0 +1,79 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        04/07/2016  10:00:29  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE main.obj, func.obj TO test RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  main.obj (MAIN)
+  func.obj (FUNC)
+
+
+LINK MAP OF MODULE:  test (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0003H     ABSOLUTE     
+            CODE    0006H     0007H     UNIT         PROG
+            CODE    000DH     0005H     UNIT         ?PR?_FUNC?FUNC
+
+
+
+OVERLAY MAP OF MODULE:   test (MAIN)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+
+
+SYMBOL TABLE OF MODULE:  test (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0006H         SEGMENT       PROG
+  C:0006H         SYMBOL        DUMMY
+  C:0008H         SYMBOL        MAIN
+  C:0000H         LINE#         8
+  C:0003H         LINE#         10
+  C:0006H         LINE#         15
+  C:0008H         LINE#         17
+  C:0009H         LINE#         18
+  C:000AH         LINE#         19
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        FUNC
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:000DH         PUBLIC        _func
+  -------         PROC          _FUNC
+BL51 BANKED LINKER/LOCATER V6.22                                                      04/07/2016  10:00:29  PAGE 2
+
+
+  D:0007H         SYMBOL        arg0
+  C:000DH         LINE#         2
+  C:000DH         LINE#         3
+  C:000DH         LINE#         4
+  C:0011H         LINE#         5
+  -------         ENDPROC       _FUNC
+  -------         ENDMOD        FUNC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_FUNC?FUNC
+
+*** WARNING L10: CANNOT DETERMINE ROOT SEGMENT
+
+Program Size: data=8.0 xdata=0 code=18
+LINK/LOCATE RUN COMPLETE.  2 WARNING(S),  0 ERROR(S)

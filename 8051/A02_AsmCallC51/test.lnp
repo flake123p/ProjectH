@@ -1,0 +1,4 @@
+"main.obj",
+"func.obj" 
+TO "test" 
+RAMSIZE(256) 

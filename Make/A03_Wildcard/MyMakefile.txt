@@ -1,0 +1,7 @@
+
+var1 = *.bat
+var2 = $(wildcard *.bat)
+xxx:
+	@echo "Wildcard Demo:"
+	@echo var1 = $(var1)
+	@echo var2 = $(var2)

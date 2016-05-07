@@ -1,0 +1,15 @@
+#
+# VPATH: Indicate search folder for prerequisite
+# vpath: Indicate "indivisual" search folder for "individual" prerequisite
+#
+# vpath <pattern> <directories>
+#     - Create search folder for <pattern>. Use % to indicate file extension type for <pattern>.
+# vpath <pattern>
+#     - Clean for <pattern>
+# vpath
+#     - Clean "all"
+#
+vpath %.txt SomeDirXXX : SomeDirYYY : SomeDir
+
+xxx: a.txt
+	@echo hihi (a.txt founded!!)
