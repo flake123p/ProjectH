@@ -14,7 +14,7 @@ module simple_tb;
 			$printtimescale;
 			$dumpfile("simple.vcd");
 			$dumpvars(0, M1);
-			{inD} = 1'b0;
+
 			repeat(27) begin
 				#6 inD = ~inD;
 			end
