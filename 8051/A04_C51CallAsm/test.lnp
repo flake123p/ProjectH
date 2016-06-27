@@ -1,5 +1,0 @@
-"main.obj",
-"func.obj" 
-TO "test" 
-RAMSIZE(256) 
-OVERLAY( *  !  ?PR?_FUNC?FUNC )
