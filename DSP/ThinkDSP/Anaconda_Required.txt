@@ -1,0 +1,2 @@
+Please install Anaconda3 in "C:\" like:
+C:\Anaconda3
