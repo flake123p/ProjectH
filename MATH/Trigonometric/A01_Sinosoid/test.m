@@ -1,7 +1,9 @@
 clear;clc;
 
 %
-% Create a plot with 1000 points, radian = 2pi = 6.28... = 360 degree
+% Create a plot with 1000 points, 
+% 2pi radian = 6.28 radian = 360 degree
+% 1 radian = 57.29 degree
 %
 radian = 0 : 0.01 : 10;
 y = sin(radian);
