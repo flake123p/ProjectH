@@ -1,47 +1,34 @@
 /*
-	OS Define
-	
-	Web Resource:
-	http://nadeausoftware.com/articles/2012/01/c_c_tip_how_use_compiler_predefined_macros_detect_operating_system
+	Purpose: 
+		Hook function at beginning, irrelevant to following flow.
 */
 #include <stdio.h>
 
 typedef void (*Step1)(void);
 typedef void (*Step2)(void);
 typedef void (*Step3)(void);
-typedef void (*Step4)(void);
 
 struct Drive {
 	Step1 one;
 	Step2 two;
 	Step3 three;
-	Step4 four;
 };
 
-void CarStep1(void) { printf("into the car\n"); }
-void CarStep2(void) { printf("check side mirror\n"); }
-void CarStep3(void) { printf("seat belt\n"); }
-void CarStep4(void) { printf("drive\n"); }
+// Car functions for hook
+void CarStep1(void) { printf("CarStep1\n"); }
+void CarStep2(void) { printf("CarStep2\n"); }
+void CarStep3(void) { printf("CarStep3\n"); }
 
-void PlaneStep1(void) { printf("into the airplane\n"); }
-void PlaneStep2(void) { printf("check ticket\n"); }
-void PlaneStep3(void) { printf("seat belt\n"); }
-void PlaneStep4(void) { printf("fly\n"); }
-
-void DriveAutoMobile(struct Drive drive)
-{
-	drive.one();
-	drive.two();
-	drive.three();
-	drive.four();
-}
+// Car functions for hook
+void PlaneStep1(void) { printf("PlaneStep1\n"); }
+void PlaneStep2(void) { printf("PlaneStep2\n"); }
+void PlaneStep3(void) { printf("PlaneStep3\n"); }
 
 void DriveCar(Drive *dev)
 {
 	dev->one = CarStep1;
 	dev->two = CarStep2;
 	dev->three = CarStep3;
-	dev->four = CarStep4;
 }
 
 void DrivePlane(Drive *dev)
@@ -49,20 +36,24 @@ void DrivePlane(Drive *dev)
 	dev->one = PlaneStep1;
 	dev->two = PlaneStep2;
 	dev->three = PlaneStep3;
-	dev->four = PlaneStep4;
+}
+
+struct Drive traffic;
+
+void Hook(void)
+{
+	//DriveCar(&traffic);
+	DrivePlane(&traffic);
 }
 
 int main(int argc, char *argv[])
 {
-	struct Drive traffic;
-	
-	printf("here to drive\n");
-	DriveCar(&traffic);
-	DriveAutoMobile(traffic);
-	
-	printf("\n\nhere to fly\n");
-	DrivePlane(&traffic);
-	DriveAutoMobile(traffic);
+	Hook();
+
+	// Customize flow 3 -> 1 -> 2
+	(*traffic.three)();
+	(*traffic.one)();
+	(*traffic.two)();
 
 	return 0;
 }

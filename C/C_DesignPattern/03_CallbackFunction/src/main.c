@@ -1,39 +1,42 @@
 /*
-	OS Define
-	
-	Web Resource:
-	http://nadeausoftware.com/articles/2012/01/c_c_tip_how_use_compiler_predefined_macros_detect_operating_system
+	Purpose:
+			Register callback function to OtherProcess()
 */
 #include <stdio.h>
 
 typedef void (*pFunction)(void);
 
-pFunction reg;
+pFunction gCallback = NULL;
 
-void FunctionA(void)
+void OtherProcess(void)
 {
-	printf("execute function A\n");
-	if(reg != NULL)
-		reg();
+	printf("execute OtherProcess\n");
+	if(gCallback != NULL)
+	{
+		printf("Excute externel callback:\n");
+		(*gCallback)();
+	}
 	else
-		printf("do not register callback functgion\n");
+		printf("Have no callback function\n");
 }
 
-void FunctionA_CB(void)
+void OtherProcess_RegCB(pFunction p)
 {
-	printf("I am callback function\n");
-}
-
-void RegCB(pFunction p)
-{
-	reg = p;
+	gCallback = p;
 	printf("register callback\n");
+}
+
+
+
+void MyCallback(void)
+{
+	printf("I am callback function from main()\n");
 }
 
 int main(int argc, char *argv[])
 {
-	RegCB(FunctionA_CB);
-	FunctionA();
+	OtherProcess_RegCB(MyCallback);
+	OtherProcess();
 	
 	return 0;
 }
