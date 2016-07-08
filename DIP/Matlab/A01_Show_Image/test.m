@@ -1,9 +1,15 @@
+%
+% Display Image
+%
 myImage = '../../Images/wombats.tif';
 w=imread(myImage);
-%figure
-imshow(w);
+figure; % Create figure window. Flake: It seems like optional!?
+imshow(w); % image show
 
-% size() output is [row, column]
-imgSize = size(w);
-row = imgSize(1);
-column = imgSize(2);
+%
+% Get the rows and columns of the image
+%   - size() output is [row, column]
+%
+imgDimention = size(w);
+row = imgDimention(1);
+column = imgDimention(2);
