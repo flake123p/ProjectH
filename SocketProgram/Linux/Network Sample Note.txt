@@ -1,0 +1,39 @@
+--
+網路程式Samples (基礎篇)
+ - 藉由實際程式來學習/體驗網路知識
+
+ 
+--
+預定主題:
+
+1. Berkeley Socket (BSD Socket)程式設計
+基本函式: bind() listen() accept() connect() send() recv()
+
+2. TCP程式設計
+
+3. UDP程式設計
+基本函式: sendto() recvfrom()
+
+4. 進階Socket程式設計
+設定通訊端、Select技術
+
+4.5 新增Beej的範例於 Sample_2_Beej 資料夾
+
+5. 原始通訊端技術
+分析封包、構造與發送各種資料封包(IP、ICMP、TCP、UDP)
+
+6. 實作一個與Lifebook互動的C程式
+
+7. 廣播、群播技術
+
+8. 高效能網路服務程式設計
+Multi-process, Multi-thread, Thread pool
+
+9. 網路掃描程式、封包截取函式庫(Libpcap)
+
+10. 簡易的HTTP server設計
+
+
+
+
+
