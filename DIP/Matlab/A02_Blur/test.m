@@ -1,3 +1,4 @@
+clear; clc;
 %
 % Display Image
 %
@@ -15,10 +16,14 @@ row = imgDimention(1);
 column = imgDimention(2);
 
 newW = uint8(zeros(size(w)));
-a1 = [-1 -1 -1];
-a2 = [-1 9 -1];
-a3 = [-1 -1 -1];
-Y = 1;
+% % a1 = [-1 -1 -1];
+% % a2 = [-1 9 -1];
+% % a3 = [-1 -1 -1];
+% % Y = 1;
+a1 = [1 1 1];
+a2 = [1 1 1];
+a3 = [1 1 1];
+Y = 9;
 sum = 0;
 
 for rowCtr = 2:row-1
