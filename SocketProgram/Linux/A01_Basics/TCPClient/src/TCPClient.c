@@ -13,6 +13,12 @@
 
 #define SERVER_PORT 5555
 
+/*
+ * [function description]
+ * htons() means: host to Network Short
+ * other: htons(), htonl(), ntohs(), ntohl()
+ */
+
 int main(int argc, char *argv[])
 {
 	//
