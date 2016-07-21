@@ -1,9 +1,9 @@
 
 
 class MyClass(object):
-	def __init__(self, a=95, b=2):
-		self.a = a
-		self.b = b
+	def __init__(self, aa=95, bb=2):
+		self.a = aa
+		self.b = bb
 	
 	def __str__(self):
 		return '[MyClass]a=%d, b=%d' % (self.a, self.b)
