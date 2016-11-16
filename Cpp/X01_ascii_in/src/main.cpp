@@ -27,9 +27,15 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	
+	if (isHexMode) {
+		printf("Hexadecimal Result:");
+	}
+	else {
+		printf("Decimal Result:");
+	}
+	
 	int argcCtr = 2;
 	int curArgu;
-	printf("Result:");
 	if (isHexMode) {
 		while (argcCtr < argc) {
 			sscanf(argv[argcCtr], "%x", &curArgu);
