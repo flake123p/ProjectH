@@ -4,7 +4,7 @@
 ;    SEGMENT: ?PR?_FUNC?FUNC
 ; *** WARNING L10: CANNOT DETERMINE ROOT SEGMENT
 ;
-; 2 Way to fix warning:
+; Two Ways to fix warning:
 ;   1.[Target Option] -> [BL51 Misc] -> [Misc controls], add: NOOVERLAY
 ;   2.[Target Option] -> [BL51 Misc] -> [Overlay], add: * ! ?PR?_FUNC?FUNC
 ;

@@ -9,6 +9,8 @@ Address "C:0" for code memory
 Address "D:0" for internal ram and SFR (direct access)
 Address "I:0" for internal ram (indirect access)
 Address "X:0" for external ram
+Address "B02:0" for bank 2
+Address "B03:0" for bank 3 ...
 
 ----------------------------------------------------------------------
 C project will calculate ?STACK(stack pointer) automatically,
