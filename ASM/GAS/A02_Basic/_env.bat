@@ -5,7 +5,7 @@
 REM
 REM Search env_win.bat
 REM
-SET loopMax=6
+SET loopMax=32
 SET loopCtr=0
 :LOOP_FIND_ENV_WIN_START
 	REM 
