@@ -22,10 +22,15 @@ int LibUartMgr_DemoTxRx(void)
 {
 	uint32_t receivedLegnth = 0;
 	LibUart_InitComPort(COM_PORT_NAME, BAUD_RATE);
+
 	LibUart_Send(sizeof(lpBuffer), lpBuffer);
 	LibUart_Receive(&receivedLegnth, gRxBuffer);
+	UART_LOG_MSG(">>> receivedLegnth = %d\n", receivedLegnth);
+	
 	LibUart_Send(sizeof(lpBuffer), lpBuffer);
 	LibUart_Receive(&receivedLegnth, gRxBuffer);
+	UART_LOG_MSG(">>> receivedLegnth = %d\n", receivedLegnth);
+	
 	LibUart_UninitComPort();
 	return 0;
 }

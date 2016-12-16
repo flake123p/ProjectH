@@ -16,7 +16,7 @@ HANDLE g_hComm;                          // Handle to the Serial port
 char   g_ComPortName[30] = "\\\\.\\";    // Name of the Serial port(May Change) to be opened,
 BOOL   g_Status;
 
-int LibUart_InitComPort(const char *comPortName, unsigned int baudRate)
+int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byteSize /* = 8 */, STOP_BITS stopBits /* = STOP_BITS_1 */, PARITY parity /* = PARITY__NONE */)
 {
 	strcat(g_ComPortName, comPortName);
 
@@ -70,10 +70,28 @@ int LibUart_InitComPort(const char *comPortName, unsigned int baudRate)
 		default:
 			BASIC_ASSERT(0);
 	}
-	
-	dcbSerialParams.ByteSize = 8;             // Setting ByteSize = 8
-	dcbSerialParams.StopBits = ONESTOPBIT;    // Setting StopBits = 1
-	dcbSerialParams.Parity   = NOPARITY;      // Setting Parity = None 
+
+	switch (stopBits) {
+		case STOP_BITS_1:   dcbSerialParams.StopBits = ONESTOPBIT; break;
+		case STOP_BITS_1_5: dcbSerialParams.StopBits = ONE5STOPBITS; break;
+		case STOP_BITS_2:   dcbSerialParams.StopBits = TWOSTOPBITS; break;
+
+		default:
+			BASIC_ASSERT(0);
+	}
+
+	switch (parity) {
+		case PARITY__NONE:  dcbSerialParams.Parity = NOPARITY; break;
+		case PARITY__ODD:   dcbSerialParams.Parity = ODDPARITY; break;
+		case PARITY__EVEN:  dcbSerialParams.Parity = EVENPARITY; break;
+		case PARITY__MARK:  dcbSerialParams.Parity = MARKPARITY; break;
+		case PARITY__SPACE: dcbSerialParams.Parity = SPACEPARITY; break;
+
+		default:
+			BASIC_ASSERT(0);
+	}
+
+	dcbSerialParams.ByteSize = byteSize;      // Setting ByteSize = 8
 
 	g_Status = SetCommState(g_hComm, &dcbSerialParams);  //Configuring the port according to settings in DCB 
 
@@ -147,6 +165,8 @@ int LibUart_Send(uint32_t length, uint8_t *buffer)
 int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer)
 {
 	DWORD dwEventMask;                     // Event mask to trigger
+
+	*receivedLength = 0; // Clear output variable
 	
 	/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
 	
@@ -183,6 +203,7 @@ int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer)
 			i++;
 		}
 		while (NoBytesRead > 0);
+		*receivedLength = i - 1; // Set output variable
 
 		/*------------Printing the RXed String to Console----------------------*/
 
