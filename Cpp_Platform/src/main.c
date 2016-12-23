@@ -1,13 +1,17 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "LibUart.h"
-#include "libTime.hpp"
+#include "LibUart.hpp"
+#include "LibTime.hpp"
 
 int main(void)
 {
+	//Time_StartClock();
+	//LibUartMgr_DemoTxRx();
+	//Time_StopClock_ShowResult();
 	Time_StartClock();
-	LibUartMgr_DemoTxRx();
+	Time_StartMicroSecondClock();
+	Time_PrintLocalTime();
 	Time_StopClock_ShowResult();
-	Time_DemoClockTimer();
+	Time_StopMicroSecondClock_ShowResult();
 }

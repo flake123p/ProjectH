@@ -1,7 +1,7 @@
 //#include "stdafx.h" //For porting to "Visual Studio"
 #include <stdio.h>
 #include <time.h>
-#include "libTime.hpp"
+#include "LibTime.hpp"
 
 clock_t gClock = 0;
 void Time_StartClock(void)
@@ -19,8 +19,22 @@ void Time_DemoClockTimer(void)
 	Time_StartClock();
 
 	int i;
-	for (i = 0; i<0x0FFFFFFF; i++) ;
+	for (i = 0; i<0x1FFFFFFF; i++) ;
 
 	Time_StopClock_ShowResult();
 }
 
+
+void Time_PrintUtcTime(void)
+{
+    time_t t = time(NULL);
+	
+    printf("%s", asctime(gmtime(&t)));
+}
+
+void Time_PrintLocalTime(void)
+{
+    time_t t = time(NULL);
+
+    printf("%s", asctime(localtime(&t)));
+}

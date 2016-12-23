@@ -9,7 +9,7 @@
 
 // ====== Platform Library ======
 #include "My_Basics.hpp"
-#include <LibUart.h>
+#include <LibUart.hpp>
 
 
 HANDLE g_hComm;                          // Handle to the Serial port
