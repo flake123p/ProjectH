@@ -8,10 +8,22 @@ void Time_StartClock(void)
 {
 	gClock = clock();
 }
+
+clock_t Time_StopClock(void)
+{
+	gClock = clock() - gClock;
+	return gClock;
+}
+
+double Time_CalculateClock(void)
+{
+	return ((double)gClock)/CLOCKS_PER_SEC;
+}
+
 void Time_StopClock_ShowResult(void)
 {
 	gClock = clock() - gClock;
-	printf ("It took me %d clicks (%f seconds).\n", (int)gClock, ((double)gClock)/CLOCKS_PER_SEC);
+	printf ("It took me %d clicks (%f seconds).", (int)gClock, ((double)gClock)/CLOCKS_PER_SEC);
 }
 
 void Time_DemoClockTimer(void)
@@ -22,6 +34,7 @@ void Time_DemoClockTimer(void)
 	for (i = 0; i<0x1FFFFFFF; i++) ;
 
 	Time_StopClock_ShowResult();
+	printf("\n");
 }
 
 

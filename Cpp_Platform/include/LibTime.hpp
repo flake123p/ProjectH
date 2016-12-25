@@ -2,8 +2,12 @@
 
 #ifndef _LIB_TIME_HPP_INCLUDED_
 
+#include <time.h>
+
 // ============================== Manager ==============================
 void Time_StartClock(void);
+clock_t Time_StopClock(void);
+double Time_CalculateClock(void);
 void Time_StopClock_ShowResult(void);
 
 void Time_DemoClockTimer(void);

@@ -29,7 +29,5 @@ void Time_StopMicroSecondClock_ShowResult(void)
 	ElapsedMicroseconds.QuadPart *= 1000000;
 	ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
 
-	printf("%I64u\n", ElapsedMicroseconds.QuadPart);
-
-	printf ("It took me %I64u micro-seconds.\n", ElapsedMicroseconds.QuadPart);
+	printf ("It took me %I64u micro-seconds.", ElapsedMicroseconds.QuadPart);
 }
