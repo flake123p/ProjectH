@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // ============================== Debug ==============================
-#define UART_LOG  (1)
+#define UART_LOG  (0)
 #define UART_WARN (1)
 #define UART_ERR  (1)
 
