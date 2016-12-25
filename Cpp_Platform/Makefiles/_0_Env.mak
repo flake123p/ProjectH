@@ -14,7 +14,7 @@ LIB_DIR = lib_linux
 endif
 
 # For g++
-INC = -Iinclude
+INC = -Iinclude -Ilib_include
 # For g++, link 時要放在 .o 後面才有用喔
 # LIB += -lpdcurses
 # LIB += -lpthread
