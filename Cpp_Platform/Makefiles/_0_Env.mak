@@ -6,15 +6,15 @@ CXXFLAGS = -g -Wall -std=c++11
 #CXXFLAGS = -g -Wall -static
 
 SRC_DIR = src
-LIB_MGR_DIR = lib_mgr
+LIB_MGR_DIR = lib/lib_mgr
 ifeq ($(OS),Windows_NT)
-LIB_DIR = lib_win
+LIB_DIR = lib/lib_win
 else
-LIB_DIR = lib_linux
+LIB_DIR = lib/lib_linux
 endif
 
 # For g++
-INC = -Iinclude -Ilib_include
+INC = -Iinclude -Ilib/lib_include
 # For g++, link 時要放在 .o 後面才有用喔
 # LIB += -lpdcurses
 # LIB += -lpthread
