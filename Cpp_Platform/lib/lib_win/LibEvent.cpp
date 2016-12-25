@@ -5,3 +5,4 @@ int Event_GetOneKeyBoard(void)
 {
 	return getch();
 }
+
