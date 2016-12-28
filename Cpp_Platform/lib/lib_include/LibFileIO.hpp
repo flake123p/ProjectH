@@ -38,6 +38,7 @@ class FileIO
 		bool IsFileExist(void);
 		void EnableFileDbgMsg(void){isFileDbgMsgOn=true;};
 		void DisableFileDbgMsg(void){isFileDbgMsgOn=false;};
+		int GetLine(unsigned char *inputString, int maxLength);
 };
 
 class FileIO_Lite : public FileIO {

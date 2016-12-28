@@ -114,7 +114,32 @@ bool FileIO::IsFileExist(void)
 	}
 }
 
+// Max return value = maxLength - 1
+int FileIO::GetLine(unsigned char *inputString, int maxLength)
+{
+	int ch;
+	int numberOfChar = 0;
 
+	inputString[0] = 0; // Clear string
+	
+	while (1) {
+		if(numberOfChar >= maxLength-1) {
+			break;
+		}
+		
+		ch = fgetc(this->fp);
+		if(ch == '\n' || ch == EOF) {
+			break;
+		}
+
+		inputString[numberOfChar] = (unsigned char)ch;
+		numberOfChar++;
+	}
+
+	inputString[numberOfChar] = 0; // End of string
+
+	return numberOfChar;
+}
 
 void Demo_Output_A_File_Cpp(void)
 {

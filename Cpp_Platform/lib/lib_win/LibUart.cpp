@@ -32,7 +32,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 
 	if (g_hComm == INVALID_HANDLE_VALUE)
 	{
-		UART_ERR_MSG("\n   Error! - Port %s can't be opened", g_ComPortName);
+		UART_ERR_MSG("\n   Error! - Port %s can't be opened\n", g_ComPortName);
 		return -1;
 	}
 	else 
@@ -48,7 +48,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 
 	if (g_Status == FALSE)
 	{
-		UART_ERR_MSG("\n   Error! in GetCommState()");
+		UART_ERR_MSG("\n   Error! in GetCommState()\n");
 		return -1;
 	}
 
@@ -98,7 +98,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 
 	if (g_Status == FALSE)
 	{
-		UART_ERR_MSG("\n   Error! in Setting DCB Structure");
+		UART_ERR_MSG("\n   Error! in Setting DCB Structure\n");
 		return -1;
 	}
 	else
@@ -120,7 +120,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 
 	if (SetCommTimeouts(g_hComm, &timeouts) == FALSE)
 	{
-		UART_ERR_MSG("\n   Error! in Setting Time Outs");
+		UART_ERR_MSG("\n   Error! in Setting Time Outs\n");
 		return -1;
 	}
 	else
@@ -155,7 +155,7 @@ int LibUart_Send(uint32_t length, uint8_t *buffer)
 	}
 	else
 	{
-		UART_ERR_MSG("\n\n   Error %ld in Writing to Serial Port", GetLastError());
+		UART_ERR_MSG("\n\n   Error %ld in Writing to Serial Port\n", GetLastError());
 		return -1;
 	}
 	
@@ -175,7 +175,7 @@ int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer)
 
 	if (g_Status == FALSE)
 	{
-		UART_ERR_MSG("\n\n    Error! in Setting CommMask");
+		UART_ERR_MSG("\n\n    Error! in Setting CommMask\n");
 		return -1;
 	}
 	else
@@ -189,7 +189,7 @@ int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer)
 	
 	if (g_Status == FALSE)
 	{
-		UART_ERR_MSG("\n    Error! in Setting WaitCommEvent()");
+		UART_ERR_MSG("\n    Error! in Setting WaitCommEvent()\n");
 	}
 	else //If  WaitCommEvent()==True Read the RXed data using ReadFile();
 	{
