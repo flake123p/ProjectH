@@ -8,6 +8,7 @@
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"
 #include "LibUtility.hpp"
+#include "LibOS.hpp"
 
 int main(void)
 {
@@ -16,6 +17,8 @@ int main(void)
 	//Time_StopClock_ShowResult();
 	Time_StartClock();
 	Time_StartMicroSecondClock();
+	Os_SleepMiliSeconds(500);
+	Os_SleepSeconds(1);
 	
 	Time_StopClock_ShowResult();
 	printf("\n");
