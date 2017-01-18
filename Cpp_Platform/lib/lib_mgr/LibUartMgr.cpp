@@ -5,8 +5,8 @@
 #include <stdint.h> // for uint32_t ...
 
 // ====== Platform Library ======
+#include "LibUart.hpp"
 #include "My_Basics.hpp"
-#include <LibUart.hpp>
 
 #define COM_PORT_NAME  "COM17"
 #define BAUD_RATE      (115200)

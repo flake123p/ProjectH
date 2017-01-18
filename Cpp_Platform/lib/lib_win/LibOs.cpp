@@ -9,12 +9,12 @@
 
 
 
-void Os_SleepSeconds(unsigned int seconds)
+void LibOs_SleepSeconds(unsigned int seconds)
 {
 	Sleep(1000 * seconds);
 }
 
-void Os_SleepMiliSeconds(unsigned int miliSeconds)
+void LibOs_SleepMiliSeconds(unsigned int miliSeconds)
 {
 	Sleep(miliSeconds);
 }

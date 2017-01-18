@@ -8,8 +8,8 @@
 #include <Windows.h>
 
 // ====== Platform Library ======
+#include "LibUart.hpp"
 #include "My_Basics.hpp"
-#include <LibUart.hpp>
 
 
 HANDLE g_hComm;                     // Handle to the Serial port
@@ -220,6 +220,20 @@ int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer)
 	
 	UART_LOG_MSG("\n%s() Success.\n", __func__);
 	return 0;
+}
+
+int LibUart_Receive_WaitData(uint32_t *receivedLength, uint8_t *buffer)
+{
+	int retVal;
+	
+	retVal = LibUart_Receive(receivedLength, buffer);
+
+	while (*receivedLength == 0) {
+		UART_LOG_MSG("\n%s() Keep waiting the receiving data.\n", __func__);
+		retVal = LibUart_Receive(receivedLength, buffer);
+	}
+
+	return retVal;
 }
 
 int LibUart_UninitComPort(void)

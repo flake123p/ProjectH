@@ -2,31 +2,38 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "My_Basics.hpp"
-
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"
 #include "LibUtility.hpp"
 #include "LibOS.hpp"
+#include "LibTui.hpp"
+#include "LibSysCmd.hpp"
+#include "My_Basics.hpp"
 
 int main(void)
 {
-	//Time_StartClock();
+	//LibTime_StartClock();
 	//LibUartMgr_DemoTxRx();
-	//Time_StopClock_ShowResult();
-	Time_StartClock();
-	Time_StartMicroSecondClock();
-	Os_SleepMiliSeconds(500);
-	Os_SleepSeconds(1);
+	//LibTime_StopClock_ShowResult();
+	LibTime_StartClock();
+	LibTime_StartMicroSecondClock();
+	//LibOs_SleepMiliSeconds(500);
+	//LibOs_SleepSeconds(1);
+
+	LibTuiMgr_DemoSimple();
+	printf("press any key to next run\n");
+	printf("press any key to next run\n");
+	LibSysCmd_Pause();
+	LibTuiMgr_DemoSimple();
 	
-	Time_StopClock_ShowResult();
+	LibTime_StopClock_ShowResult();
 	printf("\n");
-	Time_StopMicroSecondClock_ShowResult();
+	LibTime_StopMicroSecondClock_ShowResult();
 	printf("\n");
 	
 
-	DUMPD(Util_GetRand());
-	Util_Print_RAND_MAX();
+	//DUMPD(LibUtil_GetRand());
+	//LibUtil_Print_RAND_MAX();
 	//Demo_Output_A_File_Cpp_Lite();
 }

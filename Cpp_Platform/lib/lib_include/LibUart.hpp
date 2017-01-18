@@ -50,6 +50,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 int LibUart_UninitComPort(void);
 int LibUart_Send(uint32_t length, uint8_t *buffer);
 int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer);
+int LibUart_Receive_WaitData(uint32_t *receivedLength, uint8_t *buffer);
 
 #define _LIB_UART_HPP_INCLUDED_
 #endif//_LIB_UART_HPP_INCLUDED_

@@ -2,18 +2,20 @@
 #include <windows.h>
 #include <stdio.h>
 #include <time.h>
+
 #include "LibTime.hpp"
+#include "My_Basics.hpp"
 
 LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
 LARGE_INTEGER Frequency;
 
-void Time_StartMicroSecondClock(void)
+void LibTime_StartMicroSecondClock(void)
 {
 	QueryPerformanceFrequency(&Frequency); 
 	QueryPerformanceCounter(&StartingTime);
 }
 
-void Time_StopMicroSecondClock_ShowResult(void)
+void LibTime_StopMicroSecondClock_ShowResult(void)
 {
 	QueryPerformanceCounter(&EndingTime);
 	ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;

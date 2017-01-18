@@ -12,7 +12,7 @@ void ConstStr::SetStr(const char *inStr)
 	str = inStr;
 }
 
-bool String_IsCharHex(char ch)
+bool LibString_IsCharHex(char ch)
 {
 	if (ch >= '0' && ch <= '9')
 		return true;
@@ -26,7 +26,7 @@ bool String_IsCharHex(char ch)
 	return false;
 }
 
-bool String_IsCharNumber(char ch)
+bool LibString_IsCharNumber(char ch)
 {
 	if (ch >= '0' && ch <= '9')
 		return true;
@@ -34,7 +34,7 @@ bool String_IsCharNumber(char ch)
 	return false;
 }
 
-bool String_IsCharLetter(char ch)
+bool LibString_IsCharLetter(char ch)
 {
 	if (ch >= 'A' && ch <= 'Z')
 		return true;
@@ -46,7 +46,7 @@ bool String_IsCharLetter(char ch)
 }
 
 //Max return value = maxLength
-int String_HexStringToCharString(const char *srcString, char *dstString, int maxLength)
+int LibString_HexStringToCharString(const char *srcString, char *dstString, int maxLength)
 {
 	int retVal;
 	unsigned int offset = 0;
@@ -76,7 +76,7 @@ int String_HexStringToCharString(const char *srcString, char *dstString, int max
 		while(1) {
 			if (srcString[offset] == 0)
 				goto END;
-			if (String_IsCharHex(srcString[offset]))
+			if (LibString_IsCharHex(srcString[offset]))
 				offset++;
 			else
 				break;
@@ -85,7 +85,7 @@ int String_HexStringToCharString(const char *srcString, char *dstString, int max
 		while(1) {
 			if (srcString[offset] == 0)
 				goto END;
-			if (!String_IsCharHex(srcString[offset]))
+			if (!LibString_IsCharHex(srcString[offset]))
 				offset++;
 			else
 				break;

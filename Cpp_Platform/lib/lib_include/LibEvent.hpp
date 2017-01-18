@@ -7,7 +7,7 @@
 // ============================== Library: Cross-Platform ==============================
 
 // ============================== Library: Platform Dependant ==============================
-int Event_GetOneKeyBoard(void);
+int LibEvent_GetOneKeyBoard(void);
 
 
 #define _LIB_EVENY_HPP_INCLUDED_

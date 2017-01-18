@@ -9,8 +9,10 @@ SRC_DIR = src
 LIB_MGR_DIR = lib/lib_mgr
 ifeq ($(OS),Windows_NT)
 LIB_DIR = lib/lib_win
+LIB += -lpdcurses
 else
 LIB_DIR = lib/lib_linux
+LIB += -lcurses
 endif
 
 # For g++

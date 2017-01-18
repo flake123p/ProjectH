@@ -5,20 +5,20 @@
 #include <time.h>
 
 // ============================== Manager ==============================
-void Time_StartClock(void);
-clock_t Time_StopClock(void);
-double Time_CalculateClock(void);
-void Time_StopClock_ShowResult(void);
+void LibTime_StartClock(void);
+clock_t LibTime_StopClock(void);
+double LibTime_CalculateClock(void);
+void LibTime_StopClock_ShowResult(void);
 
-void Time_DemoClockTimer(void);
+void LibTime_DemoClockTimer(void);
 
 // ============================== Library: Cross-Platform ==============================
-void Time_PrintUtcTime(void);
-void Time_PrintLocalTime(void);
+void LibTime_PrintUtcTime(void);
+void LibTime_PrintLocalTime(void);
 
 // ============================== Library: Platform Dependant ==============================
-void Time_StartMicroSecondClock(void);
-void Time_StopMicroSecondClock_ShowResult(void);
+void LibTime_StartMicroSecondClock(void);
+void LibTime_StopMicroSecondClock_ShowResult(void);
 
 
 #define _LIB_TIME_HPP_INCLUDED_

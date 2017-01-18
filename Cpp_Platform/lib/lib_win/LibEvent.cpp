@@ -1,7 +1,7 @@
 
 #include <conio.h>
 
-int Event_GetOneKeyBoard(void)
+int LibEvent_GetOneKeyBoard(void)
 {
 	return getch();
 }

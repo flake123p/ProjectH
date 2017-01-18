@@ -11,10 +11,10 @@ class ConstStr {
 		void SetStr(const char *inStr);
 };
 
-bool String_IsCharHex(char ch);
-bool String_IsCharNumber(char ch);
-bool String_IsCharLetter(char ch);
-int String_HexStringToCharString(const char *srcString, char *dstString, int maxLength);
+bool LibString_IsCharHex(char ch);
+bool LibString_IsCharNumber(char ch);
+bool LibString_IsCharLetter(char ch);
+int LibString_HexStringToCharString(const char *srcString, char *dstString, int maxLength);
 
 #define _LIB_STRING_HPP_INCLUDED_
 #endif//_LIB_STRING_HPP_INCLUDED_

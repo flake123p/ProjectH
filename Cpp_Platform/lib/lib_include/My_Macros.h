@@ -40,6 +40,9 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 
 #define until(x)  while(NOT(x)) 
 
+//wait until x is true.
+#define wait_until(x) until(x){/* do nothing */;}
+
 #define UpTo(i, n) for((i) = 0; (i) < (n); ++(i))
 
 
@@ -102,7 +105,8 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define GET_BIT(var, pos)      ((var >> pos) & 1)
 #define GET_MSB(var, datatype) GET_BIT(var, (sizeof(datatype) * 4 - 1))
 #define GET_LSB(var)           GET_BIT(var, 0)
-#define CHECK_BIT(var, pos)   (!!((var) & (1 << (pos))))
+#define CHECK_BIT(var, pos)      ((var) & (1 << (pos)))
+#define CHECK_BIT_BOOL(var, pos) (!!((var) & (1 << (pos))))
 // with effect
 #define SET_BIT(var, pos)     ((var) |= (1 << (pos)))
 #define CLEAR_BIT(var, pos)   ((var) &= (~(1 << pos)))

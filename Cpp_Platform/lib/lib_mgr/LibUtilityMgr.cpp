@@ -10,22 +10,22 @@
 #include <time.h>
 
 // ====== Platform Library ======
-#include "My_Basics.hpp"
 #include "LibUtility.hpp"
+#include "My_Basics.hpp"
 
 unsigned int seed;
-void Util_InitRand(void)
+void LibUtil_InitRand(void)
 {
 	seed += time(NULL);
 	srand(seed);
 }
 
-int Util_GetRand(void)
+int LibUtil_GetRand(void)
 {
 	return rand();
 }
 
-void Util_Print_RAND_MAX(void)
+void LibUtil_Print_RAND_MAX(void)
 {
 	printf("RAND_MAX = %d\n", RAND_MAX);
 }
