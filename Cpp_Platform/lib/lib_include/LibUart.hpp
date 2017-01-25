@@ -3,6 +3,7 @@
 #ifndef _LIB_UART_HPP_INCLUDED_
 
 #include <stdint.h>
+#include <stddef.h> //for NULL
 
 // ============================== Debug ==============================
 #define UART_LOG  (0)
@@ -29,7 +30,19 @@
 
 // ============================== Manager ==============================
 int LibUartMgr_DemoTxRx(void);
+void LibUartMgr_GetComPortNameFromFile(const char *comPortNameFile, char *strComPortName);
 
+// This class is in test phase!!
+class LibUartMgr_BasicUartClass{
+public:
+	char com_port_name[20];
+	uint32_t baud_rate;
+	uint8_t  rx_buf[300];
+	uint32_t rx_len;
+	
+    LibUartMgr_BasicUartClass(uint32_t input_baud_rate, const char *input_com_port_name = NULL, const char *com_port_name_file = NULL);
+	void RunTxRx(uint32_t tx_len, uint8_t *tx_buf);
+};
 
 // ============================== Library ==============================
 typedef enum {

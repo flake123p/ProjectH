@@ -1,5 +1,6 @@
 //#include "stdafx.h" //For porting to "Visual Studio"
 #include <stdio.h>
+#include <stdlib.h>     /* atoi */
 #include "LibString.hpp"
 
 ConstStr::ConstStr(void)
@@ -93,4 +94,22 @@ int LibString_HexStringToCharString(const char *srcString, char *dstString, int 
 	}
 END:
 	return numberOfChar;
+}
+
+int LibString_DecStringToInt(const char * str)
+{
+	// double atof (const char* str);            //Convert string to double
+	// int atoi (const char * str);              //Convert string to integer
+	// long int atol ( const char * str );       //Convert string to long integer
+	// long long int atoll ( const char * str ); //Convert string to long long integer
+	return atoi(str);
+}
+
+int LibString_HexStringToInt(const char * str)
+{
+	int retVal;
+
+	sscanf(str, "%x", &retVal);
+
+	return retVal;
 }

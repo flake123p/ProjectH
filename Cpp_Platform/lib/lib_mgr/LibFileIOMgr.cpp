@@ -5,7 +5,7 @@
 #include "LibFileIO.hpp"
 #include "My_Basics.hpp"
 
-void FileIoOpen(File_Profiles_t *fileProfile)
+void LibFileIo_OpenFile(File_Profiles_t *fileProfile)
 {
 	fileProfile->fp = fopen(fileProfile->fileName, fileProfile->openMode); 
 
@@ -15,7 +15,7 @@ void FileIoOpen(File_Profiles_t *fileProfile)
 	}
 }
 
-void FileIoClose(File_Profiles_t *fileProfile)
+void LibFileIo_CloseFile(File_Profiles_t *fileProfile)
 {
 	if (fileProfile->fp == NULL) { 
 		printf("fp is NULL: %s in mode: %s. Exit Now!\n", fileProfile->fileName, fileProfile->openMode);
@@ -33,29 +33,29 @@ void FileIoClose(File_Profiles_t *fileProfile)
 	fileProfile->fp = NULL;
 }
 
-void Demo_Output_A_File(void)
+void LibLibFileIoClass_Demo_Output_A_File(void)
 {
 	File_Profiles_t outFp = {
-		"Demo_Output_A_File.txt",
+		"LibLibFileIoClass_Demo_Output_A_File.txt",
 		"w+b",
 		NULL
 	};
 
-	FileIoOpen(&outFp);
+	LibFileIo_OpenFile(&outFp);
 
-	fprintf(outFp.fp, "Hello: Demo_Output_A_File\n");
+	fprintf(outFp.fp, "Hello: LibLibFileIoClass_Demo_Output_A_File\n");
 
-	FileIoClose(&outFp);
+	LibFileIo_CloseFile(&outFp);
 }
 
-FileIO::~FileIO(void)
+LibFileIoClass::~LibFileIoClass(void)
 {
 	if(fp != NULL) {
 		FileClose();
 	}
 }
 
-void FileIO::FileOpen(void)
+void LibFileIoClass::FileOpen(void)
 {
 	File_Profiles_t filePara = {
 		NULL,
@@ -67,15 +67,15 @@ void FileIO::FileOpen(void)
 	filePara.openMode = this->openMode;
 
 	if(isFileDbgMsgOn) {
-		printf("[LibFileIO]Open: %s (mode:%s)\n", this->fileName, this->openMode);
+		printf("[LibLibFileIoClass]Open: %s (mode:%s)\n", this->fileName, this->openMode);
 	}
 	
-	FileIoOpen(&filePara);
+	LibFileIo_OpenFile(&filePara);
 
 	this->fp = filePara.fp;
 }
 
-void FileIO::FileClose(void)
+void LibFileIoClass::FileClose(void)
 {
 	File_Profiles_t filePara = {
 		NULL,
@@ -92,15 +92,15 @@ void FileIO::FileClose(void)
 	filePara.fp       = this->fp;
 
 	if(isFileDbgMsgOn) {
-		printf("[LibFileIO]Close: %s (mode:%s)\n", this->fileName, this->openMode);
+		printf("[LibLibFileIoClass]Close: %s (mode:%s)\n", this->fileName, this->openMode);
 	}
 	
-	FileIoClose(&filePara);
+	LibFileIo_CloseFile(&filePara);
 
 	this->fp = NULL;
 }
 
-bool FileIO::IsFileExist(void)
+bool LibFileIoClass::IsFileExist(void)
 {
 	fp = NULL;
 	fp = fopen(fileName, openMode); 
@@ -116,12 +116,12 @@ bool FileIO::IsFileExist(void)
 }
 
 // Max return value = maxLength - 1
-int FileIO::GetLine(unsigned char *inputString, int maxLength)
+int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
 {
 	int ch;
 	int numberOfChar = 0;
 
-	inputString[0] = 0; // Clear string
+	outputString[0] = 0; // Clear string
 	
 	while (1) {
 		if(numberOfChar >= maxLength-1) {
@@ -133,28 +133,33 @@ int FileIO::GetLine(unsigned char *inputString, int maxLength)
 			break;
 		}
 
-		inputString[numberOfChar] = (unsigned char)ch;
+		outputString[numberOfChar] = (unsigned char)ch;
 		numberOfChar++;
 	}
 
-	inputString[numberOfChar] = 0; // End of string
+	outputString[numberOfChar] = 0; // End of string
 
 	return numberOfChar;
 }
 
-void Demo_Output_A_File_Cpp(void)
+int LibFileIoClass::GetCharacter(void)
 {
-	FileIO outFile("Demo_Output_A_File_Cpp.txt", "w+b");
+	return fgetc(this->fp);
+}
+
+void LibLibFileIoClass_Demo_Output_A_File_Cpp(void)
+{
+	LibFileIoClass outFile("LibLibFileIoClass_Demo_Output_A_File_Cpp.txt", "w+b");
 
 	outFile.FileOpen();
 
-	fprintf(outFile.fp, "Hello: Demo_Output_A_File_Cpp\n");
+	fprintf(outFile.fp, "Hello: LibLibFileIoClass_Demo_Output_A_File_Cpp\n");
 }
 
-void Demo_Output_A_File_Cpp_Lite(void)
+void LibLibFileIoClass_Demo_Output_A_File_Cpp_Lite(void)
 {
-	FileIO_Lite outFile("Demo_Output_A_File_Cpp_Lite.txt", "w+b");
+	LibFileIoClass_Lite outFile("LibLibFileIoClass_Demo_Output_A_File_Cpp_Lite.txt", "w+b");
 
-	fprintf(outFile.fp, "Hello: Demo_Output_A_File_Cpp_Lite\n");
+	fprintf(outFile.fp, "Hello: LibLibFileIoClass_Demo_Output_A_File_Cpp_Lite\n");
 }
 
