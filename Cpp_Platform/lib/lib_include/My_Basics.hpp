@@ -10,9 +10,9 @@
 //
 // It will define some MACRO & TYPE, so please include me under formal header files!!!
 //
-// Please include me under formal header files!!!
-// Please include me under formal header files!!!
-// Please include me under formal header files!!!
+// Please include me "AFTER" formal header files!!! And "BEFORE" user header files!!
+// Please include me "AFTER" formal header files!!! And "BEFORE" user header files!!
+// Please include me "AFTER" formal header files!!! And "BEFORE" user header files!!
 //
 
 

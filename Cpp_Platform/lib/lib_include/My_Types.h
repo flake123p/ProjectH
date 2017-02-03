@@ -5,6 +5,19 @@
 
 #include <stdint.h> //for uint32_t
 
+//For argument
+#ifndef IN
+#define IN
+#endif
+
+#ifndef OUT
+#define OUT
+#endif
+
+#ifndef IO
+#define IO
+#endif
+
 #ifndef uchar
 typedef unsigned char uchar;
 #endif

@@ -1,6 +1,6 @@
 
 
-#ifndef _LIB_EVENY_HPP_INCLUDED_
+#ifndef _LIB_EVENT_HPP_INCLUDED_
 
 // ============================== Manager ==============================
 
@@ -13,6 +13,6 @@ int LibEvent_GetSimpleEvent(bool do_clear = true);
 int LibEvent_GetOneKeyBoard(void);
 
 
-#define _LIB_EVENY_HPP_INCLUDED_
-#endif//_LIB_EVENY_HPP_INCLUDED_
+#define _LIB_EVENT_HPP_INCLUDED_
+#endif//_LIB_EVENT_HPP_INCLUDED_
 

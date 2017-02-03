@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "My_Basics.hpp"
+
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"
@@ -9,7 +11,8 @@
 #include "LibOS.hpp"
 #include "LibTui.hpp"
 #include "LibSysCmd.hpp"
-#include "My_Basics.hpp"
+#include "LibScreenLogic.hpp"
+
 
 int main(void)
 {
@@ -38,6 +41,7 @@ int main(void)
 	//LibUtil_Print_RAND_MAX();
 	//Demo_Output_A_File_Cpp_Lite();
 	#else
+		#if 0
 		u8 ch = 0x6F;
 		int i = CHECK_BIT_FIELD(ch, BIT_0|BIT_1, SIZE_2, OFFSET_5);
 		DUMPD(i);
@@ -52,5 +56,8 @@ int main(void)
 		DUMPX(i);
 		i = BIT_0|BIT_1<<1;
 		DUMPX(i);
+		#endif
 	#endif
+
+	LibScreenLogic_Demo();
 }
