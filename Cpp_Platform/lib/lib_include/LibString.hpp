@@ -14,7 +14,9 @@ class ConstStr {
 bool LibString_IsCharHex(char ch);
 bool LibString_IsCharNumber(char ch);
 bool LibString_IsCharLetter(char ch);
+bool LibString_IsCharLegal(char ch, char *legalCharAry, int aryLen);
 int LibString_HexStringToCharString(const char *srcString, char *dstString, int maxLength);
+void LibString_2D_HexStringToCharString(char *srcString[], char *dstString, int maxLength);
 int LibString_DecStringToInt(const char * str);
 int LibString_HexStringToInt(const char * str);
 

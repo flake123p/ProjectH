@@ -46,6 +46,17 @@ bool LibString_IsCharLetter(char ch)
 	return false;
 }
 
+bool LibString_IsCharLegal(char ch, char *legalCharAry, int aryLen)
+{
+	for (int i = 0; i < aryLen; i++) {
+		if (ch == legalCharAry[i]) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 //Max return value = maxLength
 int LibString_HexStringToCharString(const char *srcString, char *dstString, int maxLength)
 {
@@ -94,6 +105,16 @@ int LibString_HexStringToCharString(const char *srcString, char *dstString, int 
 	}
 END:
 	return numberOfChar;
+}
+
+void LibString_2D_HexStringToCharString(char *srcString[], char *dstString, int maxLength)
+{
+	unsigned int temp;
+	
+	for (int i = 0; i < maxLength; i++) {
+		sscanf(srcString[i], "%x", &temp);
+		dstString[i] = (char)temp;
+	}
 }
 
 int LibString_DecStringToInt(const char * str)

@@ -27,6 +27,13 @@ ON_LEAVE_t  gCurrentGroupOnLeave = NULL;
 
 GET_EVENT_t gGetEvent = NULL;
 
+u32 gPriorEvent  = DSPTCHR_EVT_NON;
+
+void LibScreenLogic_SetPriorEvent(IN u32 event)
+{
+	gPriorEvent = event;
+}
+
 int 
 LibScreenLogic_MainDispatcher (
 	IN  u32 RootScreenIndex,
@@ -35,22 +42,40 @@ LibScreenLogic_MainDispatcher (
 {
 	int retVal;
 	u32 screen_event_id;
+	void *screen_event_handle;
 
 	LibScreenLogic_GotoNewScreenEx(RootScreenIndex, ScrnEvtId, ScrnEvtHdl);
 
 	BASIC_ASSERT(gGetEvent != NULL);
 	while(true) {
-		screen_event_id = (*gGetEvent)();
-
-		if(gCurrentScrnOnEvent != NULL) {
-			retVal = (*gCurrentScrnOnEvent) (screen_event_id, NULL_ARGU);
-
-			if(retVal == -1) {
+		if (gPriorEvent == DSPTCHR_EVT_NON) {
+			screen_event_id = (*gGetEvent)(&screen_event_handle);
+		}else {
+			screen_event_id = gPriorEvent;
+			gPriorEvent = DSPTCHR_EVT_NON;
+		}
+		
+		switch (screen_event_id) {
+			case DSPTCHR_EVT_KEYBOARD: {
+				if(gCurrentScrnOnEvent != NULL) {
+					retVal = (*gCurrentScrnOnEvent) (screen_event_id, screen_event_handle);
+				}
+			} break;
+			
+			case DSPTCHR_EVT_EXIT: {
 				goto QUIT_ALL;
-			}
+			} break;
+
+			case DSPTCHR_EVT_UPDATE_SCREEN: {
+				if(gCurrentScrnOnDraw != NULL) {
+					(*gCurrentScrnOnDraw) (NULL_ARGU, NULL_ARGU);
+				}
+			} break;
+
+			default: {
+			} break;
 		}
 	}
-	return 0;
 QUIT_ALL:
 	return retVal;
 }
@@ -189,7 +214,8 @@ int Scrn02CCC_OnEntry(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
 
 int Scrn02CCC_OnEvent(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
 {PRINT_FUNCx
-	return -1; //Leave Demo
+	LibScreenLogic_SetPriorEvent(DSPTCHR_EVT_EXIT); //Leave Demo
+	return 0;
 }
 
 int Group00_OnEntry(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
@@ -233,14 +259,17 @@ SCREEN_GROUP_CB_LIST_t Demo_GroupCallbackList[] = {
 	{1, Group01_OnEntry, NO_ON_DRAW, Group01_OnEvent, NO_ON_LEAVE},
 };
 
-u32 LibScreenLogic_Demo_CB_GetEvent(void)
+static int gKeyBoard;
+u32 LibScreenLogic_CB_SimpleGetEvent(OUT void **ScrnEvtHdlPtr)
 {
-	return (u32)LibEvent_GetOneKeyBoard();
+	*ScrnEvtHdlPtr = &gKeyBoard;
+	gKeyBoard = LibEvent_GetOneKeyBoard();
+	return DSPTCHR_EVT_KEYBOARD;
 }
 
 void LibScreenLogic_Demo(void)
 {
-	LibScreenLogic_SetCB_GetEvent(LibScreenLogic_Demo_CB_GetEvent);
+	LibScreenLogic_SetCB_GetEvent(LibScreenLogic_CB_SimpleGetEvent);
 	LibScreenLogic_SetCB_ScreenList(Demo_ScreenCallbackList);
 	LibScreenLogic_SetCB_GroupList(Demo_GroupCallbackList);
 

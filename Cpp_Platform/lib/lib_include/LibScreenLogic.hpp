@@ -31,11 +31,18 @@ typedef struct {
 #define NO_ON_LEAVE NULL
 #define NULL_ARGU   (0)
 
-typedef u32 (* GET_EVENT_t) (void);
+typedef u32 (* GET_EVENT_t) (OUT void **ScrnEvtHdlPtr);
 // ============================== Library: Cross-Platform ==============================
 // For minimizing the global variable uses
 
 // ============================== Library: Platform Dependant ==============================
+//System level screen event
+#define DSPTCHR_EVT_NON              (0x01000000)
+#define DSPTCHR_EVT_EXIT             (0x01000001)
+#define DSPTCHR_EVT_UPDATE_SCREEN    (0x01000002)
+#define DSPTCHR_EVT_KEYBOARD         (0x02000000)
+
+void LibScreenLogic_SetPriorEvent(IN u32 event);
 
 int 
 LibScreenLogic_MainDispatcher (
@@ -65,6 +72,7 @@ void
 LibScreenLogic_SetCB_GroupList(
 	IN  SCREEN_GROUP_CB_LIST_t *list);
 
+u32 LibScreenLogic_CB_SimpleGetEvent(OUT void **ScrnEvtHdlPtr);
 void LibScreenLogic_Demo(void);
 
 #define _LIB_SCREEN_LOGIC_HPP_INCLUDED_
