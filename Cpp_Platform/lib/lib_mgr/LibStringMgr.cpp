@@ -1,6 +1,10 @@
 //#include "stdafx.h" //For porting to "Visual Studio"
 #include <stdio.h>
 #include <stdlib.h>     /* atoi */
+#include <string.h>
+
+#include "My_Basics.hpp"
+
 #include "LibString.hpp"
 
 ConstStr::ConstStr(void)
@@ -46,8 +50,10 @@ bool LibString_IsCharLetter(char ch)
 	return false;
 }
 
-bool LibString_IsCharLegal(char ch, char *legalCharAry, int aryLen)
+bool LibString_IsCharLegal(char ch, const char *legalCharAry, int aryLen)
 {
+	BASIC_ASSERT(legalCharAry != NULL);
+	
 	for (int i = 0; i < aryLen; i++) {
 		if (ch == legalCharAry[i]) {
 			return true;
@@ -55,6 +61,48 @@ bool LibString_IsCharLegal(char ch, char *legalCharAry, int aryLen)
 	}
 
 	return false;
+}
+
+bool LibString_IsStringAllLetter(const char *inStr)
+{
+	if (0 == *inStr) {
+		return false;
+	}
+		
+	do {
+		if (false == LibString_IsCharLetter(*inStr)) {
+			return false;
+		}
+
+		inStr++;
+	} while (0 != *inStr);
+
+	return true;
+}
+
+/*
+	A to 0
+	B to 1
+	...
+	Z to 25
+*/
+bool LibString_CharToIndex(IN char ch, IN bool doAddingInLowercase, OUT int *index)
+{
+	if (false == LibString_IsCharLetter(ch)) {
+		return false;
+	}
+
+	if (ch >= 'A' && ch <= 'Z') {
+		*index = ch - 'A';
+	} else if (ch >= 'a' && ch <= 'z') {
+		*index = ch - 'a';
+		if (doAddingInLowercase)
+			*index = *index + 26;
+	} else {
+		BASIC_ASSERT(0);
+	}
+
+	return true;
 }
 
 //Max return value = maxLength
@@ -133,4 +181,23 @@ int LibString_HexStringToInt(const char * str)
 	sscanf(str, "%x", &retVal);
 
 	return retVal;
+}
+
+/*
+	Return Value
+		destination is returned.
+
+	num default is -1
+*/
+char * LibString_Copy(char * destination, const char * source, int num /* = -1 */)
+{
+	if (num < 0) {
+		return strcpy(destination, source);
+	} else {
+		/*
+		Copies the first num characters of source to destination. 
+		If the end of the source C string (which is signaled by a null-character) is found before num characters have been copied.
+		*/
+		return strncpy(destination, source, (size_t)num);
+	}
 }

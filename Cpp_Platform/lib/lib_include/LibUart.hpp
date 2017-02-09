@@ -41,7 +41,7 @@ public:
 	uint32_t rx_len;
 	
     LibUartMgr_BasicUartClass(uint32_t input_baud_rate, const char *input_com_port_name = NULL, const char *com_port_name_file = NULL);
-	void RunTxRx(uint32_t tx_len, uint8_t *tx_buf);
+	void RunTxRx(uint8_t *tx_buf, uint32_t tx_len);
 };
 
 // ============================== Library ==============================
@@ -61,9 +61,9 @@ typedef enum {
 
 int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byteSize = 8, STOP_BITS stopBits = STOP_BITS_1, PARITY parity = PARITY__NONE);
 int LibUart_UninitComPort(void);
-int LibUart_Send(uint32_t length, uint8_t *buffer);
-int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer);
-int LibUart_Receive_WaitData(uint32_t *receivedLength, uint8_t *buffer);
+int LibUart_Send(uint8_t *buffer, uint32_t length);
+int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength);
+int LibUart_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength);
 
 #define _LIB_UART_HPP_INCLUDED_
 #endif//_LIB_UART_HPP_INCLUDED_

@@ -132,7 +132,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 	return 0;
 }
 
-int LibUart_Send(uint32_t length, uint8_t *buffer)
+int LibUart_Send(uint8_t *buffer, uint32_t length)
 {
 	/*----------------------------- Writing a Character to Serial Port----------------------------------------*/
 	DWORD  dNoOfBytesWritten = 0;          // No of bytes written to the port
@@ -163,7 +163,7 @@ int LibUart_Send(uint32_t length, uint8_t *buffer)
 	return 0;
 }
 
-int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer)
+int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 {
 	DWORD dwEventMask;                     // Event mask to trigger
 
@@ -222,15 +222,15 @@ int LibUart_Receive(uint32_t *receivedLength, uint8_t *buffer)
 	return 0;
 }
 
-int LibUart_Receive_WaitData(uint32_t *receivedLength, uint8_t *buffer)
+int LibUart_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength)
 {
 	int retVal;
 	
-	retVal = LibUart_Receive(receivedLength, buffer);
+	retVal = LibUart_Receive(buffer, receivedLength);
 
 	while (*receivedLength == 0) {
 		UART_LOG_MSG("\n%s() Keep waiting the receiving data.\n", __func__);
-		retVal = LibUart_Receive(receivedLength, buffer);
+		retVal = LibUart_Receive(buffer, receivedLength);
 	}
 
 	return retVal;

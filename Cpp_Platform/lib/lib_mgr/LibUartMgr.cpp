@@ -24,12 +24,12 @@ int LibUartMgr_DemoTxRx(void)
 	uint32_t receivedLegnth = 0;
 	LibUart_InitComPort(COM_PORT_NAME, BAUD_RATE);
 
-	LibUart_Send(sizeof(lpBuffer), lpBuffer);
-	LibUart_Receive(&receivedLegnth, gRxBuffer);
+	LibUart_Send(lpBuffer, sizeof(lpBuffer));
+	LibUart_Receive(gRxBuffer, &receivedLegnth);
 	UART_LOG_MSG(">>> receivedLegnth = %d\n", receivedLegnth);
 	
-	LibUart_Send(sizeof(lpBuffer), lpBuffer);
-	LibUart_Receive(&receivedLegnth, gRxBuffer);
+	LibUart_Send(lpBuffer, sizeof(lpBuffer));
+	LibUart_Receive(gRxBuffer, &receivedLegnth);
 	UART_LOG_MSG(">>> receivedLegnth = %d\n", receivedLegnth);
 	
 	LibUart_UninitComPort();
@@ -64,13 +64,13 @@ LibUartMgr_BasicUartClass::LibUartMgr_BasicUartClass(uint32_t input_baud_rate, c
 	}
 }
 
-void LibUartMgr_BasicUartClass::RunTxRx(uint32_t tx_len, uint8_t *tx_buf)
+void LibUartMgr_BasicUartClass::RunTxRx(uint8_t *tx_buf, uint32_t tx_len)
 {
 	BASIC_ASSERT(this->com_port_name[0] != 0);
 	LibUart_InitComPort(this->com_port_name, this->baud_rate);
 
-	LibUart_Send(tx_len, tx_buf);
-	LibUart_Receive(&(this->rx_len), this->rx_buf);
+	LibUart_Send(tx_buf, tx_len);
+	LibUart_Receive(this->rx_buf, &(this->rx_len));
 
 	LibUart_UninitComPort();
 	return;
