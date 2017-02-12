@@ -1,0 +1,16 @@
+
+
+#ifndef _LIB_EVENT_HPP_INCLUDED_
+
+// ============================== Library: Cross-Platform (Manager) ==============================
+// For minimizing the global variable uses
+void LibEvent_SendSimpleEvent(int inputEvent);
+int LibEvent_GetSimpleEvent(bool do_clear = true);
+
+// ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
+int LibEvent_GetOneKeyBoard(void);
+
+
+#define _LIB_EVENT_HPP_INCLUDED_
+#endif//_LIB_EVENT_HPP_INCLUDED_
+
