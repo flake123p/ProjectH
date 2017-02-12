@@ -30,6 +30,7 @@ static bool _CharOptionParser(char *str, const char *legalCharAry, int aryLen)
 	do {
 		if (legalCharAry != NULL) {
 			if (false == LibString_IsCharLegal(*str, legalCharAry, aryLen)) {
+				gDoesCharOptionExist = false;
 				return false;
 			}
 		}
@@ -66,6 +67,13 @@ bool LibArgParser_CharOptionParser(int argc, char *argv[], const char *legalChar
 	}
 
 	return true;
+}
+
+bool LibArgParser_CharOptionParserEx(int argc, char *argv[], const char *legalCharAry)
+{
+	int aryLen = strlen(legalCharAry);
+
+	return LibArgParser_CharOptionParser(argc, argv, legalCharAry, aryLen);
 }
 
 bool LibArgParser_CheckCharOption(char ch)

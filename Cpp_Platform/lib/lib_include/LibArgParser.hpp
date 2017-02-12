@@ -22,6 +22,7 @@ typedef struct {
 // For minimizing the global variable uses
 void LibArgParser_ClearCharOption(void);
 bool LibArgParser_CharOptionParser(int argc, char *argv[], const char *legalCharAry = NULL, int aryLen = 0);
+bool LibArgParser_CharOptionParserEx(int argc, char *argv[], const char *legalCharAry);
 bool LibArgParser_CheckCharOption(char ch);
 bool LibArgParser_DoesCharOptionExist(void);
 bool LibArgParser_ArgvsToVariables(ARG_TYPE_DB_t *db_buf, u32 count, char *argv[], u32 argv_start_index, OUT u32 *error_index);

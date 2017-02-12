@@ -55,7 +55,7 @@ fout_sets.write('SCREEN_CB_LIST_t My_ScreenCallbackList[] = {\n')
 ctr = 0
 for each_word in name_list:
 	fout_sets.write('\t')
-	fout_sets.write('{' + '{:20} 0, '.format(up_name_list[ctr] + ','))
+	fout_sets.write('{' + '{:24} 0, '.format(up_name_list[ctr] + ','))
 	fout_sets.write('{:28s}'.format(each_word + '_OnEntry, '))
 	fout_sets.write('{:28s}'.format(each_word + '_OnDraw, '))
 	fout_sets.write('{:28s}'.format(each_word + '_OnEvent, '))

@@ -14,7 +14,7 @@
 #include "LibScreenLogic.hpp"
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	#if 0
 	//LibTime_StartClock();
