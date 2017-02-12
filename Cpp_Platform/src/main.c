@@ -1,18 +1,4 @@
 
-#include <stdio.h>
-#include <string.h>
-
-#include "My_Basics.hpp"
-
-#include "LibUart.hpp"
-#include "LibTime.hpp"
-#include "LibFileIO.hpp"
-#include "LibUtility.hpp"
-#include "LibOS.hpp"
-#include "LibTui.hpp"
-#include "LibSysCmd.hpp"
-#include "LibScreenLogic.hpp"
-
 #include "Everything_App.hpp"
 
 int main(int argc, char *argv[])
@@ -60,5 +46,7 @@ int main(int argc, char *argv[])
 		#endif
 	#endif
 
-	LibScreenLogic_Demo();
+	//LibScreenLogic_Demo();
+	return LibSharedMemory_Demo_Server();
+	//return LibSharedMemory_Demo_Client();
 }

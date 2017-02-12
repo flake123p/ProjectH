@@ -2,11 +2,26 @@
 
 #ifndef _EVERYTHING_APP_HPP_INCLUDED_
 
-// ============================== Library: Cross-Platform (Manager) ==============================
-#include "My_Types.h"
+//#include "stdafx.h" //For porting to "Visual Studio"
 
+// ====== Standard C/Cpp Library ======
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h> // for uint32_t ...
 
-// ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
+// ====== Basics ======
+#include "My_Basics.hpp"
+
+// ====== Platform Library ======
+#include "LibUart.hpp"
+#include "LibTime.hpp"
+#include "LibFileIO.hpp"
+#include "LibUtility.hpp"
+#include "LibOS.hpp"
+#include "LibTui.hpp"
+#include "LibSysCmd.hpp"
+#include "LibScreenLogic.hpp"
+#include "LibSharedMemory.hpp"
 
 
 #define _EVERYTHING_APP_HPP_INCLUDED_

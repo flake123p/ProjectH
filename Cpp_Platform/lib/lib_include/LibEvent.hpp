@@ -8,6 +8,10 @@ void LibEvent_SendSimpleEvent(int inputEvent);
 int LibEvent_GetSimpleEvent(bool do_clear = true);
 
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
+//From Keyboard
+#define KEYBOARD_BACKSPACE  (0x08)
+#define KEYBOARD_ENTER      (0x0D)
+#define KEYBOARD_ESC        (0x1B)
 int LibEvent_GetOneKeyBoard(void);
 
 
