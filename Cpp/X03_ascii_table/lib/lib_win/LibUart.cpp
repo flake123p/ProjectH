@@ -7,9 +7,12 @@
 // ====== Standard Windows Library ======
 #include <Windows.h>
 
+// ====== Basics ======
+#include "My_Basics.hpp"
+
 // ====== Platform Library ======
 #include "LibUart.hpp"
-#include "My_Basics.hpp"
+
 
 
 HANDLE g_hComm;                     // Handle to the Serial port

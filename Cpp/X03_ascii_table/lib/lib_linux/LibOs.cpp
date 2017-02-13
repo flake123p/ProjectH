@@ -6,3 +6,9 @@ void LibOs_SleepSeconds(unsigned int seconds)
 {
 	sleep(seconds);
 }
+
+void LibOs_SleepMiliSeconds(unsigned int miliSeconds)
+{
+
+}
+

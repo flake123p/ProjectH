@@ -13,18 +13,21 @@ static bool gDoesCharOptionExist = false;
 	'A' = 0x41 (65)
 	'a' = 0x61 (97)
 */
-static int  gCharOption[52] = {0};
+static int  gCharOption[52 + 10] = {0};
 
 /*
 	return true if option exists.
 */
 static bool _CharOptionParser(char *str, const char *legalCharAry, int aryLen)
 {
+	// Skip 1st char, which is '-'
 	str++;
-	
+
+	/*
 	if (false == LibString_IsStringAllLetter(str)) {
 		return false;
 	}
+	*/
 
 	int index;
 	do {
@@ -36,6 +39,7 @@ static bool _CharOptionParser(char *str, const char *legalCharAry, int aryLen)
 		}
 		
 		LibString_CharToIndex(*str, true, &index);
+
 		gCharOption[index] = 1;
 		gDoesCharOptionExist = true;
 		str++;
@@ -81,13 +85,11 @@ bool LibArgParser_CheckCharOption(char ch)
 	if (false == gDoesCharOptionExist) {
 		return false;
 	}
-	
-	if (false == LibString_IsCharLetter(ch)) {
-		return false;
-	}
 
 	int index;
-	LibString_CharToIndex(ch, true, &index);
+	if (false == LibString_CharToIndex(ch, true, &index)) {
+		return false;
+	}
 
 	if (gCharOption[index])
 		return true;

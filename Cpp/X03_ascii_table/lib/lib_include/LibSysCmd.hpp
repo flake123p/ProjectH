@@ -2,11 +2,9 @@
 
 #ifndef _LIB_SYSTEM_COMMAND_HPP_INCLUDED_
 
-// ============================== Manager ==============================
+// ============================== Library: Cross-Platform (Manager) ==============================
 
-// ============================== Library: Cross-Platform ==============================
-
-// ============================== Library: Platform Dependant ==============================
+// ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
 void LibSysCmd_ClearScreen(void);
 void LibSysCmd_Pause(void);
 

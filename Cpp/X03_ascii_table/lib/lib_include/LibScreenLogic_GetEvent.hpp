@@ -47,12 +47,6 @@ typedef struct {
 #define USER_EVT_KB_SCAN_YES      (0x03000010)
 #define USER_EVT_KB_SCAN_NO       (0x03000011)
 
-//From Keyboard
-#define KEYBOARD_BACKSPACE  (0x08)
-#define KEYBOARD_ENTER      (0x0D)
-#define KEYBOARD_ESC        (0x1B)
-
-
 u32 LibScreenLogic_CB_GetEvent(OUT void **ScrnEvtHdlPtr);
 
 void LibScreenLogic_GetEvent_DEMO(void);
