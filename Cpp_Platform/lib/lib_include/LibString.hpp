@@ -25,6 +25,17 @@ int LibString_DecStringToInt(const char * str);
 int LibString_HexStringToInt(const char * str);
 char * LibString_Copy(char * destination, const char * source, int num = -1);
 
+typedef struct {
+	u32 index;
+	const char *abbreviation;
+	const char *caretNotation;
+	const char *escapeSequecesInC;
+	const char *description;
+} CTRL_CHAR_ATTRIB_t;
+CTRL_CHAR_ATTRIB_t *LibString_ControlChar_TableGet(OUT u32 *length);
+void LibString_DumpControlChar(void);
+void LibString_DumpPrintableChar(void);
+
 /*
 	string.h     http://www.cplusplus.com/reference/cstring/
 

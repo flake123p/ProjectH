@@ -17,7 +17,7 @@
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"
 #include "LibUtility.hpp"
-#include "LibOS.hpp"
+#include "LibOs.hpp"
 #include "LibTui.hpp"
 #include "LibSysCmd.hpp"
 #include "LibScreenLogic.hpp"

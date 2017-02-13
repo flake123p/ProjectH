@@ -6,10 +6,6 @@
 #include <stdint.h> // for uint32_t ...
 using namespace std;
 
-// ====== Standard Windows Library ======
-#include <windows.h>
-#include <tchar.h>
-
 // ====== Basics ======
 #include "My_Basics.hpp"
 
