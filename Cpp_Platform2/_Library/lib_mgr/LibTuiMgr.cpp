@@ -1,9 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
+
+#include "Everything_Lib_Mgr.hpp"
 
 #include <curses.h>
 
-#include "LibEvent.hpp"
 #include "LibTui.hpp"
 
 #define C_WHITE_ON_BLUE (1)
@@ -32,19 +31,19 @@ void LibTui_DumpDebugString(const char *string_to_dump, unsigned int str_len, in
 }
 void LibTui_Init(void)
 {
-    initscr();
-    start_color();
-    init_pair(C_WHITE_ON_BLUE, COLOR_WHITE, COLOR_BLUE);
-    init_pair(C_BLACK_ON_CYAN, COLOR_BLACK, COLOR_CYAN);
+	initscr();
+	start_color();
+	init_pair(C_WHITE_ON_BLUE, COLOR_WHITE, COLOR_BLUE);
+	init_pair(C_BLACK_ON_CYAN, COLOR_BLACK, COLOR_CYAN);
 	init_pair(C_BLACK_ON_WHITE, COLOR_BLACK, COLOR_WHITE);
-    
-    cbreak(); /* don't buffer keyboard (Old curses: crmode())*/
+
+	cbreak(); /* don't buffer keyboard (Old curses: crmode())*/
 	//nocbreak(); /* do buffer keyboard (Old curses: nocrmode())*/
-	
-    nonl();
-    noecho();
-    intrflush(stdscr,FALSE);
-    keypad(stdscr,TRUE);
+
+	nonl();
+	noecho();
+	intrflush(stdscr,FALSE);
+	keypad(stdscr,TRUE);
 }
 
 void LibTui_Uninit(void)

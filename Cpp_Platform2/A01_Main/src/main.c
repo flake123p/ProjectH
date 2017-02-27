@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 		#endif
 	#endif
 
-	LibOsMgr_DemoSleep();
+	LibTuiMgr_DemoSimple();
 	//LibScreenLogic_Demo();
 	return 229;//LibSharedMemory_Demo_Server();
 	//return LibSharedMemory_Demo_Client();

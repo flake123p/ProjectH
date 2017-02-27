@@ -22,6 +22,7 @@
 #include "LibSysCmd.hpp"
 #include "LibScreenLogic.hpp"
 #include "LibSharedMemory.hpp"
+#include "LibEvent.hpp"
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_
