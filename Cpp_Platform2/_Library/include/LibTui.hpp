@@ -13,6 +13,7 @@ void LibTui_Init(void);
 void LibTui_Uninit(void);
 void LibTui_UpdateScreen(void);
 
+int LibTuiMgr_DumpAttr(void);
 int LibTuiMgr_DemoSimple(void);
 
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================

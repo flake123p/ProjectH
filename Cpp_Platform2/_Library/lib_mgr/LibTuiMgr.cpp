@@ -5,28 +5,19 @@
 
 #include "LibTui.hpp"
 
-#define C_WHITE_ON_BLUE (1)
-#define C_BLACK_ON_CYAN (2)
+#define C_WHITE_ON_BLUE  (1)
+#define C_BLACK_ON_CYAN  (2)
 #define C_BLACK_ON_WHITE (3)
 
 int gX=1;
 int gY=1;
 
-void LibTui_DumpDebugString(const char *string_to_dump, unsigned int str_len, int x, int y)
+void LibTui_DumpDebugString(const char *string_to_dump, int x, int y)
 {
-	unsigned int i;
+	attron(A_REVERSE);
+	mvaddstr(y, x, string_to_dump);
+	attroff(A_REVERSE);
 
-	#if 0
-	move(y,x);
-	for (i=0; i<20; i++) {
-		addch(' ');
-	}
-	#endif
-	
-	move(y,x);
-	for (i=0; i<str_len; i++) {
-		addch(string_to_dump[i]);
-	}
 	move(gY,gX);
 }
 void LibTui_Init(void)
@@ -56,16 +47,49 @@ void LibTui_UpdateScreen(void)
 	refresh();
 }
 
+int LibTui_GetCh(void)
+{
+	return getch();
+}
+
+int LibTuiMgr_DumpAttr(void)
+{
+	int ch;
+	char str[50];
+	LibTui_Init();
+
+	LibTui_DumpDebugString("PRESS [ESC] TO LEAVE:", 0, 0);
+	while (1) {
+		ch = LibTui_GetCh();
+
+		//ESC
+		if (ch == 27) {
+			break;
+		}
+
+		sprintf(str, "0x%04X", ch);
+		LibTui_DumpDebugString("          ", 0, 1);
+		LibTui_DumpDebugString(str, 0, 1);
+		LibTui_UpdateScreen();
+	}
+
+	LibTui_Uninit();
+	return 0;
+}
+
 int LibTuiMgr_DemoSimple(void)
 {
 	char str[] = "LibTuiMgr_DemoSimple() ... PRESS ANY KEY TO LEAVE";
 	
 	LibTui_Init();
 
-	LibTui_DumpDebugString(str, sizeof(str)-1, 10, 20);
+	LibTui_DumpDebugString(str, 10, 20);
 	LibTui_UpdateScreen();
-	LibEvent_GetOneKeyBoard();
+	LibTui_GetCh();
 
 	LibTui_Uninit();
 	return 0;
 }
+
+
+
