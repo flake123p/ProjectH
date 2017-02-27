@@ -9,10 +9,7 @@ void LibTime_StartClock(void);
 clock_t LibTime_StopClock(void);
 double LibTime_CalculateClock(void);
 void LibTime_StopClock_ShowResult(void);
-
 void LibTime_DemoClockTimer(void);
-
-// ============================== Library: Cross-Platform ==============================
 void LibTime_PrintUtcTime(void);
 void LibTime_PrintLocalTime(void);
 

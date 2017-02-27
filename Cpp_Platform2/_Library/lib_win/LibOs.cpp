@@ -18,3 +18,18 @@ void LibOs_SleepMiliSeconds(unsigned int miliSeconds)
 {
 	Sleep(miliSeconds);
 }
+
+
+void LibOs_SleepMicroSeconds(unsigned int microSeconds)
+{
+	/*
+		Windows can't sleep less than 1 mini-seconds, this is workaround funcion
+	*/
+	
+	microSeconds = microSeconds / 1000;
+	if (microSeconds == 0) {
+		microSeconds = 1;
+	}
+	Sleep(microSeconds);
+}
+
