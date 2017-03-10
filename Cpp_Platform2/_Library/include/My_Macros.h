@@ -109,7 +109,7 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define CHECK_BIT_BOOL(var, pos) (!!((var) & (1 << (pos))))
 /*** with effect ***/
 #define SET_BIT(var, pos)     ((var) |= (1 << (pos)))
-#define CLEAR_BIT(var, pos)   ((var) &= (~(1 << pos)))
+#define CLEAR_BIT(var, pos)   ((var) &= (~(1 << (pos))))
 #define TOGGLE_BIT(var, pos)  ((var) ^= (1 << (pos)))
 
 
@@ -129,13 +129,15 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 // No Effect Version.  Beware of using this!!!
 //
 #define SetBit(var, pos)     ((var) | (1 << (pos)))
-#define ClearBit(var, pos)   ((var) & (~(1 << pos)))
+#define ClearBit(var, pos)   ((var) & (~(1 << (pos))))
 #define ToggleBit(var, pos)  ((var) ^ (1 << (pos)))
 #define FlgAdd(a, b)         ((a) | (b))
 #define FlgRmv(a, b)         ((a) & (~(b)))
 
 
-
+/*
+ * Set, Clear, Check bit-field (multiple bits)
+ */
 #define BIT_0  (1<<0 )  //0x00000001
 #define BIT_1  (1<<1 )  //0x00000002
 #define BIT_2  (1<<2 )  //0x00000004
@@ -234,6 +236,13 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define OFFSET_31 (31)
 #define BIT_MASK(size) ((1<<(size))-1)
 
+/*
+ *  For example:
+ *    Clear 3 bits in start offset 1: CLEAR_BIT_FIELD(a, SIZE_3, OFFSET_1)
+ *    Clear 3 bits in start offset 2: CLEAR_BIT_FIELD(a, SIZE_3, OFFSET_2)
+ *    Set   5 bits in start offset 3: SET_BIT_FIELD(a, value, SIZE_5, OFFSET_3)
+ *    Check 2 bits in start offset 6: if (CHECK_BIT_FIELD(a, value, SIZE_2, OFFSET_6)) {...}
+ */
 #define CLEAR_BIT_FIELD(a, size, offset)        a=FlgRmv((a), BIT_MASK(size)<<(offset))
 #define SET_BIT_FIELD(a, value, size, offset)   a=FlgAdd(FlgRmv((a), (BIT_MASK(size)<<(offset))), (value)<<(offset))
 #define CHECK_BIT_FIELD(a, value, size, offset) (((a)&(BIT_MASK(size)<<(offset)))==((value)<<(offset)))

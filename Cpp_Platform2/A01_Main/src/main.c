@@ -46,7 +46,10 @@ int main(int argc, char *argv[])
 		#endif
 	#endif
 
-	LibTuiMgr_DumpAttr();
+	//LibTuiMgr_DemoDumpAttr();
+	_LibList_DemoMenuList();
+	//LibBuffer_DemoBasic();
+	
 	//LibScreenLogic_Demo();
 	return 229;//LibSharedMemory_Demo_Server();
 	//return LibSharedMemory_Demo_Client();

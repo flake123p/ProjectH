@@ -17,7 +17,7 @@ void ConstStr::SetStr(const char *inStr)
 	str = inStr;
 }
 
-bool LibString_IsCharHex(char ch)
+bool LibString_IsCharHexadecimal(char ch)
 {
 	if (ch >= '0' && ch <= '9')
 		return true;
@@ -31,7 +31,7 @@ bool LibString_IsCharHex(char ch)
 	return false;
 }
 
-bool LibString_IsCharNumber(char ch)
+bool LibString_IsCharDecimal(char ch)
 {
 	if (ch >= '0' && ch <= '9')
 		return true;
@@ -45,6 +45,14 @@ bool LibString_IsCharLetter(char ch)
 		return true;
 
 	if (ch >= 'a' && ch <= 'z')
+		return true;
+
+	return false;
+}
+
+bool LibString_IsCharPrintable(char ch)
+{
+	if (ch >= 32 && ch <= 126)
 		return true;
 
 	return false;
@@ -112,7 +120,7 @@ bool LibString_CharToIndex(IN char ch, IN bool doAddingInLowercase, OUT int *ind
 }
 
 //Max return value = maxLength
-int LibString_HexStringToCharString(const char *srcString, char *dstString, int maxLength)
+int LibString_HexStringToCharString(const char *srcString, u8 *dstString, int maxLength)
 {
 	int retVal;
 	unsigned int offset = 0;
@@ -121,7 +129,7 @@ int LibString_HexStringToCharString(const char *srcString, char *dstString, int 
 
 	//To next word
 	while(1) {
-		if (srcString[offset] == '\t' || srcString[offset] == ' ') {
+		if (!LibString_IsCharHexadecimal(srcString[offset])) {
 			offset++;
 		} else {
 			break;
@@ -133,7 +141,7 @@ int LibString_HexStringToCharString(const char *srcString, char *dstString, int 
 		if (retVal == 0)
 			break;
 			
-		dstString[numberOfChar] = (char)tempVal;
+		dstString[numberOfChar] = (u8)tempVal;
 		numberOfChar++;
 		if (numberOfChar >= maxLength)
 			break;
@@ -142,7 +150,7 @@ int LibString_HexStringToCharString(const char *srcString, char *dstString, int 
 		while(1) {
 			if (srcString[offset] == 0)
 				goto END;
-			if (LibString_IsCharHex(srcString[offset]))
+			if (LibString_IsCharHexadecimal(srcString[offset]))
 				offset++;
 			else
 				break;
@@ -151,7 +159,7 @@ int LibString_HexStringToCharString(const char *srcString, char *dstString, int 
 		while(1) {
 			if (srcString[offset] == 0)
 				goto END;
-			if (!LibString_IsCharHex(srcString[offset]))
+			if (!LibString_IsCharHexadecimal(srcString[offset]))
 				offset++;
 			else
 				break;
@@ -161,13 +169,63 @@ END:
 	return numberOfChar;
 }
 
-void LibString_2D_HexStringToCharString(char *srcString[], char *dstString, int maxLength)
+//Max return value = maxLength
+int LibString_DecStringToCharString(const char *srcString, u8 *dstString, int maxLength)
+{
+	int retVal;
+	unsigned int offset = 0;
+	int numberOfChar = 0;
+	unsigned int tempVal;
+
+	//To next word
+	while(1) {
+		if (!LibString_IsCharDecimal(srcString[offset])) {
+			offset++;
+		} else {
+			break;
+		}
+	}
+
+	while(1) {
+		retVal = sscanf(srcString+offset, "%d", &tempVal);
+		if (retVal == 0)
+			break;
+			
+		dstString[numberOfChar] = (u8)tempVal;
+		numberOfChar++;
+		if (numberOfChar >= maxLength)
+			break;
+			
+		//Skip proccessed word
+		while(1) {
+			if (srcString[offset] == 0)
+				goto END;
+			if (LibString_IsCharDecimal(srcString[offset]))
+				offset++;
+			else
+				break;
+		}
+		//To next word
+		while(1) {
+			if (srcString[offset] == 0)
+				goto END;
+			if (!LibString_IsCharDecimal(srcString[offset]))
+				offset++;
+			else
+				break;
+		}
+	}
+END:
+	return numberOfChar;
+}
+
+void LibString_2D_HexStringToCharString(char *srcString[], u8 *dstString, int maxLength)
 {
 	unsigned int temp;
 	
 	for (int i = 0; i < maxLength; i++) {
 		sscanf(srcString[i], "%x", &temp);
-		dstString[i] = (char)temp;
+		dstString[i] = (u8)temp;
 	}
 }
 

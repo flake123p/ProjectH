@@ -225,20 +225,6 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 	return 0;
 }
 
-int LibUart_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength)
-{
-	int retVal;
-	
-	retVal = LibUart_Receive(buffer, receivedLength);
-
-	while (*receivedLength == 0) {
-		UART_LOG_MSG("\n%s() Keep waiting the receiving data.\n", __func__);
-		retVal = LibUart_Receive(buffer, receivedLength);
-	}
-
-	return retVal;
-}
-
 int LibUart_UninitComPort(void)
 {
 	CloseHandle(g_hComm);//Closing the Serial Port

@@ -33,7 +33,3 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 	return 0;
 }
 
-int LibUart_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength)
-{
-	return 0;
-}

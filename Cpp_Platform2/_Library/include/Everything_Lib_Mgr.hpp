@@ -5,14 +5,16 @@
 //#include "stdafx.h" //For porting to "Visual Studio"
 
 // ====== Standard C/Cpp Library ======
-#include <stdio.h>
+#include <stdio.h>  // printf, scanf, NULL
 #include <string.h>
-#include <stdint.h> // for uint32_t ...
+#include <stdint.h> // uint32_t, ...
+#include <stdlib.h> // malloc, free, rand
 
 // ====== Basics ======
 #include "My_Basics.hpp"
 
 // ====== Platform Library ======
+#include "_LibMenu.hpp"
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"
@@ -23,6 +25,8 @@
 #include "LibScreenLogic.hpp"
 #include "LibSharedMemory.hpp"
 #include "LibEvent.hpp"
+#include "LibBuffer.hpp"
+#include "LibString.hpp"
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_

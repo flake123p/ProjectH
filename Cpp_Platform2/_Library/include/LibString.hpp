@@ -13,14 +13,16 @@ class ConstStr {
 		void SetStr(const char *inStr);
 };
 
-bool LibString_IsCharHex(char ch);
-bool LibString_IsCharNumber(char ch);
+bool LibString_IsCharHexadecimal(char ch);
+bool LibString_IsCharDecimal(char ch);
 bool LibString_IsCharLetter(char ch);
+bool LibString_IsCharPrintable(char ch);
 bool LibString_IsCharLegal(char ch, const char *legalCharAry, int aryLen);
 bool LibString_IsStringAllLetter(const char *inStr);
 bool LibString_CharToIndex(IN char ch, IN bool doAddingInLowercase, OUT int *index);
-int LibString_HexStringToCharString(const char *srcString, char *dstString, int maxLength);
-void LibString_2D_HexStringToCharString(char *srcString[], char *dstString, int maxLength);
+int LibString_HexStringToCharString(const char *srcString, u8 *dstString, int maxLength);
+int LibString_DecStringToCharString(const char *srcString, u8 *dstString, int maxLength);
+void LibString_2D_HexStringToCharString(char *srcString[], u8 *dstString, int maxLength);
 int LibString_DecStringToInt(const char * str);
 int LibString_HexStringToInt(const char * str);
 char * LibString_Copy(char * destination, const char * source, int num = -1);

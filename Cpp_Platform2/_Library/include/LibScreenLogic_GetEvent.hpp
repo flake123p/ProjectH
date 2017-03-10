@@ -21,7 +21,7 @@ typedef enum {
 
 typedef struct {
 	IN  SCAN_KEY_TYPE   type;
-	LibBufferClass<u8>  buf; //Make sure buf max len is less 1 than REAL BUFFER.
+	LibBufferLog<u8>  buf; //Make sure buf max len is less 1 than REAL BUFFER.
 	/*
 		IN  T1 *buf;
 		IN  u32 bufMaxLen; // 1 bassed. (Means start from 1, not 0)

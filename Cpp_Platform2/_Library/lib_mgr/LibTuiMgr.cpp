@@ -12,14 +12,29 @@
 int gX=1;
 int gY=1;
 
-void LibTui_DumpDebugString(const char *string_to_dump, int x, int y)
+void LibTui_DrawString(const char *str, int x, int y, bool do_reverse /* = false */, int color /* = 0 */)
 {
-	attron(A_REVERSE);
-	mvaddstr(y, x, string_to_dump);
-	attroff(A_REVERSE);
-
-	move(gY,gX);
+	if (do_reverse)
+		attron(A_REVERSE);
+	if (color)
+		attron(COLOR_PAIR(color));
+		
+	mvaddstr(y, x, str);
+	
+	if (do_reverse)
+		attroff(A_REVERSE);
+	if (color)
+		attroff(COLOR_PAIR(color));
 }
+
+void LibTui_DrawDecimal(int val, int x, int y, bool do_reverse /* = false */, int color /* = 0 */)
+{
+	char str[20];
+	sprintf(str, "%d", val);
+
+	LibTui_DrawString(str, x, y, do_reverse, color);
+}
+
 void LibTui_Init(void)
 {
 	initscr();
@@ -42,23 +57,56 @@ void LibTui_Uninit(void)
 	endwin();
 }
 
-void LibTui_UpdateScreen(void)
-{
-	refresh();
-}
-
 int LibTui_GetCh(void)
 {
 	return getch();
 }
 
-int LibTuiMgr_DumpAttr(void)
+void LibTui_GetMaxXY(OUT int *x, OUT int *y)
+{
+	*x = getmaxx(stdscr);
+	*y = getmaxy(stdscr);
+}
+
+void LibTui_MoveCursor(int x, int y)
+{
+	move(y,x);
+}
+
+void LibTui_ClearArea(int x, int y, int x_len, int y_len, int ch)
+{
+	move(y,x);
+
+	for (int i = 0; i < y_len; i++) {
+		move(y+i,x);
+		for (int j = 0; j < x_len; j++) {
+			addch(ch);
+		}
+	}
+}
+
+int LibTui_Command(TUI_COMMAND cmd, void *cmdHdl /* = NULL */)
+{
+	switch (cmd) {
+	case TUI_CLEAR_SCREEN:
+		wclear(stdscr);
+	break;
+
+	case TUI_REFRESH_SCREEN:
+		refresh();
+	break;
+	}
+
+	return 0;
+}
+
+int LibTuiMgr_DemoDumpAttr(void)
 {
 	int ch;
 	char str[50];
 	LibTui_Init();
 
-	LibTui_DumpDebugString("PRESS [ESC] TO LEAVE:", 0, 0);
+	LibTui_DrawString("PRESS [ESC] TO LEAVE:", 0, 0);
 	while (1) {
 		ch = LibTui_GetCh();
 
@@ -68,9 +116,9 @@ int LibTuiMgr_DumpAttr(void)
 		}
 
 		sprintf(str, "0x%04X", ch);
-		LibTui_DumpDebugString("          ", 0, 1);
-		LibTui_DumpDebugString(str, 0, 1);
-		LibTui_UpdateScreen();
+		LibTui_DrawString("          ", 0, 1);
+		LibTui_DrawString(str, 0, 1);
+		LibTui_Command(TUI_REFRESH_SCREEN);
 	}
 
 	LibTui_Uninit();
@@ -83,13 +131,56 @@ int LibTuiMgr_DemoSimple(void)
 	
 	LibTui_Init();
 
-	LibTui_DumpDebugString(str, 10, 20);
-	LibTui_UpdateScreen();
+	LibTui_DrawString(str, 10, 20);
+	LibTui_Command(TUI_REFRESH_SCREEN);
 	LibTui_GetCh();
 
 	LibTui_Uninit();
 	return 0;
 }
 
+int LibTuiMgr_DemoDumpMem(char *memory_address)
+{
+	int ch;
+	char str[80];
+	char lineStr[17];
+	u8 *mem = (u8 *)memory_address;
+	LibTui_Init();
 
+	LibTui_DrawString("PRESS [ESC] TO LEAVE:", 0, 0);
+	while (1) {
+		mem = (u8 *)memory_address;
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				if (LibString_IsCharPrintable(mem[j])) {
+					lineStr[j] = mem[j];
+				} else {
+					lineStr[j] = '-';
+				}
+			}
+			lineStr[16] = 0;
+			
+			sprintf(str, 
+			        "[0x%08X] %02X %02X %02X %02X %02X %02X %02X %02X - %02X %02X %02X %02X %02X %02X %02X %02X  **%s**", 
+			        (u32)mem,
+			        mem[0], mem[1], mem[2], mem[3], mem[4], mem[5], mem[6], mem[7], mem[8], mem[9], mem[10], mem[11], mem[12], mem[13], mem[14], mem[15],
+			        lineStr
+			        );
+			LibTui_DrawString(str, 0, i+2);
+			mem+=16;
+		}
+		
+		LibTui_Command(TUI_REFRESH_SCREEN);
+
+		ch = LibTui_GetCh();
+
+		//ESC
+		if (ch == 27) {
+			break;
+		}
+	}
+
+	LibTui_Uninit();
+	return 0;
+}
 

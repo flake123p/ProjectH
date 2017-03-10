@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stddef.h> //for NULL
+#include "My_Types.h"
 
 // ============================== Debug ==============================
 #define UART_LOG  (0)
@@ -30,19 +31,8 @@
 
 // ============================== Manager ==============================
 int LibUartMgr_DemoTxRx(void);
-void LibUartMgr_GetComPortNameFromFile(const char *comPortNameFile, char *strComPortName);
-
-// This class is in test phase!!
-class LibUartMgr_BasicUartClass{
-public:
-	char com_port_name[20];
-	uint32_t baud_rate;
-	uint8_t  rx_buf[300];
-	uint32_t rx_len;
-	
-    LibUartMgr_BasicUartClass(uint32_t input_baud_rate, const char *input_com_port_name = NULL, const char *com_port_name_file = NULL);
-	void RunTxRx(uint8_t *tx_buf, uint32_t tx_len);
-};
+void LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate = NULL);
+int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint32_t miliSeconds = 10000);
 
 // ============================== Library ==============================
 typedef enum {
@@ -63,7 +53,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 int LibUart_UninitComPort(void);
 int LibUart_Send(uint8_t *buffer, uint32_t length);
 int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength);
-int LibUart_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength);
+
 
 #define _LIB_UART_HPP_INCLUDED_
 #endif//_LIB_UART_HPP_INCLUDED_

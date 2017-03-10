@@ -20,16 +20,16 @@ key_t gShmKey = 0x20170227;
 int   gShmId  = 0;
 char *gShmPtr = NULL;
 
-bool LibSharedMemory_Init(u32 buf_size, SHM_INIT_TYPE_t init_type)
+bool LibSharedMemory_Init(u32 buf_size, SHM_SC_TYPE_t sc_type)
 {
 	int shmflg;
 
-	switch (init_type) {
-		case SHM_SERVER_INIT:
+	switch (sc_type) {
+		case SHM_SERVER:
 			shmflg = IPC_CREAT | 0666;
 			break;
 
-		case SHM_CLIENT_INIT:
+		case SHM_CLIENT:
 			shmflg = 0666;
 			break;
 
@@ -57,17 +57,17 @@ bool LibSharedMemory_Init(u32 buf_size, SHM_INIT_TYPE_t init_type)
 	return true;
 }
 
-void LibSharedMemory_Uninit(SHM_INIT_TYPE_t init_type)
+void LibSharedMemory_Uninit(SHM_SC_TYPE_t sc_type)
 {
 	char cmd[60];
 
-	switch (init_type) {
-		case SHM_SERVER_INIT:
+	switch (sc_type) {
+		case SHM_SERVER:
 			sprintf(cmd, "ipcrm --shmem-key 0x%08x\n", gShmKey);
 			system(cmd);
 			break;
 
-		case SHM_CLIENT_INIT:
+		case SHM_CLIENT:
 			break;
 
 		default:

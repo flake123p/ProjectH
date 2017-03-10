@@ -2,6 +2,7 @@
 
 
 #ifndef _LIB_SHARED_MEMORY_HPP_INCLUDED_
+#include <stdarg.h>
 #include "My_Types.h"
 
 // ============================== Debug ==============================
@@ -17,9 +18,9 @@
 
 // ============================== Library: Cross-Platform (Manager) ==============================
 typedef enum {
-	SHM_SERVER_INIT,
-	SHM_CLIENT_INIT,
-} SHM_INIT_TYPE_t;
+	SHM_SERVER,
+	SHM_CLIENT,
+} SHM_SC_TYPE_t;
 
 typedef enum {
 	SERVER_IS_FREE,
@@ -36,15 +37,29 @@ typedef struct {
 	CLIENT_REQUEST_t client_request;
 	u32              max_len;
 	u32              cur_len;
-} SM_STAT_t;
+} SHM_STATE_t;
 int LibShmMgr_Demo_Server(void);
 int LibShmMgr_Demo_Client(void);
-char *LibShmMgr_Init_WithStat(IN u32 buf_size, OUT SM_STAT_t **stat, SHM_INIT_TYPE_t init_type);
-void LibShmMgr_DumpStat(SM_STAT_t *stat);
-char *LibShmMgr_InitEx(u32 buf_size, SHM_INIT_TYPE_t init_type);
+char *LibShmMgr_Init_WithStat(IN u32 buf_size, OUT SHM_STATE_t **stat, SHM_SC_TYPE_t init_type);
+void LibShmMgr_DumpStat(SHM_STATE_t *stat);
+char *LibShmMgr_InitEx(u32 buf_size, SHM_SC_TYPE_t init_type);
+
+
+typedef struct {
+	char *sm_buf;
+	SHM_STATE_t *state;
+} SHM_GENERIC_CMD_t;
+typedef enum {
+	SHM_SERVER_INIT,
+	SHM_CLIENT_INIT,
+	SHM_SERVER_UNINIT,
+	SHM_CLIENT_UNINIT,
+} SHM_COMMAND;
+int LibShmMgr_Command(SHM_COMMAND cmd, void *cmdHdl = NULL);
+int LibShmMgr_ClientPrint(SHM_GENERIC_CMD_t *genericCmd, const char *format, ...);
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
-bool LibSharedMemory_Init(u32 buf_size, SHM_INIT_TYPE_t init_type);
-void LibSharedMemory_Uninit(SHM_INIT_TYPE_t init_type);
+bool LibSharedMemory_Init(u32 buf_size, SHM_SC_TYPE_t init_type);
+void LibSharedMemory_Uninit(SHM_SC_TYPE_t init_type);
 char *LibSharedMemory_GetBuffer();
 
 #define _LIB_SHARED_MEMORY_HPP_INCLUDED_

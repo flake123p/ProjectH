@@ -26,13 +26,13 @@
 #define ARRAYDUMPU(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %u\n", xi, a[xi]);}
 #define ARRAYDUMPX(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%X\n", xi, a[xi]);}
 
-#define PRINT_NEW_LINE printf("\n");
-#define PRINT_FUNC  printf("%s",__func__);
-#define PRINT_LINE  printf("%d",__LINE__);
-#define PRINT_FILE  printf("%s",__FILE__);
-#define PRINT_FUNCn PRINT_FUNC PRINT_NEW_LINE
-#define PRINT_LINEn PRINT_LINE PRINT_NEW_LINE
-#define PRINT_FILEn PRINT_FILE PRINT_NEW_LINE
+#define PRINT_NEXT_LINE printf("\n");
+#define PRINT_FUNC(a)  printf("%s",__func__);if(a){PRINT_NEXT_LINE}
+#define PRINT_LINE(a)  printf("%d",__LINE__);if(a){PRINT_NEXT_LINE}
+#define PRINT_FILE(a)  printf("%s",__FILE__);if(a){PRINT_NEXT_LINE}
+//#define PRINT_FUNC(1) PRINT_FUNC PRINT_NEXT_LINE
+//#define PRINT_LINE(1) PRINT_LINE PRINT_NEXT_LINE
+//#define PRINT_FILEn PRINT_FILE PRINT_NEXT_LINE
 
 #ifndef ENABLE_DBG_MSG
 #define ENABLE_DBG_MSG (1)

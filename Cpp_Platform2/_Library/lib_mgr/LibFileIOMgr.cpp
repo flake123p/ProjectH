@@ -117,7 +117,12 @@ bool LibFileIoClass::IsFileExist(void)
 	}
 }
 
-// Max return value = maxLength - 1
+/*
+	 Return value:
+	   1.) Not include \n character
+	   2.) Max return value = maxLength - 1
+	   3.) Last character will be set to 0
+*/
 int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
 {
 	int ch;
@@ -141,7 +146,11 @@ int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
 
 	outputString[numberOfChar] = 0; // End of string
 
-	return numberOfChar;
+	if (ch == EOF && numberOfChar == 0) {
+		return EOF;
+	} else {
+		return numberOfChar;
+	}
 }
 
 int LibFileIoClass::GetCharacter(void)

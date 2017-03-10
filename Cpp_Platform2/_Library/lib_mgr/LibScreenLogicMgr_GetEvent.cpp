@@ -20,7 +20,7 @@ void LibScreenLogic_SetScanKeyDatabase(IN SCAN_KEY_MGR_DB_t *db)
 
 u32 LibScreenLogic_ScanMgr_Hex(int ch)
 {
-	if(LibString_IsCharHex(ch)) {
+	if(LibString_IsCharHexadecimal(ch)) {
 		bool isPushSuccess = gScanDB->buf.Push((u8)ch);
 
 		if (isPushSuccess) {
@@ -103,14 +103,14 @@ u32 LibScreenLogic_CB_GetEvent(OUT void **ScrnEvtHdlPtr)
 }
 
 static u8 gBuffer[300];
-//LibBufferClass<u8> gBuf = LibBufferClass<u8>(gBuffer, 300);
+//LibBufferLog<u8> gBuf = LibBufferLog<u8>(gBuffer, 300);
 SCAN_KEY_MGR_DB_t gMyScanDB = {
 	SCAN_KEY_TYPE_HEX,
-	LibBufferClass<u8>(gBuffer, 4),
+	LibBufferLog<u8>(gBuffer, 4),
 };
 void LibScreenLogic_GetEvent_DEMO(void)
 {
-	PRINT_FUNCn;
+	PRINT_FUNC(1);
 	
 	USER_EVENT_t *hdl;
 	u32 retVal;
@@ -123,7 +123,7 @@ void LibScreenLogic_GetEvent_DEMO(void)
 		DUMPX(hdl->user_event);
 	} while (hdl->user_event != USER_EVT_KB_ESC);
 
-	PRINT_LINEn;
+	PRINT_LINE(1);
 	LibScreenLogic_SetScanKeyDatabase(&gMyScanDB);
 	do {
 		retVal = LibScreenLogic_CB_GetEvent((void **)(&hdl));

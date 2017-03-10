@@ -176,75 +176,75 @@ LibScreenLogic_SetCB_GroupList(
 
 
 int Scrn00AAA_OnEntry(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Scrn00AAA_OnDraw(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Scrn00AAA_OnEvent(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	LibScreenLogic_GotoNewScreen(1);
 	return 0;
 }
 
 int Scrn00AAA_OnLeave(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Scrn01BBB_OnEntry(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Scrn01BBB_OnEvent(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	LibScreenLogic_GotoNewScreen(2);
 	return 0;
 }
 
 int Scrn02CCC_OnEntry(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Scrn02CCC_OnEvent(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	LibScreenLogic_SetPriorEvent(DSPTCHR_EVT_EXIT); //Leave Demo
 	return 0;
 }
 
 int Group00_OnEntry(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Group00_OnDraw(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Group00_OnEvent(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Group00_OnLeave(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Group01_OnEntry(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 
 int Group01_OnEvent(IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl)
-{PRINT_FUNCn
+{PRINT_FUNC(1)
 	return 0;
 }
 

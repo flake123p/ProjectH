@@ -21,11 +21,11 @@ HANDLE  g_hSharedMemory = NULL; //global handle to shared memory
 LPTSTR  g_pBuffer = NULL;       //shared memory pointer
 TCHAR   g_szShareMemoryName[] = _T("My Shared Memory");  //Name of the shared memory, required for a Named Kernal Object
 
-bool LibSharedMemory_Init(u32 buf_size, SHM_INIT_TYPE_t init_type)
+bool LibSharedMemory_Init(u32 buf_size, SHM_SC_TYPE_t sc_type)
 {
-	switch (init_type) {
-		case SHM_SERVER_INIT:
-		case SHM_CLIENT_INIT:
+	switch (sc_type) {
+		case SHM_SERVER:
+		case SHM_CLIENT:
 			break;
 
 		default:
@@ -87,11 +87,11 @@ bool LibSharedMemory_Init(u32 buf_size, SHM_INIT_TYPE_t init_type)
 	return true;
 }
 
-void LibSharedMemory_Uninit(SHM_INIT_TYPE_t init_type)
+void LibSharedMemory_Uninit(SHM_SC_TYPE_t sc_type)
 {
-	switch (init_type) {
-		case SHM_SERVER_INIT:
-		case SHM_CLIENT_INIT:
+	switch (sc_type) {
+		case SHM_SERVER:
+		case SHM_CLIENT:
 			break;
 
 		default:
