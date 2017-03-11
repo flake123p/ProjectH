@@ -160,6 +160,7 @@ int LibShmMgr_Command(SHM_COMMAND cmd, void *cmdHdl /* = NULL */)
 	switch (cmd) {
 	case SHM_SERVER_INIT: {
 		SHM_GENERIC_CMD_t *genericCmd = (SHM_GENERIC_CMD_t *)cmdHdl;
+		BASIC_ASSERT(cmdHdl != NULL);
 		
 		char *sm_buf = LibShmMgr_Init_WithStat(SHARED_MEMORY_SIZE, &(genericCmd->state), SHM_SERVER);
 
@@ -168,6 +169,7 @@ int LibShmMgr_Command(SHM_COMMAND cmd, void *cmdHdl /* = NULL */)
 
 	case SHM_CLIENT_INIT: {
 		SHM_GENERIC_CMD_t *genericCmd = (SHM_GENERIC_CMD_t *)cmdHdl;
+		BASIC_ASSERT(cmdHdl != NULL);
 		
 		char *sm_buf = LibShmMgr_Init_WithStat(SHARED_MEMORY_SIZE, &(genericCmd->state), SHM_CLIENT);
 

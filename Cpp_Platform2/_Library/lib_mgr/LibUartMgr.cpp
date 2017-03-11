@@ -57,11 +57,15 @@ int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint3
 	}
 	
 	retVal = LibUart_Receive(buffer, receivedLength);
+	if (retVal) 
+		return retVal;
 
 	while (*receivedLength == 0) {
 		UART_LOG_MSG("\n%s() Keep waiting the receiving data.\n", __func__);
 		retVal = LibUart_Receive(buffer, receivedLength);
-
+		if (retVal) 
+			return retVal;
+		
 		if (retryLoop == 0) {
 			break;
 		} else {
