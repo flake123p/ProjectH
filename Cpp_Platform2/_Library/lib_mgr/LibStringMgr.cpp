@@ -266,6 +266,17 @@ char * LibString_Copy(char * destination, const char * source, int num /* = -1 *
 	}
 }
 
+u8 LibString_GetCheckSumU8(u8 *srcAry, u32 srcAryLen)
+{
+	u32 tempU32 = 0;
+	for (u32 i = 0; i < srcAryLen; i++) {
+		tempU32 += srcAry[i];
+	}
+	tempU32 = 0x100 - tempU32;
+
+	return (u8)tempU32;
+}
+
 CTRL_CHAR_ATTRIB_t gCtrlCharAttribTable[] = {
 	{0,   "NUL",  "^@",   "\\0",  "Null"},
 	{1,   "SOH",  "^A",   " ",    "Start of Heading"},
