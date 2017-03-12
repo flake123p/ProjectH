@@ -1,4 +1,4 @@
-﻿@ECHO OFF
+@ECHO OFF
 
 call build.bat %1 %2
 

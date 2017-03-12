@@ -1,4 +1,4 @@
-﻿@ECHO OFF
+@ECHO OFF
 
 call build.bat %1 %2
 
@@ -15,7 +15,8 @@ goto EXIT_NORMAL
 
 rem
 rem  Within a block statement (a parenthesised series of statements), the entire block is parsed and then executed.
-rem  所以把 aout.exe 移出來才能正確讀到 ERRORLEVEL
+rem  So move aout.exe out to read ERRORLEVEL correctly
+rem
 :EXECUTE_AOUT
 if "%3" NEQ "--redirect" (
 	echo "aout.exe"
