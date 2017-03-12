@@ -2,11 +2,21 @@
 
 #ifndef _EVERYTHING_LIB_WIN_HPP_INCLUDED_
 
-// ============================== Library: Cross-Platform (Manager) ==============================
-#include "My_Types.h"
 
+// ====== Standard C/Cpp Library ======
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h> // for uint32_t ...
 
-// ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
+// ====== Standard Windows Library ======
+#include <Windows.h>
+
+// ====== Basics ======
+#include "My_Basics.hpp"
+
+// ====== Platform Library ======
+#include "LibUart.hpp"
+#include "LibThread.hpp"
 
 
 #define _EVERYTHING_LIB_WIN_HPP_INCLUDED_

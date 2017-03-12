@@ -47,10 +47,39 @@ int main(int argc, char *argv[])
 	#endif
 
 	//LibTuiMgr_DemoDumpAttr();
-	_LibList_DemoMenuList();
+	//_LibMenu_Demo();
 	//LibBuffer_DemoBasic();
+	u8 var = 0x0;
+	if(var&0x1 == 0x0) {
+		printf("TRUE\n");
+	} else {
+		printf("FALSE\n");
+	}
+
+	if(FLG_CHK(var, 0x1) == 0x0) {
+		printf("TRUE\n");
+	} else {
+		printf("FALSE\n");
+	}
+
+	if(NOT(CHECK_BIT(var, 0))) {
+		printf("TRUE\n");
+	} else {
+		printf("FALSE\n");
+	}
+
+	if(NOT(CHECK_BIT(var, OFFSET_0))) {
+		printf("TRUE\n");
+	} else {
+		printf("FALSE\n");
+	}
+
+	// NBB_Reg.AAAAAA.Gbyte.LLbyte = 0x03;
+	// NBB_Reg.AAAAAA.Gbyte.LLbyte = (BIT0 | BIT1);
+	
+	//LibThreadMgr_Demo();
 	
 	//LibScreenLogic_Demo();
-	return 229;//LibSharedMemory_Demo_Server();
+	return 0;//LibSharedMemory_Demo_Server();
 	//return LibSharedMemory_Demo_Client();
 }

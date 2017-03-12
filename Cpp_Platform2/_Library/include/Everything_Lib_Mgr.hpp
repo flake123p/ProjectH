@@ -27,6 +27,7 @@
 #include "LibEvent.hpp"
 #include "LibBuffer.hpp"
 #include "LibString.hpp"
+#include "LibThread.hpp"
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_

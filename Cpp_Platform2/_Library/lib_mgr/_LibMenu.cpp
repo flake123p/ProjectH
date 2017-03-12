@@ -171,7 +171,7 @@ void _LibVectorData::Clear(void)
 	userData.clear();
 }
 
-void _LibList_DemoMenuList(void)
+void _LibMenu_Demo(void)
 {
 	_LibVectorMenu obj;
 	char str[] = "abcdef";
