@@ -3,7 +3,7 @@
 
 #include "My_Basics.hpp"
 
-#include "LibString.hpp"
+#include "_LibString.hpp"
 #include "LibBuffer.hpp"
 #include "LibEvent.hpp"        // LibEvent_GetOneKeyBoard()
 #include "LibScreenLogic.hpp"  // return DSPTCHR_EVT_KEYBOARD

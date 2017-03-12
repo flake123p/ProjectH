@@ -1,6 +1,6 @@
 
 
-#ifndef _LIB_STRING_HPP_INCLUDED_
+#ifndef __LIB_STRING_HPP_INCLUDED_
 
 #include "My_Types.h"
 
@@ -67,6 +67,6 @@ void LibString_DumpPrintableChar(void);
 
 	
 */
-#define _LIB_STRING_HPP_INCLUDED_
-#endif//_LIB_STRING_HPP_INCLUDED_
+#define __LIB_STRING_HPP_INCLUDED_
+#endif//__LIB_STRING_HPP_INCLUDED_
 

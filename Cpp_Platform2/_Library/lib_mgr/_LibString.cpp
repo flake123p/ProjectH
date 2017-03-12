@@ -5,7 +5,7 @@
 
 #include "My_Basics.hpp"
 
-#include "LibString.hpp"
+#include "_LibString.hpp"
 
 ConstStr::ConstStr(void)
 {

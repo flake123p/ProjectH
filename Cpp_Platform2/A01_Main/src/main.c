@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
 	//_LibMenu_Demo();
 	//LibBuffer_DemoBasic();
 
-	return 1;
 	u8 var = 0x0;
 	if(var&0x1 == 0x0) {
 		printf("TRUE\n");
