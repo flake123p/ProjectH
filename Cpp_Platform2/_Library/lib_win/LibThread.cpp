@@ -1,6 +1,10 @@
 
 #include "Everything_Lib_Win.hpp"
 
+/*
+	Reference: https://www.codeproject.com/Articles/13557/Creating-Threads-using-the-CreateThread-API
+*/
+
 typedef struct {
 	HANDLE winHdl;
 	THREAD_PRIORITY_t priority;

@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
 	//LibTuiMgr_DemoDumpAttr();
 	//_LibMenu_Demo();
 	//LibBuffer_DemoBasic();
+
+	return 1;
 	u8 var = 0x0;
 	if(var&0x1 == 0x0) {
 		printf("TRUE\n");
@@ -68,7 +70,7 @@ int main(int argc, char *argv[])
 		printf("FALSE\n");
 	}
 
-	if(NOT(CHECK_BIT(var, OFFSET_0))) {
+	if(NOT(CHECK_BIT(var, BIT_POSITION_0))) {
 		printf("TRUE\n");
 	} else {
 		printf("FALSE\n");
@@ -76,6 +78,7 @@ int main(int argc, char *argv[])
 
 	// NBB_Reg.AAAAAA.Gbyte.LLbyte = 0x03;
 	// NBB_Reg.AAAAAA.Gbyte.LLbyte = (BIT0 | BIT1);
+	// FLG_ADD(NBB_Reg.AAAAAA.Gbyte.LLbyte, BIT0 | BIT1);
 	
 	//LibThreadMgr_Demo();
 	
