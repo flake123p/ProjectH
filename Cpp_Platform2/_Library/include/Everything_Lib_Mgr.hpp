@@ -15,6 +15,7 @@
 
 // ====== Platform Library ======
 #include "_LibMenu.hpp"
+#include "_LibString.hpp"
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"
@@ -26,7 +27,7 @@
 #include "LibSharedMemory.hpp"
 #include "LibEvent.hpp"
 #include "LibBuffer.hpp"
-#include "LibString.hpp"
+#include "LibThread.hpp"
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_

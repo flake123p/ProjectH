@@ -1,6 +1,6 @@
 
 
-#ifndef _LIB_STRING_HPP_INCLUDED_
+#ifndef __LIB_STRING_HPP_INCLUDED_
 
 #include "My_Types.h"
 
@@ -26,6 +26,8 @@ void LibString_2D_HexStringToCharString(char *srcString[], u8 *dstString, int ma
 int LibString_DecStringToInt(const char * str);
 int LibString_HexStringToInt(const char * str);
 char * LibString_Copy(char * destination, const char * source, int num = -1);
+u8 LibString_GetCheckSumU8(u8 *srcAry, u32 srcAryLen);
+
 
 typedef struct {
 	u32 index;
@@ -65,6 +67,6 @@ void LibString_DumpPrintableChar(void);
 
 	
 */
-#define _LIB_STRING_HPP_INCLUDED_
-#endif//_LIB_STRING_HPP_INCLUDED_
+#define __LIB_STRING_HPP_INCLUDED_
+#endif//__LIB_STRING_HPP_INCLUDED_
 

@@ -1,19 +1,5 @@
 
-// ====== Standard C/Cpp Library ======
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h> // for uint32_t ...
-
-// ====== Standard Windows Library ======
-#include <Windows.h>
-
-// ====== Basics ======
-#include "My_Basics.hpp"
-
-// ====== Platform Library ======
-#include "LibUart.hpp"
-
-
+#include "Everything_Lib_Win.hpp"
 
 HANDLE g_hComm;                     // Handle to the Serial port
 char   g_ComPortName[30] = {0};     // Name of the Serial port(May Change) to be opened,

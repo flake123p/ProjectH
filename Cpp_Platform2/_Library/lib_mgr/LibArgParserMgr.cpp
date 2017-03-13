@@ -5,7 +5,7 @@
 
 #include "My_Basics.hpp"
 
-#include "LibString.hpp"
+#include "_LibString.hpp"
 #include "LibArgParser.hpp"
 
 static bool gDoesCharOptionExist = false;

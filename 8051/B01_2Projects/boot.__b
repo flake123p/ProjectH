@@ -1,0 +1,5 @@
+TRANSFER
+".\Object_Boot\boot.obj",
+".\Object_Boot\STARTUP.obj",
+".\Object_Boot\App1Entry.obj" 
+TO ".\Object_Boot\..\boot.LIB"

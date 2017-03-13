@@ -52,7 +52,7 @@ public:
 	void Clear(void);
 };
 
-void _LibList_DemoMenuList(void);
+void _LibMenu_Demo(void);
 
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
 // NULL on pure cpp library

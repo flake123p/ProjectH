@@ -5,7 +5,7 @@
 
 #include "My_Basics.hpp"
 
-#include "LibString.hpp"
+#include "_LibString.hpp"
 
 ConstStr::ConstStr(void)
 {
@@ -264,6 +264,17 @@ char * LibString_Copy(char * destination, const char * source, int num /* = -1 *
 		*/
 		return strncpy(destination, source, (size_t)num);
 	}
+}
+
+u8 LibString_GetCheckSumU8(u8 *srcAry, u32 srcAryLen)
+{
+	u32 tempU32 = 0;
+	for (u32 i = 0; i < srcAryLen; i++) {
+		tempU32 += srcAry[i];
+	}
+	tempU32 = 0x100 - tempU32;
+
+	return (u8)tempU32;
 }
 
 CTRL_CHAR_ATTRIB_t gCtrlCharAttribTable[] = {
