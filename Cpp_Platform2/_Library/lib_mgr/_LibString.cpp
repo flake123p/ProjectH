@@ -88,6 +88,15 @@ bool LibString_IsStringAllLetter(const char *inStr)
 	return true;
 }
 
+bool LibString_IsCharNonspace(char ch)
+{
+	if (ch == '\t' || ch == '\n' ||ch == ' ') {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 /*
 	A to 0
 	B to 1
@@ -120,7 +129,7 @@ bool LibString_CharToIndex(IN char ch, IN bool doAddingInLowercase, OUT int *ind
 }
 
 //Max return value = maxLength
-int LibString_HexStringToCharString(const char *srcString, u8 *dstString, int maxLength)
+int LibString_HexStringToCharString(u8 *dstString, const char *srcString, int maxLength)
 {
 	int retVal;
 	unsigned int offset = 0;
@@ -170,7 +179,7 @@ END:
 }
 
 //Max return value = maxLength
-int LibString_DecStringToCharString(const char *srcString, u8 *dstString, int maxLength)
+int LibString_DecStringToCharString(u8 *dstString, const char *srcString, int maxLength)
 {
 	int retVal;
 	unsigned int offset = 0;
@@ -219,7 +228,7 @@ END:
 	return numberOfChar;
 }
 
-void LibString_2D_HexStringToCharString(char *srcString[], u8 *dstString, int maxLength)
+void LibString_2D_HexStringToCharString(u8 *dstString, char *srcString[], int maxLength)
 {
 	unsigned int temp;
 	
@@ -360,4 +369,111 @@ void LibString_DumpPrintableChar(void)
 	}
 
 	printf("\n");
+}
+
+
+void LibStringClass::Init(char *cString)
+{
+	str = cString;
+	subStrVector.clear();
+}
+
+size_t LibStringClass::Length(void) //Same result as Size()
+{
+	return str.length();
+}
+
+size_t LibStringClass::Size(void) //Same result as Length()
+{
+	return str.size();
+}
+
+bool LibStringClass::FindChar(char ch, size_t pos /* = 0 */, OUT u32 *result_position /* = NULL */)
+{
+	size_t retPos = str.find(ch, pos);
+
+	if (retPos != std::string::npos) {
+		if (result_position != NULL) {
+			*result_position = (u32)retPos;
+		}
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool LibStringClass::FindString(const char *s, size_t pos /* = 0 */, OUT u32 *result_position /* = NULL */)
+{
+	size_t retPos = str.find(s, pos);
+
+	if (retPos != std::string::npos) {
+		if (result_position != NULL) {
+			*result_position = (u32)retPos;
+		}
+		return true;
+	} else {
+		return false;
+	}
+}
+
+int LibStringClass::Split(void)
+{
+	u32 string_length = str.size();
+	char *buf = (char *)malloc(string_length+1);
+	std::string bufString;
+	const char *src = str.c_str();
+
+	subStrVector.clear();
+	
+	for (u32 i = 0; i < string_length; ) {
+		//DUMPD(i);
+		if (LibString_IsCharNonspace(src[i])) {
+			sscanf(&(src[i]), "%s", buf);
+			bufString = buf;
+			subStrVector.push_back(bufString);
+			i+=strlen(buf);
+		} else {
+			i++;
+		}
+	}
+
+	return 0;
+}
+
+int LibStringClass::ReplaceWithRestLength(const char *s)
+{
+	if (FindString(s)) {
+		//PRINT_LINE(1);
+		Split();
+
+		std::string tempString;
+		for (u32 i = 0; i < subStrVector.size(); i++) {
+			if (subStrVector[i].find(s) != std::string::npos) {
+				char temp[10];
+				sprintf(temp, "%02X  ", subStrVector.size()-i-1);
+				tempString += temp;
+			} else {
+				tempString += subStrVector[i];
+				tempString += "  ";
+			}
+		}
+		//DUMPS(tempString.c_str());
+		str = tempString;
+	} else {
+		//PRINT_LINE(1);
+	}
+
+	//Dump();
+	
+	return 0;
+}
+
+void LibStringClass::Dump(void)
+{
+	printf("str = %s\n", str.c_str());
+	printf("length = %d\n", Length());
+	printf("Size of sub-string = %d\n", subStrVector.size());
+	for (u32 i = 0; i < subStrVector.size(); i++) {
+		printf("subStr[%d] = %s\n", i, subStrVector[i].c_str());
+	}
 }

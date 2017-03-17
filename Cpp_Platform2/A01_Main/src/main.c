@@ -1,6 +1,9 @@
 
 #include "Everything_App.hpp"
 
+char testString1[] = "{03 04 04 FF 07 04 01 FF}>>> 01 7d fc [??] [00 20 02 00] 80";
+char testString2[] = "{03 04 04 FF 07 04 01 FF}>>> 01 7d fc ?? [00 20 02 80] 80";
+
 int main(int argc, char *argv[])
 {
 	#if 0
@@ -50,35 +53,21 @@ int main(int argc, char *argv[])
 	//_LibMenu_Demo();
 	//LibBuffer_DemoBasic();
 
-	u8 var = 0x0;
-	if(var&0x1 == 0x0) {
-		printf("TRUE\n");
-	} else {
-		printf("FALSE\n");
-	}
+	testString1[0] = 'x';
+	DUMPS(testString1);
 
-	if(FLG_CHK(var, 0x1) == 0x0) {
-		printf("TRUE\n");
-	} else {
-		printf("FALSE\n");
-	}
-
-	if(NOT(CHECK_BIT(var, 0))) {
-		printf("TRUE\n");
-	} else {
-		printf("FALSE\n");
-	}
-
-	if(NOT(CHECK_BIT(var, BIT_POSITION_0))) {
-		printf("TRUE\n");
-	} else {
-		printf("FALSE\n");
-	}
-
-	// NBB_Reg.AAAAAA.Gbyte.LLbyte = 0x03;
-	// NBB_Reg.AAAAAA.Gbyte.LLbyte = (BIT0 | BIT1);
-	// FLG_ADD(NBB_Reg.AAAAAA.Gbyte.LLbyte, BIT0 | BIT1);
-	
+	LibStringClass obj;
+	char abc[] = "AB? C D [??] !! 11 ?? ??";
+	DUMPD(strlen(abc));
+	obj.Init(abc);
+	DUMPD(obj.Length());
+	DUMPD(obj.Size());
+	DUMPD(obj.FindChar('?'));
+	DUMPD(obj.FindChar('x'));
+	DUMPD(obj.FindString("??"));
+	DUMPD(obj.FindString("!!"));
+	obj.ReplaceWithRestLength("??");
+	DUMPS(obj.str.c_str());
 	//LibThreadMgr_Demo();
 	
 	//LibScreenLogic_Demo();

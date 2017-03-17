@@ -1,7 +1,8 @@
 
 
 #ifndef __LIB_STRING_HPP_INCLUDED_
-
+#include <vector>
+#include <String>
 #include "My_Types.h"
 
 class ConstStr {
@@ -19,10 +20,12 @@ bool LibString_IsCharLetter(char ch);
 bool LibString_IsCharPrintable(char ch);
 bool LibString_IsCharLegal(char ch, const char *legalCharAry, int aryLen);
 bool LibString_IsStringAllLetter(const char *inStr);
+bool LibString_IsCharNonspace(char ch);
+
 bool LibString_CharToIndex(IN char ch, IN bool doAddingInLowercase, OUT int *index);
-int LibString_HexStringToCharString(const char *srcString, u8 *dstString, int maxLength);
-int LibString_DecStringToCharString(const char *srcString, u8 *dstString, int maxLength);
-void LibString_2D_HexStringToCharString(char *srcString[], u8 *dstString, int maxLength);
+int LibString_HexStringToCharString(u8 *dstString, const char *srcString, int maxLength);
+int LibString_DecStringToCharString(u8 *dstString, const char *srcString, int maxLength);
+void LibString_2D_HexStringToCharString(u8 *dstString, char *srcString[], int maxLength);
 int LibString_DecStringToInt(const char * str);
 int LibString_HexStringToInt(const char * str);
 char * LibString_Copy(char * destination, const char * source, int num = -1);
@@ -67,6 +70,25 @@ void LibString_DumpPrintableChar(void);
 
 	
 */
+
+
+class LibStringClass{
+public:
+	std::string str;
+	std::vector<std::string> subStrVector;
+	
+	LibStringClass(){}; // Do nothing.
+	~LibStringClass(void){}; // Do nothing.
+	void Init(char *cString);
+	size_t Length(void); //Same result as Size()
+	size_t Size(void); //Same result as Length()
+	bool FindChar(const char ch, size_t pos = 0, OUT u32 *result_position = NULL);
+	bool FindString(const char *s, size_t pos = 0, OUT u32 *result_position = NULL);
+	int Split(void);
+	int ReplaceWithRestLength(const char *s);
+	void Dump(void);
+};
+
 #define __LIB_STRING_HPP_INCLUDED_
 #endif//__LIB_STRING_HPP_INCLUDED_
 

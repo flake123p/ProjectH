@@ -46,8 +46,13 @@ void LibTui_ClearArea(int x, int y, int x_len, int y_len, int ch);
 typedef enum {
 	TUI_CLEAR_SCREEN,
 	TUI_REFRESH_SCREEN,
+	TUI_MOVE_CURSOR,
 } TUI_COMMAND;
-int LibTui_Command(TUI_COMMAND cmd, void *cmdHdl = NULL);
+typedef struct {
+	int x;
+	int y;
+} TUI_COMMAND_HDL_t;
+int LibTui_Command(TUI_COMMAND cmd, TUI_COMMAND_HDL_t *cmdHdl = NULL);
 
 int LibTuiMgr_DemoDumpAttr(void);
 int LibTuiMgr_DemoSimple(void);

@@ -6,7 +6,7 @@
 #include "My_Types.h"
 
 // ============================== Debug ==============================
-#define SM_LOG  (1)
+#define SM_LOG  (0)
 #define SM_WARN (1)
 #define SM_ERR  (1)
 

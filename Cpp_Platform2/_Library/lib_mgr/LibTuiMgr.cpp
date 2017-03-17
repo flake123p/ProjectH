@@ -75,7 +75,9 @@ void LibTui_MoveCursor(int x, int y)
 
 void LibTui_ClearArea(int x, int y, int x_len, int y_len, int ch)
 {
-	move(y,x);
+	//int oriX = x;
+	//int oriY = y;
+	move(y, x);
 
 	for (int i = 0; i < y_len; i++) {
 		move(y+i,x);
@@ -83,9 +85,11 @@ void LibTui_ClearArea(int x, int y, int x_len, int y_len, int ch)
 			addch(ch);
 		}
 	}
+
+	//move(oriX, oriY);
 }
 
-int LibTui_Command(TUI_COMMAND cmd, void *cmdHdl /* = NULL */)
+int LibTui_Command(TUI_COMMAND cmd, TUI_COMMAND_HDL_t *cmdHdl /* = NULL */)
 {
 	switch (cmd) {
 	case TUI_CLEAR_SCREEN:
@@ -94,6 +98,10 @@ int LibTui_Command(TUI_COMMAND cmd, void *cmdHdl /* = NULL */)
 
 	case TUI_REFRESH_SCREEN:
 		refresh();
+	break;
+
+	case TUI_MOVE_CURSOR:
+		move(cmdHdl->y, cmdHdl->x);
 	break;
 	}
 

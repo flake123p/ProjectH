@@ -9,7 +9,7 @@
 // ============================== Debug ==============================
 #define UART_LOG  (0)
 #define UART_WARN (1)
-#define UART_ERR  (1)
+#define UART_ERR  (0)
 
 #if UART_LOG
 #define UART_LOG_MSG printf
