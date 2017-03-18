@@ -60,6 +60,32 @@ public:
 	void Diagnose(const char *caller);
 };
 
+
+typedef struct {
+	LinkedListNode node;
+	u32 startAddr;
+	u32 usedLen;
+	void *DummyPad;
+	u8 data[];
+}VIR_MEM_NODE_t;
+class VirtualMemClass: public LinkedListClass{
+private:
+	bool IsAddressInAnyNode(u32 addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
+	int NewNode(u32 addr, OUT VIR_MEM_NODE_t **newNode = NULL);
+public:
+	u32 nodeSize; 
+	u32 initVal; // if bigger than 0xFF, won't init array from malloc()
+	
+	VirtualMemClass(void){initVal=0x100;};
+	~VirtualMemClass(void);
+	
+	int WriteMem(u32 dstAddr, u8 *src, u32 len);
+	u8 ReadByte(u32 addr); // call VirAddrToNodeAddr. If addr doesn't exist, just return 0.
+	bool VirAddrToNodeAddr(u32 addr, OUT u32 *bufMaxAccessLen = NULL, OUT VIR_MEM_NODE_t** matchNode = NULL);
+	void DumpVirMemNodeInfo(void);
+	int  DumpVirMemNodeContent_ToFile(const char *fileName);
+};
+
 void LibLinkedList_Demo(void);
 
 #define __LIB_LINKED_LIST_HPP_INCLUDED_
