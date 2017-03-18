@@ -1,0 +1,67 @@
+
+
+#ifndef __LIB_LINKED_LIST_HPP_INCLUDED_
+
+#include "My_Types.h"
+
+typedef struct LinkedListNode {
+	LinkedListNode *next;
+	LinkedListNode *prev;
+} LinkedListNode;
+
+typedef struct LinkedListInfo {
+	LinkedListNode *head;
+	LinkedListNode *tail;
+	u32 count;
+} LinkedListInfo;
+
+#define NODE_IS_HEAD(node) ((node)->prev==NULL)
+#define NODE_IS_TAIL(node) ((node)->next==NULL)
+#define NODE_IS_ONLY_ONE(node) (NODE_IS_HEAD(node)&&NODE_IS_TAIL(node))
+
+//Error Code
+#define NODE_ISNT_IN_LIST     (1)
+
+
+typedef enum {
+	DO_NOT_AUTO_FREE,
+	DO_AUTO_FREE,
+}AUTO_FREE;
+void LibLinkedList_InitInfo(LinkedListInfo *info);
+u32 LibLinkedList_Length(LinkedListInfo *info);
+void LibLinkedList_PushBack(LinkedListInfo *info, LinkedListNode *newNode);
+void LibLinkedList_PopBack(LinkedListInfo *info, AUTO_FREE autoFree = DO_NOT_AUTO_FREE);
+int LibLinkedList_Remove(LinkedListInfo *info, LinkedListNode *nodeForRemove, AUTO_FREE autoFree = DO_NOT_AUTO_FREE);
+void LibLinkedList_RemoveAll(LinkedListInfo *info, AUTO_FREE autoFree = DO_NOT_AUTO_FREE);
+int LibLinkedList_InsertBack(LinkedListInfo *info, LinkedListNode *nodeBeInserted, LinkedListNode *nodeForInsert);
+int LibLinkedList_InsertFront(LinkedListInfo *info, LinkedListNode *nodeBeInserted, LinkedListNode *nodeForInsert);
+int LibLinkedList_IsThisNodeInList(LinkedListInfo *info, LinkedListNode *nodeForCheck);
+void LibLinkedList_Dump(LinkedListInfo *info);
+void LibLinkedList_Diagnose(LinkedListInfo *info, const char *caller);
+
+
+class LinkedListClass{
+public:
+	LinkedListInfo info;
+	
+	LinkedListClass(){InitInfo();}; // Do nothing.
+	~LinkedListClass(void){}; // Do nothing.
+
+	void InitInfo(void);
+	u32  Length(void);
+	void PushBack(LinkedListNode *newNode);
+	void PopBack(AUTO_FREE autoFree = DO_NOT_AUTO_FREE);
+	int  Remove(LinkedListNode *nodeForRemove, AUTO_FREE autoFree = DO_NOT_AUTO_FREE);
+	void RemoveAll(AUTO_FREE autoFree = DO_NOT_AUTO_FREE);
+	int  InsertBack(LinkedListNode *nodeBeInserted, LinkedListNode *nodeForInsert);
+	int  InsertFront(LinkedListNode *nodeBeInserted, LinkedListNode *nodeForInsert);
+	int  IsThisNodeInList(LinkedListNode *nodeForCheck);
+	void Dump(void);
+	void Diagnose(const char *caller);
+};
+
+void LibLinkedList_Demo(void);
+
+#define __LIB_LINKED_LIST_HPP_INCLUDED_
+#endif//__LIB_LINKED_LIST_HPP_INCLUDED_
+

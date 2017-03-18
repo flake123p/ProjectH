@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	//LibTuiMgr_DemoDumpAttr();
 	//_LibMenu_Demo();
 	//LibBuffer_DemoBasic();
-
+#if 0
 	testString1[0] = 'x';
 	DUMPS(testString1);
 
@@ -69,7 +69,9 @@ int main(int argc, char *argv[])
 	obj.ReplaceWithRestLength("??");
 	DUMPS(obj.str.c_str());
 	//LibThreadMgr_Demo();
-	
+#endif
+	//Lib51Hex_Demo();
+	Lib51Hex_Demo();
 	//LibScreenLogic_Demo();
 	return 0;//LibSharedMemory_Demo_Server();
 	//return LibSharedMemory_Demo_Client();

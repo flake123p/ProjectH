@@ -13,7 +13,8 @@ void LibFileIo_OpenFile(File_Profiles_t *fileProfile)
 
 	if (fileProfile->fp == NULL) { 
 		printf("Cannot open: %s in mode: %s. Exit Now!\n", fileProfile->fileName, fileProfile->openMode);
-		exit (EXIT_FAILURE);
+		//exit (EXIT_FAILURE);
+		return;
 	}
 }
 
@@ -21,7 +22,8 @@ void LibFileIo_CloseFile(File_Profiles_t *fileProfile)
 {
 	if (fileProfile->fp == NULL) { 
 		printf("fp is NULL: %s in mode: %s. Exit Now!\n", fileProfile->fileName, fileProfile->openMode);
-		exit (EXIT_FAILURE);
+		//exit (EXIT_FAILURE);
+		return;
 	}
 
 	int closeResult = 0;
@@ -119,9 +121,10 @@ bool LibFileIoClass::IsFileExist(void)
 
 /*
 	 Return value:
-	   1.) Not include \n character
-	   2.) Max return value = maxLength - 1
-	   3.) Last character will be set to 0
+	   1.) Return EOF at end
+	   2.) Not include \n character
+	   3.) Max return value = maxLength - 1
+	   4.) Last character will be set to 0
 */
 int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
 {

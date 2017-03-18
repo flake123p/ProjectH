@@ -45,6 +45,8 @@ void LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *
 	}
 
 	file_ComPortName.FileClose();
+
+	REMOVE_UNUSED_WRANING(retVal);
 }
 
 int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint32_t miliSeconds /* = 10000 */)

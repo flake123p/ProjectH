@@ -14,8 +14,15 @@
 #include "My_Basics.hpp"
 
 // ====== Platform Library ======
+/*
+	Library writing guide:
+		1.) Create Demo()
+		2.) Create Dump()
+*/
+#include "_LibLinkedList.hpp"
 #include "_LibMenu.hpp"
 #include "_LibString.hpp"
+#include "_Lib51Hex.hpp"
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"

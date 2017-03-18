@@ -66,4 +66,6 @@ void LibThreadMgr_Demo(void)
 	BASIC_ASSERT(retVal == 0);
 	retVal = LibThread_ReleaseHandle(threadHdlAry[1]);
 	BASIC_ASSERT(retVal == 0);
+
+	REMOVE_UNUSED_WRANING(retVal);
 }

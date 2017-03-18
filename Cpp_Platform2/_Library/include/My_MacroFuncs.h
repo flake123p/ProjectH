@@ -9,10 +9,28 @@
 #if USE_MY_ASSERT
 #include <stdio.h>
 #define BASIC_ASSERT(a) if(a){;}else{printf(" Assertion failed: in %s(), line %d\n",__FUNCTION__,__LINE__);while(1){;}}
+#define CALLER_ASSERT(a) if(a){;}else{printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
+#define CALLER_ASSERT2(caller,a) if(a){;}else{printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
 #else
 #include <assert.h>
 #define BASIC_ASSERT assert
+#define CALLER_ASSERT(a) if(a){;}else{printf("Caller: %s()",caller);assert(0);}
+#define CALLER_ASSERT2(caller,a) if(a){;}else{printf("Caller: %s()",caller);assert(0);}
 #endif
+
+#define NO_ASSERT (0)
+#if NO_ASSERT
+#undef BASIC_ASSERT
+#define BASIC_ASSERT(...)
+#undef CALLER_ASSERT
+#define CALLER_ASSERT(...)
+#undef CALLER_ASSERT2
+#define CALLER_ASSERT2(...)
+#endif
+
+#define REMOVE_UNUSED_WRANING(a) (a=a)
+
+
 
 #define DUMPC(a) printf(#a " = %c\n", a)
 #define DUMPS(a) printf(#a " = %s\n", a)
