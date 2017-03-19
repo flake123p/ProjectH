@@ -216,13 +216,13 @@ Lib51HexReader::Lib51HexReader(void)
 	GlobalAddress = 0;
 	workingRecord.dataBuf = (u8 *)malloc(500);
 	workingReadOutString = (u8 *)malloc(1000);
+	virMem.SetParameters(0x8000, 0xFF);
 }
 
 Lib51HexReader::~Lib51HexReader(void)
 {
 	free(workingRecord.dataBuf);
 	free(workingReadOutString);
-	RemoveAll(DO_AUTO_FREE);
 }
 
 int Lib51HexReader::ReadFile(const char *fileName)
@@ -263,226 +263,11 @@ int Lib51HexReader::ReadFile(const char *fileName)
 		}
 		if (workingRecord.dataLen) {
 			//DUMPD(IsAddressInAnyNode(((GlobalAddress+(u32)workingRecord.addr16btis)/NODE_DATA_SIZE)*NODE_DATA_SIZE));
-			AddData();
+			//AddData();
+			virMem.Write((GlobalAddress+(u32)workingRecord.addr16btis), workingRecord.dataBuf, workingRecord.dataLen);
 		}
 	}
 	//DUMPD(sizeof(HexBinDataNode_t));
-	return 0;
-}
-
-int Lib51HexReader::AddData(void)
-{
-	u32 addr = GlobalAddress+(u32)workingRecord.addr16btis;
-	u32 dataLen = workingRecord.dataLen;
-	BASIC_ASSERT(dataLen>0);
-
-	u32 alignedAddr0 = (addr / NODE_DATA_SIZE) * NODE_DATA_SIZE;
-	u32 alignedAddr1 = alignedAddr0 + NODE_DATA_SIZE;
-	bool overBoundary = false;
-	u32 writeAddr0;
-	u32 writeAddr1;
-	u32 writeLen0;
-	u32 writeLen1;
-	HexBinDataNode_t *newHexBinDataNode0;
-	HexBinDataNode_t *newHexBinDataNode1;
-	u32 recordOffset0;
-	u32 recordOffset1;
-	
-	if (addr+dataLen > alignedAddr1) {
-		overBoundary = true;
-		writeAddr0 = addr;
-		writeLen0  = alignedAddr1 - writeAddr0;
-		writeAddr1 = alignedAddr1;
-		writeLen1  = dataLen - writeLen0;
-		recordOffset0 = 0;
-		recordOffset1 = writeLen0;
-	} else {
-		overBoundary = false;
-		writeAddr0 = addr;
-		writeLen0 = dataLen;
-		recordOffset0 = 0;
-	}
-	
-	if (info.count == 0) {
-		NewNode(alignedAddr0, &newHexBinDataNode0);
-		if (overBoundary) {
-			NewNode(alignedAddr1, &newHexBinDataNode1);
-		}
-	} else {
-		if (NOT(IsAddressInAnyNode(alignedAddr0, &newHexBinDataNode0))) {
-			NewNode(alignedAddr0, &newHexBinDataNode0);
-		}
-
-		if (overBoundary) {
-			if (NOT(IsAddressInAnyNode(alignedAddr1, &newHexBinDataNode1))) {
-				NewNode(alignedAddr1, &newHexBinDataNode1);
-			}
-		}
-	}
-
-	CopyRecordToNode(writeAddr0, recordOffset0, writeLen0, newHexBinDataNode0);
-	if (overBoundary) {
-		CopyRecordToNode(writeAddr1, recordOffset1, writeLen1, newHexBinDataNode1);
-	}
-	
-	return 0;
-#if 0
-	HexBinDataNode_t *currHexBinNode;
-	HexBinDataNode_t *afterCurrHexBinNode;
-	for (LinkedListNode *currNode = info.head; currNode != NULL; currNode = currNode->next) {
-		currHexBinNode = (HexBinDataNode_t *)currNode;
-		if (addr >= currHexBinNode->startAddr && addr < currHexBinNode->startAddr+NODE_DATA_SIZE) {
-			if ((addr+dataLen-1) < currHexBinNode->startAddr+NODE_DATA_SIZE) {
-				return true;
-			} else {
-				// Check next node can fill rest data
-				if (currNode->next == NULL) {
-					return false;
-				} else {
-					afterCurrHexBinNode = (HexBinDataNode_t *)currNode->next;
-					if (afterCurrHexBinNode->startAddr != currHexBinNode->startAddr+NODE_DATA_SIZE) {
-						return false;
-					} else {
-						return true;
-					}
-				}
-			}
-		}
-	}
-
-	return false;
-#endif
-}
-
-bool Lib51HexReader::IsAddressInAnyNode(u32 addr, OUT HexBinDataNode_t **matchNode /* = NULL */)
-{
-	if (info.count == 0) {
-		return false;
-	}
-
-	HexBinDataNode_t *currHexBinNode;
-	for (LinkedListNode *currNode = info.head; currNode != NULL; currNode = currNode->next) {
-		currHexBinNode = (HexBinDataNode_t *)currNode;
-		if (currHexBinNode->startAddr == addr) {
-			if (matchNode != NULL)
-				*matchNode = currHexBinNode;
-			return true;
-		}
-	}
-
-	return false;
-}
-
-int Lib51HexReader::NewNode(u32 addr, OUT HexBinDataNode_t **newHexBinDataNode /* = NULL */)
-{
-	HexBinDataNode_t *newHexBinNode = (HexBinDataNode_t *)malloc(sizeof(HexBinDataNode_t)+NODE_DATA_SIZE+32);
-	BASIC_ASSERT(newHexBinNode != NULL);
-	if (newHexBinDataNode != NULL) {
-		*newHexBinDataNode = newHexBinNode;
-	}
-
-	newHexBinNode->usedLen = 0;
-	newHexBinNode->startAddr = addr;
-	
-	HexBinDataNode_t *currHexBinNode;
-	for (LinkedListNode *currNode = info.head; currNode != NULL; currNode = currNode->next) {
-		currHexBinNode = (HexBinDataNode_t *)currNode;
-		BASIC_ASSERT(newHexBinNode->startAddr != currHexBinNode->startAddr);
-		if (newHexBinNode->startAddr < currHexBinNode->startAddr) {
-			InsertFront(currNode, (LinkedListNode *)newHexBinNode);
-			return 0;
-		}
-	}
-
-	PushBack((LinkedListNode *)newHexBinNode);
-	return 0;
-}
-
-int Lib51HexReader::CopyRecordToNode(u32 dst_addr, u32 src_record_addr, u32 len, HexBinDataNode_t *hexBinDataNode)
-{
-	BASIC_ASSERT(IsThisNodeInList((LinkedListNode *)hexBinDataNode) != NODE_ISNT_IN_LIST);
-	BASIC_ASSERT(((dst_addr/NODE_DATA_SIZE)*NODE_DATA_SIZE) == hexBinDataNode->startAddr);
-
-	u32 nodeAddr = dst_addr - hexBinDataNode->startAddr;
-	u8 *src = &(workingRecord.dataBuf[src_record_addr]);
-
-	memcpy(&(hexBinDataNode->data[nodeAddr]), src, len);
-
-	if ((len+nodeAddr) > hexBinDataNode->usedLen) {
-		hexBinDataNode->usedLen = (len+nodeAddr);
-	}
-
-	return 0;
-}
-
-void Lib51HexReader::DumpAll51HexNode(void)
-{
-	printf("==================================== %s() start\n", __func__);
-	DUMPD(info.count);
-	DUMPX((u32)info.head);
-	DUMPX((u32)info.tail);
-
-	HexBinDataNode_t *currHexBinNode;
-	LinkedListNode *currNode = info.head;
-	for (u32 i = 0; i < info.count; i++) {
-		currHexBinNode = (HexBinDataNode_t *)currNode;
-		printf("Node(%d):\n", i+1);
-		printf("[ 0x%X ]\n", (u32)currNode);
-		DUMPX((u32)currNode->prev);
-		DUMPX((u32)currNode->next);
-		DUMPX(currHexBinNode->startAddr);
-		DUMPX(currHexBinNode->usedLen);
-		currNode = currNode->next;
-	}
-	BASIC_ASSERT(currNode == NULL);
-	printf("==================================== %s() end\n", __func__);
-}
-
-int  Lib51HexReader::DumpAll51HexNode_ToFile(const char *fileName)
-{
-	LibFileIoClass outFile(fileName, "w+b");
-
-	outFile.FileOpen();
-
-	if (outFile.fp == NULL) {
-		return 1;
-	}
-
-	fprintf(outFile.fp, "info.count = %d\n", info.count);
-	fprintf(outFile.fp, "(u32)info.head = 0x%x\n", (u32)info.head);
-	fprintf(outFile.fp, "(u32)info.tail = 0x%x\n", (u32)info.tail);
-
-	HexBinDataNode_t *currHexBinNode;
-	LinkedListNode *currNode = info.head;
-	for (u32 i = 0; i < info.count; i++) {
-		currHexBinNode = (HexBinDataNode_t *)currNode;
-		fprintf(outFile.fp, "Node(%d):\n", i+1);
-		fprintf(outFile.fp, "[ 0x%X ]\n", (u32)currNode);
-		fprintf(outFile.fp, "(u32)currNode->prev = 0x%x\n", (u32)currNode->prev);
-		fprintf(outFile.fp, "(u32)currNode->next = 0x%x\n", (u32)currNode->next);
-		fprintf(outFile.fp, "currHexBinNode->startAddr = 0x%x\n", currHexBinNode->startAddr);
-		fprintf(outFile.fp, "currHexBinNode->usedLen   = 0x%x\n", currHexBinNode->usedLen);
-
-		for (u32 j = 0; j < currHexBinNode->usedLen; j++) {
-			if (j%16==0) {
-				fprintf(outFile.fp, "[%08X]  ", currHexBinNode->startAddr + j);
-			}
-
-			if (j%4==3) {
-				fprintf(outFile.fp, "%02X, ", currHexBinNode->data[j]);
-			} else {
-				fprintf(outFile.fp, "%02X ", currHexBinNode->data[j]);
-			}
-
-			if (j%16==15 && j != currHexBinNode->usedLen) {
-				fprintf(outFile.fp, "\n");
-			}
-		}
-		fprintf(outFile.fp, "\n");
-		currNode = currNode->next;
-	}
-	BASIC_ASSERT(currNode == NULL);
-
 	return 0;
 }
 
@@ -523,8 +308,7 @@ int Lib51Hex_Demo(void)
 
 	LibTime_StartMicroSecondClock();
 	
-	//reader.DumpAll51HexNode();
-	reader.DumpAll51HexNode_ToFile("TestHexDump.txt");
+	reader.virMem.DumpVirMemNodeContent_ToFile("Lib51DEMO.txt", false);
 
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;

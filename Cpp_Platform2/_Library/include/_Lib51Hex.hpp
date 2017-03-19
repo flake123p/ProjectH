@@ -48,30 +48,17 @@ int  Lib51Hex_StringToRecord(const char *s, OUT HEX_RECORD_DATA_t *record);
 void Lib51Hex_DumpRecord(HEX_RECORD_DATA_t *record);
 void Lib51Hex_DumpHexFile(const char *fileName);
 
-#include "_LibLinkedList.hpp"
-#define NODE_DATA_SIZE (0x4000)
-typedef struct {
-	LinkedListNode node;
-	u32 startAddr;
-	u32 usedLen;
-	void *DummyPad;
-	u8 data[];
-}HexBinDataNode_t;
-class Lib51HexReader: public LinkedListClass{
+#include "_LibLinkedList.hpp" // for VirtualMemClass
+class Lib51HexReader{
 public:
 	u32 GlobalAddress;
 	HEX_RECORD_DATA_t workingRecord;
 	u8 *workingReadOutString;
+	VirtualMemClass virMem;
 	
 	Lib51HexReader(void);
 	~Lib51HexReader(void);
 	int ReadFile(const char *file_name);
-	int  AddData(void);
-	bool IsAddressInAnyNode(u32 addr, OUT HexBinDataNode_t **matchNode = NULL);
-	int NewNode(u32 addr, OUT HexBinDataNode_t **newHexBinDataNode = NULL);
-	int CopyRecordToNode(u32 dst_node_addr, u32 src_record_addr, u32 len, HexBinDataNode_t *hexBinDataNode);
-	void DumpAll51HexNode(void);
-	int  DumpAll51HexNode_ToFile(const char *fileName);
 };
 
 int Lib51Hex_Demo(void);

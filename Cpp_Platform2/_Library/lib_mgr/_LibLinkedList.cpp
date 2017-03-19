@@ -356,6 +356,266 @@ void LinkedListClass::Diagnose(const char *caller)
 	LibLinkedList_Diagnose(&info, caller);
 }
 
+VirtualMemClass::VirtualMemClass(void) 
+{
+	nodeSize = 0x4000;
+	initVal=0x100;
+};
+
+VirtualMemClass::~VirtualMemClass(void)
+{
+	RemoveAll(DO_AUTO_FREE);
+}
+
+void VirtualMemClass::SetParameters(u32 node_size, u32 init_val)
+{
+	nodeSize = node_size;
+	initVal=init_val;
+}
+
+int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len)
+{
+	u32 currDstAddr = dstAddr;
+	//u32 nextDstAddr = 0;
+	u32 currSrcOffset = 0;
+	//u32 nextSrcOffset = 0;
+	u32 currLen = 0;
+	u32 remainLen = len;
+
+	u32 currNodeStartAddr = (currDstAddr / nodeSize) * nodeSize;
+	u32 nextNodeStartAddr = currNodeStartAddr + nodeSize;
+	VIR_MEM_NODE_t *currNode;
+	while (remainLen) {
+		unless (NodeExist(currNodeStartAddr, &currNode)) {
+			NewNode(currNodeStartAddr, &currNode);
+			LINKED_LIST_LOG_MSG("NEW NODE\n");
+		} else {
+			LINKED_LIST_LOG_MSG("NODE EXIST\n");
+		}
+
+		if (remainLen + currDstAddr > nextNodeStartAddr) {
+			currLen = nextNodeStartAddr - currDstAddr;
+			PageWrite(currNode, currDstAddr, &(src[currSrcOffset]), currLen);
+			currDstAddr = nextNodeStartAddr;
+		} else {
+			currLen = remainLen;
+			PageWrite(currNode, currDstAddr, &(src[currSrcOffset]), currLen);
+		}
+		remainLen -= currLen;
+		currSrcOffset += currLen;
+		currNodeStartAddr = nextNodeStartAddr;
+		nextNodeStartAddr = currNodeStartAddr + nodeSize;
+	}
+	
+	return 0;
+}
+
+void VirtualMemClass::DumpVirMemNodeInfo(void)
+{
+	printf("==================================== %s() start\n", __func__);
+	DUMPD(info.count);
+	DUMPX((u32)info.head);
+	DUMPX((u32)info.tail);
+
+	VIR_MEM_NODE_t *currVirMemNode;
+	LinkedListNode *currNode = info.head;
+	for (u32 i = 0; i < info.count; i++) {
+		currVirMemNode = (VIR_MEM_NODE_t *)currNode;
+		printf("Node(%d):\n", i+1);
+		printf("[ 0x%X ]\n", (u32)currNode);
+		DUMPX((u32)currNode->prev);
+		DUMPX((u32)currNode->next);
+		DUMPX(currVirMemNode->startAddr);
+		DUMPX(currVirMemNode->usedLen);
+		currNode = currNode->next;
+	}
+	BASIC_ASSERT(currNode == NULL);
+	printf("==================================== %s() end\n", __func__);
+}
+
+int  VirtualMemClass::DumpVirMemNodeContent_ToFile(const char *fileName, bool memDumpMode /* = false */)
+{
+	LibFileIoClass outFile(fileName, "w+b");
+
+	outFile.FileOpen();
+
+	if (outFile.fp == NULL) {
+		return 1;
+	}
+
+	if (memDumpMode == false) {
+		fprintf(outFile.fp, "info.count = %d\n", info.count);
+		fprintf(outFile.fp, "(u32)info.head = 0x%x\n", (u32)info.head);
+		fprintf(outFile.fp, "(u32)info.tail = 0x%x\n", (u32)info.tail);
+
+		VIR_MEM_NODE_t *currVirMemNode;
+		LinkedListNode *currNode = info.head;
+		for (u32 i = 0; i < info.count; i++) {
+			currVirMemNode = (VIR_MEM_NODE_t *)currNode;
+			fprintf(outFile.fp, "Node(%d):\n", i+1);
+			fprintf(outFile.fp, "[ 0x%X ]\n", (u32)currNode);
+			fprintf(outFile.fp, "(u32)currNode->prev = 0x%x\n", (u32)currNode->prev);
+			fprintf(outFile.fp, "(u32)currNode->next = 0x%x\n", (u32)currNode->next);
+			fprintf(outFile.fp, "currVirMemNode->startAddr = 0x%x\n", currVirMemNode->startAddr);
+			fprintf(outFile.fp, "currVirMemNode->usedLen   = 0x%x\n", currVirMemNode->usedLen);
+
+			char buf[100];
+			u32 maxLen = currVirMemNode->usedLen;
+			if (maxLen % 16 != 0) {
+				maxLen = ((maxLen / 16) + 1) * 16;
+			}
+			for (u32 j = 0; j < maxLen; j+=16) {
+				sprintf(
+					buf,
+					"[%08X]  %02X %02X %02X %02X, %02X %02X %02X %02X, %02X %02X %02X %02X, %02X %02X %02X %02X\n",
+					currVirMemNode->startAddr + j,
+					currVirMemNode->data[j+0],
+					currVirMemNode->data[j+1],
+					currVirMemNode->data[j+2],
+					currVirMemNode->data[j+3],
+					currVirMemNode->data[j+4],
+					currVirMemNode->data[j+5],
+					currVirMemNode->data[j+6],
+					currVirMemNode->data[j+7],
+					currVirMemNode->data[j+8],
+					currVirMemNode->data[j+9],
+					currVirMemNode->data[j+10],
+					currVirMemNode->data[j+11],
+					currVirMemNode->data[j+12],
+					currVirMemNode->data[j+13],
+					currVirMemNode->data[j+14],
+					currVirMemNode->data[j+15]);
+				fprintf(outFile.fp, "%s", buf);
+			}
+
+			fprintf(outFile.fp, "\n");
+			currNode = currNode->next;
+		}
+		BASIC_ASSERT(currNode == NULL);
+	} 
+	else {
+		VIR_MEM_NODE_t *currVirMemNode;
+		LinkedListNode *currNode = info.head;
+		for (u32 i = 0; i < info.count; i++) {
+			currVirMemNode = (VIR_MEM_NODE_t *)currNode;
+
+			char buf[100];
+			u32 maxLen = currVirMemNode->usedLen;
+			if (maxLen % 16 != 0) {
+				maxLen = ((maxLen / 16) + 1) * 16;
+			}
+			for (u32 j = 0; j < maxLen; j+=16) {
+				#define FOR_PRINT(a) (LibString_IsCharPrintable(a)?a:' ')
+				sprintf(
+					buf,
+					"%08x: %02X %02X %02X %02X %02X %02X %02X %02X - %02X %02X %02X %02X %02X %02X %02X %02X |%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c|\n",
+					currVirMemNode->startAddr + j,
+					currVirMemNode->data[j+0],
+					currVirMemNode->data[j+1],
+					currVirMemNode->data[j+2],
+					currVirMemNode->data[j+3],
+					currVirMemNode->data[j+4],
+					currVirMemNode->data[j+5],
+					currVirMemNode->data[j+6],
+					currVirMemNode->data[j+7],
+					currVirMemNode->data[j+8],
+					currVirMemNode->data[j+9],
+					currVirMemNode->data[j+10],
+					currVirMemNode->data[j+11],
+					currVirMemNode->data[j+12],
+					currVirMemNode->data[j+13],
+					currVirMemNode->data[j+14],
+					currVirMemNode->data[j+15],
+					FOR_PRINT(currVirMemNode->data[j+0]),
+					FOR_PRINT(currVirMemNode->data[j+1]),
+					FOR_PRINT(currVirMemNode->data[j+2]),
+					FOR_PRINT(currVirMemNode->data[j+3]),
+					FOR_PRINT(currVirMemNode->data[j+4]),
+					FOR_PRINT(currVirMemNode->data[j+5]),
+					FOR_PRINT(currVirMemNode->data[j+6]),
+					FOR_PRINT(currVirMemNode->data[j+7]),
+					FOR_PRINT(currVirMemNode->data[j+8]),
+					FOR_PRINT(currVirMemNode->data[j+9]),
+					FOR_PRINT(currVirMemNode->data[j+10]),
+					FOR_PRINT(currVirMemNode->data[j+11]),
+					FOR_PRINT(currVirMemNode->data[j+12]),
+					FOR_PRINT(currVirMemNode->data[j+13]),
+					FOR_PRINT(currVirMemNode->data[j+14]),
+					FOR_PRINT(currVirMemNode->data[j+15]));
+					fprintf(outFile.fp, "%s", buf);
+			}
+			currNode = currNode->next;
+		}
+		BASIC_ASSERT(currNode == NULL);
+	}
+
+	return 0;
+}
+
+bool VirtualMemClass::NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode /* = NULL */)
+{
+	if (info.count == 0) {
+		return false;
+	}
+
+	VIR_MEM_NODE_t *currVirMemNode;
+	for (LinkedListNode *currNode = info.head; currNode != NULL; currNode = currNode->next) {
+		currVirMemNode = (VIR_MEM_NODE_t *)currNode;
+		if (currVirMemNode->startAddr == start_addr) {
+			if (matchNode != NULL)
+				*matchNode = currVirMemNode;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int VirtualMemClass::NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode /* = NULL */)
+{
+	VIR_MEM_NODE_t *newVirMemNode = (VIR_MEM_NODE_t *)malloc(sizeof(VIR_MEM_NODE_t) + nodeSize + 32);
+	BASIC_ASSERT(newVirMemNode != NULL);
+	if (newNode != NULL) {
+		*newNode = newVirMemNode;
+	}
+	if (initVal < 0x100) {
+		memset(newVirMemNode, (u8)initVal, sizeof(VIR_MEM_NODE_t) + nodeSize + 32);
+	}
+
+	newVirMemNode->usedLen = 0;
+	newVirMemNode->startAddr = start_addr;
+	
+	VIR_MEM_NODE_t *currVirMemNode;
+	for (LinkedListNode *currNode = info.head; currNode != NULL; currNode = currNode->next) {
+		currVirMemNode = (VIR_MEM_NODE_t *)currNode;
+		BASIC_ASSERT(newVirMemNode->startAddr != currVirMemNode->startAddr);
+		if (newVirMemNode->startAddr < currVirMemNode->startAddr) {
+			InsertFront(currNode, (LinkedListNode *)newVirMemNode);
+			return 0;
+		}
+	}
+
+	PushBack((LinkedListNode *)newVirMemNode);
+	return 0;
+}
+
+int VirtualMemClass::PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len)
+{
+	BASIC_ASSERT(IsThisNodeInList((LinkedListNode *)node) != NODE_ISNT_IN_LIST);
+	BASIC_ASSERT(((dstAddr/nodeSize)*nodeSize) == node->startAddr);
+	BASIC_ASSERT((dstAddr+len) <= (node->startAddr+nodeSize)); // Cross Page
+
+	u32 nodeAddr = dstAddr - node->startAddr;
+
+	memcpy(&(node->data[nodeAddr]), src, len);
+
+	if ((len+nodeAddr) > node->usedLen) {
+		node->usedLen = (len+nodeAddr);
+	}
+
+	return 0;
+}
+
 void LibLinkedList_Demo(void)
 {
 /*
@@ -387,11 +647,11 @@ void LibLinkedList_Demo(void)
 
 	LinkedListNode newNode1;
 	linkedList.PushBack(&newNode1);
-	linkedList.Dump();
+	//linkedList.Dump();
 
 	LinkedListNode newNode2;
 	linkedList.PushBack(&newNode2);
-	linkedList.Dump();
+	//linkedList.Dump();
 
 	LinkedListNode newNode3;
 	linkedList.PushBack(&newNode3);
@@ -407,8 +667,18 @@ void LibLinkedList_Demo(void)
 	//linkedList.Dump();
 	LinkedListNode newNode4;
 	linkedList.InsertBack(&newNode4, &newNode4);
-	linkedList.Dump();
+	//linkedList.Dump();
+
 	
-	
+	VirtualMemClass virMem;
+	u8 ary1[] = {0x11, 0x22, 0x33};
+	virMem.SetParameters(0x2000, 0xFF);
+	virMem.Write(0x00000000, ary1, 3);
+	virMem.Write(0x00000010, ary1, 3);
+	virMem.Write(0x00000020, ary1, 3);
+	virMem.Write(0x00000021, ary1, 3);
+	virMem.Write(0x00007FFF, ary1, 3);
+	virMem.DumpVirMemNodeInfo();
+	virMem.DumpVirMemNodeContent_ToFile("LibLinkedListDEMO.txt");
 	//todo: CreateNode(); DeleteNode();
 }

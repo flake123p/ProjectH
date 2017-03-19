@@ -4,6 +4,30 @@
 
 #include "My_Types.h"
 
+// ============================== Debug ==============================
+#define LINKED_LIST_LOG  (0)
+#define LINKED_LIST_WARN (0)
+#define LINKED_LIST_ERR  (0)
+
+#if LINKED_LIST_LOG
+#define LINKED_LIST_LOG_MSG printf
+#else
+#define LINKED_LIST_LOG_MSG(...)
+#endif
+
+#if LINKED_LIST_WARN
+#define LINKED_LIST_WARN_MSG printf
+#else
+#define LINKED_LIST_WARN_MSG(...)
+#endif
+
+#if LINKED_LIST_ERR
+#define LINKED_LIST_ERR_MSG printf
+#else
+#define LINKED_LIST_ERR_MSG(...)
+#endif
+
+
 typedef struct LinkedListNode {
 	LinkedListNode *next;
 	LinkedListNode *prev;
@@ -70,20 +94,25 @@ typedef struct {
 }VIR_MEM_NODE_t;
 class VirtualMemClass: public LinkedListClass{
 private:
-	bool IsAddressInAnyNode(u32 addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
-	int NewNode(u32 addr, OUT VIR_MEM_NODE_t **newNode = NULL);
+	bool NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
+	int  NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode = NULL);
+	int  PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len);
+	//bool IsAddressInAnyNode(u32 addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
+	//int NewNode(u32 addr, OUT VIR_MEM_NODE_t **newNode = NULL);
 public:
-	u32 nodeSize; 
+	u32 nodeSize;  // Must be multiple of 16
 	u32 initVal; // if bigger than 0xFF, won't init array from malloc()
 	
-	VirtualMemClass(void){initVal=0x100;};
+	VirtualMemClass(void);
 	~VirtualMemClass(void);
-	
-	int WriteMem(u32 dstAddr, u8 *src, u32 len);
-	u8 ReadByte(u32 addr); // call VirAddrToNodeAddr. If addr doesn't exist, just return 0.
-	bool VirAddrToNodeAddr(u32 addr, OUT u32 *bufMaxAccessLen = NULL, OUT VIR_MEM_NODE_t** matchNode = NULL);
+	void SetParameters(u32 node_size, u32 initVal);
+	int  Write(u32 dstAddr, u8 *src, u32 len);
 	void DumpVirMemNodeInfo(void);
-	int  DumpVirMemNodeContent_ToFile(const char *fileName);
+	int  DumpVirMemNodeContent_ToFile(const char *fileName, bool memDumpMode = false);
+	//u8 ReadByte(u32 addr); // call VirAddrToNodeAddr. If addr doesn't exist, just return 0.
+	//bool VirAddrToNodeAddr(u32 addr, OUT u32 *bufMaxAccessLen = NULL, OUT VIR_MEM_NODE_t** matchNode = NULL);
+	//void DumpVirMemNodeInfo(void);
+	//int  DumpVirMemNodeContent_ToFile(const char *fileName);
 };
 
 void LibLinkedList_Demo(void);
