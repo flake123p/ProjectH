@@ -61,7 +61,7 @@ typedef struct {
 
 // ============================== Library: Cross-Platform (Manager) ==============================
 void LibBT_Diagnose(void);
-u32 LibBT_GetHciPduOffset(UART_HCI_PACKET_TYPE_t uartHciType, u32 precedentLen = 4);
+u32  LibBT_GetHciPduOffset(UART_HCI_PACKET_TYPE_t uartHciType, u32 precedentLen = 4);
 int  LibBT_MakeHciPacketHeader(UART_HCI_PACKET_TYPE_t uartHciType, u32 header, u32 dataLen, OUT u8 *buf, u32 precedentLen = 4);
 int LibBT_MakeUartHciHeader(UART_HCI_PACKET_TYPE_t uartHciType, OUT u8 *buf);
 void LibBT_DumpUartHciPacket(u8 *buf, u32 bufLen);

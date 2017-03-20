@@ -292,7 +292,6 @@ int Lib51Hex_Demo(void)
 	record.dataBuf = (u8 *)malloc(500);
 	Lib51Hex_StringToRecord((const char *)gOutputHexString, &record);
 	Lib51Hex_DumpRecord(&record);
-	
 	free(record.dataBuf);
 
 	//Lib51Hex_DumpHexFile("C:\\Users\\a18109\\Documents\\BT5511\\Dallas_5506_FY17_c6594_merged_medium_task\\APP_SHS_OBJECT\\BT5511_SHS\\HexFrom200000x.hex");

@@ -5,7 +5,7 @@ HANDLE g_hComm;                     // Handle to the Serial port
 char   g_ComPortName[30] = {0};     // Name of the Serial port(May Change) to be opened,
 BOOL   g_Status;
 
-int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byteSize /* = 8 */, STOP_BITS stopBits /* = STOP_BITS_1 */, PARITY parity /* = PARITY__NONE */)
+int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel /* = 0 */, uint8_t byteSize /* = 8 */, STOP_BITS stopBits /* = STOP_BITS_1 */, PARITY parity /* = PARITY__NONE */)
 {
 	strcpy(g_ComPortName, "\\\\.\\");
 	strcat(g_ComPortName, comPortName);
@@ -101,12 +101,32 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 
 	/*------------------------------------ Setting Timeouts --------------------------------------------------*/	
 	COMMTIMEOUTS timeouts = { 0 };
-	timeouts.ReadIntervalTimeout         = 50;
-	timeouts.ReadTotalTimeoutConstant    = 50;
-	timeouts.ReadTotalTimeoutMultiplier  = 10;
-	timeouts.WriteTotalTimeoutConstant   = 50;
-	timeouts.WriteTotalTimeoutMultiplier = 10;
-
+	if (quickReadLevel == 0) {
+		timeouts.ReadIntervalTimeout         = 50;
+		timeouts.ReadTotalTimeoutConstant    = 50;
+		timeouts.ReadTotalTimeoutMultiplier  = 10;
+		timeouts.WriteTotalTimeoutConstant   = 50;
+		timeouts.WriteTotalTimeoutMultiplier = 10;
+	} else if (quickReadLevel == 1) {
+		timeouts.ReadIntervalTimeout         = 10;
+		timeouts.ReadTotalTimeoutConstant    = 50;
+		timeouts.ReadTotalTimeoutMultiplier  = 10;
+		timeouts.WriteTotalTimeoutConstant   = 50;
+		timeouts.WriteTotalTimeoutMultiplier = 10;
+	} else if (quickReadLevel == 2) {
+		timeouts.ReadIntervalTimeout         = 5;
+		timeouts.ReadTotalTimeoutConstant    = 50;
+		timeouts.ReadTotalTimeoutMultiplier  = 10;
+		timeouts.WriteTotalTimeoutConstant   = 50;
+		timeouts.WriteTotalTimeoutMultiplier = 10;
+	} else {
+		timeouts.ReadIntervalTimeout         = 1;
+		timeouts.ReadTotalTimeoutConstant    = 0;
+		timeouts.ReadTotalTimeoutMultiplier  = 0;
+		timeouts.WriteTotalTimeoutConstant   = 5;
+		timeouts.WriteTotalTimeoutMultiplier = 1;
+	}
+	
 	if (SetCommTimeouts(g_hComm, &timeouts) == FALSE)
 	{
 		UART_ERR_MSG("\n   Error! in Setting Time Outs\n");
@@ -117,6 +137,20 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byte
 		UART_LOG_MSG("\n\n   Setting Serial Port Timeouts Successfull");
 	}
 
+	/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
+	g_Status = SetCommMask(g_hComm, EV_RXCHAR); //Configure Windows to Monitor the serial device for Character Reception
+
+	if (g_Status == FALSE)
+	{
+		UART_ERR_MSG("\n\n    Error! in Setting CommMask\n");
+		return -1;
+	}
+	else
+	{
+		//UART_LOG_MSG("\n\n    Setting CommMask successfull");
+	}	
+
+	
 	UART_LOG_MSG("\n%s() Success.\n", __func__);
 	return 0;
 }
@@ -158,20 +192,6 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 
 	*receivedLength = 0; // Clear output variable
 	
-	/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
-	
-	g_Status = SetCommMask(g_hComm, EV_RXCHAR); //Configure Windows to Monitor the serial device for Character Reception
-
-	if (g_Status == FALSE)
-	{
-		UART_ERR_MSG("\n\n    Error! in Setting CommMask\n");
-		return -1;
-	}
-	else
-	{
-		//UART_LOG_MSG("\n\n    Setting CommMask successfull");
-	}	
-
 	/*-------------------------- Program will Wait here till a Character is received ------------------------*/				
 	//printf("\n\n    Waiting for Data Reception");
 	g_Status = WaitCommEvent(g_hComm, &dwEventMask, NULL); //Wait for the character to be received
@@ -182,6 +202,7 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 	}
 	else //If  WaitCommEvent()==True Read the RXed data using ReadFile();
 	{
+#if 1
 		char  TempChar;                        // Temperory Character
 		DWORD NoBytesRead;                     // Bytes read by ReadFile()
 		int i = 0;
@@ -194,7 +215,9 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 		}
 		while (NoBytesRead > 0);
 		*receivedLength = i - 1; // Set output variable
-
+#else
+		g_Status = ReadFile(g_hComm, buffer, 40, (DWORD *)receivedLength, NULL);
+#endif
 		/*------------Printing the RXed String to Console----------------------*/
 
 		#if UART_LOG
@@ -214,5 +237,54 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 int LibUart_UninitComPort(void)
 {
 	CloseHandle(g_hComm);//Closing the Serial Port
+	return 0;
+}
+
+int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength)
+{
+	DWORD dwEventMask;                     // Event mask to trigger
+
+	*receivedLength = 0; // Clear output variable
+	
+	/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
+	/*-------------------------- Program will Wait here till a Character is received ------------------------*/				
+	//printf("\n\n    Waiting for Data Reception");
+	g_Status = WaitCommEvent(g_hComm, &dwEventMask, NULL); //Wait for the character to be received
+	
+	if (g_Status == FALSE)
+	{
+		UART_ERR_MSG("\n    Error! in Setting WaitCommEvent()\n");
+	}
+	else //If  WaitCommEvent()==True Read the RXed data using ReadFile();
+	{
+#if 0
+		char  TempChar;                        // Temperory Character
+		DWORD NoBytesRead;                     // Bytes read by ReadFile()
+		int i = 0;
+		UART_LOG_MSG("\n\n    Characters Received");
+		do
+		{
+			g_Status = ReadFile(g_hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
+			buffer[i] = TempChar;
+			i++;
+		}
+		while (NoBytesRead > 0);
+		*receivedLength = i - 1; // Set output variable
+#else
+		g_Status = ReadFile(g_hComm, buffer, 40, (DWORD *)receivedLength, NULL);
+#endif
+		/*------------Printing the RXed String to Console----------------------*/
+
+		#if UART_LOG
+		UART_LOG_MSG("\n\n    [HEX] ");
+		int j =0;
+		for (j = 0; j < i-1; j++)		// j < i-1 to remove the dupliated last character
+		{
+			UART_LOG_MSG("%02X ", buffer[j]);
+		}
+		#endif
+	}	
+	
+	UART_LOG_MSG("\n%s() Success.\n", __func__);
 	return 0;
 }

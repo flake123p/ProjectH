@@ -13,7 +13,7 @@
 // ====== Platform Library ======
 #include "LibUart.hpp"
 
-int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byteSize, STOP_BITS stopBits, PARITY parity)
+int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel, uint8_t byteSize, STOP_BITS stopBits, PARITY parity)
 {
 	return 0;
 }
@@ -33,3 +33,7 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 	return 0;
 }
 
+int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength)
+{
+	return 0;
+}

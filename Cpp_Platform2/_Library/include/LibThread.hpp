@@ -21,6 +21,7 @@ typedef void *(*ThreadEntryFunc)(void *);
 
 
 void LibThreadMgr_Demo(void);
+void LibThreadMgr_DemoLite(void);
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
 int LibThread_NewHandle(OUT THREAD_HANDLE_t *threadHdlPtr, THREAD_PRIORITY_t priority = TPRI_DEFAULT);
 int LibThread_Create(THREAD_HANDLE_t threadHdl, ThreadEntryFunc entry, void *arg = NULL);

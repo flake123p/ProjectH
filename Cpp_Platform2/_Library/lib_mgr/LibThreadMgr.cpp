@@ -69,3 +69,25 @@ void LibThreadMgr_Demo(void)
 
 	REMOVE_UNUSED_WRANING(retVal);
 }
+
+void LibThreadMgr_DemoLite(void)
+{
+	THREAD_HANDLE_t threadHdl;
+
+	if ( LibThread_NewHandle(&threadHdl) ) {
+		BASIC_ASSERT(0);
+	}
+
+	if ( LibThread_Create(threadHdl, Test_Thread_1) ) {
+		BASIC_ASSERT(0);
+	}
+
+	LibTime_StartMicroSecondClock();
+	LibThread_WaitThread(threadHdl);
+	LibTime_StopMicroSecondClock_ShowResult();
+	PRINT_NEXT_LINE;
+
+	if ( LibThread_ReleaseHandle(threadHdl) ) {
+		BASIC_ASSERT(0);
+	}
+}

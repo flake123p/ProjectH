@@ -447,6 +447,8 @@ int  VirtualMemClass::DumpVirMemNodeContent_ToFile(const char *fileName, bool me
 		fprintf(outFile.fp, "info.count = %d\n", info.count);
 		fprintf(outFile.fp, "(u32)info.head = 0x%x\n", (u32)info.head);
 		fprintf(outFile.fp, "(u32)info.tail = 0x%x\n", (u32)info.tail);
+		fprintf(outFile.fp, "nodeSize = 0x%x\n", nodeSize);
+		fprintf(outFile.fp, "nodeSize = 0x%x\n", initVal);
 
 		VIR_MEM_NODE_t *currVirMemNode;
 		LinkedListNode *currNode = info.head;

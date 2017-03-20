@@ -97,8 +97,6 @@ private:
 	bool NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
 	int  NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode = NULL);
 	int  PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len);
-	//bool IsAddressInAnyNode(u32 addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
-	//int NewNode(u32 addr, OUT VIR_MEM_NODE_t **newNode = NULL);
 public:
 	u32 nodeSize;  // Must be multiple of 16
 	u32 initVal; // if bigger than 0xFF, won't init array from malloc()
@@ -109,10 +107,6 @@ public:
 	int  Write(u32 dstAddr, u8 *src, u32 len);
 	void DumpVirMemNodeInfo(void);
 	int  DumpVirMemNodeContent_ToFile(const char *fileName, bool memDumpMode = false);
-	//u8 ReadByte(u32 addr); // call VirAddrToNodeAddr. If addr doesn't exist, just return 0.
-	//bool VirAddrToNodeAddr(u32 addr, OUT u32 *bufMaxAccessLen = NULL, OUT VIR_MEM_NODE_t** matchNode = NULL);
-	//void DumpVirMemNodeInfo(void);
-	//int  DumpVirMemNodeContent_ToFile(const char *fileName);
 };
 
 void LibLinkedList_Demo(void);

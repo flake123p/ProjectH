@@ -49,11 +49,11 @@ typedef enum {
 	PARITY__SPACE,
 } PARITY;
 
-int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, uint8_t byteSize = 8, STOP_BITS stopBits = STOP_BITS_1, PARITY parity = PARITY__NONE);
+int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel = 0, uint8_t byteSize = 8, STOP_BITS stopBits = STOP_BITS_1, PARITY parity = PARITY__NONE);
 int LibUart_UninitComPort(void);
 int LibUart_Send(uint8_t *buffer, uint32_t length);
 int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength);
-
+int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength);
 
 #define _LIB_UART_HPP_INCLUDED_
 #endif//_LIB_UART_HPP_INCLUDED_

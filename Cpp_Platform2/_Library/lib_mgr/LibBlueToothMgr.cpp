@@ -38,40 +38,40 @@ int LibBT_MakeHciPacketHeader(UART_HCI_PACKET_TYPE_t uartHciType, u32 header, u3
 			BASIC_ASSERT(header < 0x10000);
 			BASIC_ASSERT(dataLen < 0x100);
 			
-			HCI_COMMAND_PACKET_t *cmdPtr = (HCI_COMMAND_PACKET_t *)&buf[precedentLen];
-			cmdPtr->opcode_L = (u8)header;
-			cmdPtr->opcode_H = (u8)(header>>8);
-			cmdPtr->parameterLen = (u8)dataLen;
+			HCI_COMMAND_PACKET_t *ptr = (HCI_COMMAND_PACKET_t *)&buf[precedentLen];
+			ptr->opcode_L = (u8)header;
+			ptr->opcode_H = (u8)(header>>8);
+			ptr->parameterLen = (u8)dataLen;
 		} break;
 
 		case UART_HCI_ACL: {
 			BASIC_ASSERT(header < 0x10000);
 			BASIC_ASSERT(dataLen < 0x10000);
 
-			HCI_ACL_PACKET_t *cmdPtr = (HCI_ACL_PACKET_t *)&buf[precedentLen];
-			cmdPtr->handel_L = (u8)header;
-			cmdPtr->handel_H = (u8)(header>>8);
-			cmdPtr->dataLen_L = (u8)dataLen;
-			cmdPtr->dataLen_H = (u8)(dataLen>>8);
+			HCI_ACL_PACKET_t *ptr = (HCI_ACL_PACKET_t *)&buf[precedentLen];
+			ptr->handel_L = (u8)header;
+			ptr->handel_H = (u8)(header>>8);
+			ptr->dataLen_L = (u8)dataLen;
+			ptr->dataLen_H = (u8)(dataLen>>8);
 		} break;
 
 		case UART_HCI_SCO: {
 			BASIC_ASSERT(header < 0x10000);
 			BASIC_ASSERT(dataLen < 0x100);
 
-			HCI_SCO_PACKET_t *cmdPtr = (HCI_SCO_PACKET_t *)&buf[precedentLen];
-			cmdPtr->handel_L = (u8)header;
-			cmdPtr->handel_H = (u8)(header>>8);
-			cmdPtr->dataLen = (u8)dataLen;
+			HCI_SCO_PACKET_t *ptr = (HCI_SCO_PACKET_t *)&buf[precedentLen];
+			ptr->handel_L = (u8)header;
+			ptr->handel_H = (u8)(header>>8);
+			ptr->dataLen = (u8)dataLen;
 		} break;
 
 		case UART_HCI_EVENT: {
 			BASIC_ASSERT(header < 0x100);
 			BASIC_ASSERT(dataLen < 0x100);
 			
-			HCI_EVENT_PACKET_t *cmdPtr = (HCI_EVENT_PACKET_t *)&buf[precedentLen];
-			cmdPtr->eventCode= (u8)header;
-			cmdPtr->parameterLen = (u8)dataLen;
+			HCI_EVENT_PACKET_t *ptr = (HCI_EVENT_PACKET_t *)&buf[precedentLen];
+			ptr->eventCode= (u8)header;
+			ptr->parameterLen = (u8)dataLen;
 		} break;
 
 		default:
