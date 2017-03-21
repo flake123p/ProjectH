@@ -2,7 +2,7 @@
 
 #ifndef __LIB_51HEX_HPP_INCLUDED_
 
-//Hex format error
+//Error Code: Hex format error
 #define COLON_NOT_AT_START     (1)
 #define RECORD_LENGTH_TO_SMALL (2)
 #define RECORD_LENGTH_TO_BIG   (3)
@@ -40,7 +40,7 @@ typedef struct {
 	int recordType;
 }HEX_RECORD_DATA_t;
 
-u32 Lib51Hex_MakeDataRecord(u32 start_addr, char *hex_string, OUT u8 *hex_data);
+u32  Lib51Hex_MakeDataRecord(u32 start_addr, char *hex_string, OUT u8 *hex_data);
 void Lib51Hex_SprintDataRecord(OUT char *buf, u8 *hex_data, u32 hex_data_len);
 void Lib51Hex_PrintDataRecord(u8 *hex_data, u32 hex_data_len);
 

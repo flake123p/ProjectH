@@ -27,7 +27,7 @@
 #define LINKED_LIST_ERR_MSG(...)
 #endif
 
-
+// ============================== Define ==============================
 typedef struct LinkedListNode {
 	LinkedListNode *next;
 	LinkedListNode *prev;
