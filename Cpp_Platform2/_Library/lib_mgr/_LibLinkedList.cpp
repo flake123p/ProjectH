@@ -410,6 +410,28 @@ int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len)
 	return 0;
 }
 
+int VirtualMemClass::CreateDummyPage(u32 dstAddr)
+{
+	u8 src[1] = {0};
+	u32 pageStartAddr = GetPageStartAddr_ByRandomAddr(dstAddr);
+
+	if (initVal < 0x100) {
+		src[0] = (u8)initVal;
+	}
+
+	unless (NodeExist(pageStartAddr)) {
+		VIR_MEM_NODE_t *currNode;
+		Write(dstAddr, src, 1);
+		if (true == NodeExist(pageStartAddr, &currNode)) {
+			currNode->usedLen = 0;
+		} else {
+			BASIC_ASSERT(0);
+		}
+	}
+
+	return 0;
+}
+
 void VirtualMemClass::DumpVirMemNodeInfo(void)
 {
 	printf("==================================== %s() start\n", __func__);
@@ -573,6 +595,11 @@ bool VirtualMemClass::NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode /
 	return false;
 }
 
+u32 VirtualMemClass::GetPageStartAddr_ByRandomAddr(u32 addr)
+{
+	return (addr / nodeSize) * nodeSize;
+}
+
 int VirtualMemClass::NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode /* = NULL */)
 {
 	VIR_MEM_NODE_t *newVirMemNode = (VIR_MEM_NODE_t *)malloc(sizeof(VIR_MEM_NODE_t) + nodeSize + 32);
@@ -674,13 +701,14 @@ void LibLinkedList_Demo(void)
 	
 	VirtualMemClass virMem;
 	u8 ary1[] = {0x11, 0x22, 0x33};
-	virMem.SetParameters(0x2000, 0xFF);
+	virMem.SetParameters(0x1000, 0xFF);
 	virMem.Write(0x00000000, ary1, 3);
 	virMem.Write(0x00000010, ary1, 3);
 	virMem.Write(0x00000020, ary1, 3);
 	virMem.Write(0x00000021, ary1, 3);
 	virMem.Write(0x00007FFF, ary1, 3);
 	virMem.DumpVirMemNodeInfo();
+	virMem.CreateDummyPage(0x2001);
 	virMem.DumpVirMemNodeContent_ToFile("LibLinkedListDEMO.txt");
 	//todo: CreateNode(); DeleteNode();
 }
