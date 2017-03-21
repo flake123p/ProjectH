@@ -1,4 +1,6 @@
 
+#ifdef BUILD_TUI_LIBRARY
+
 #include "Everything_Lib_Mgr.hpp"
 
 #include <curses.h>
@@ -192,3 +194,4 @@ int LibTuiMgr_DemoDumpMem(char *memory_address)
 	return 0;
 }
 
+#endif //#ifdef BUILD_TUI_LIBRARY

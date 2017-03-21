@@ -1,7 +1,7 @@
 
 # 目前全面使用預設的 CXX 來編譯 , 也就是 g++
 
-CXXFLAGS = -g -Wall -std=c++11
+CXXFLAGS = -g -Wall -std=c++11 -DBUILD_TUI_LIBRARY
 # 靜態連結的執行檔是給沒裝 pdcurses library 的電腦用的
 #CXXFLAGS = -g -Wall -static
 

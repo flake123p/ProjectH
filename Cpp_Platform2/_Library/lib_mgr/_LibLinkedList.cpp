@@ -373,7 +373,7 @@ void VirtualMemClass::SetParameters(u32 node_size, u32 init_val)
 	initVal=init_val;
 }
 
-int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len)
+int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool doFirstWriteCheck /* = false */)
 {
 	u32 currDstAddr = dstAddr;
 	//u32 nextDstAddr = 0;
@@ -395,11 +395,11 @@ int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len)
 
 		if (remainLen + currDstAddr > nextNodeStartAddr) {
 			currLen = nextNodeStartAddr - currDstAddr;
-			PageWrite(currNode, currDstAddr, &(src[currSrcOffset]), currLen);
+			PageWrite(currNode, currDstAddr, &(src[currSrcOffset]), currLen, doFirstWriteCheck);
 			currDstAddr = nextNodeStartAddr;
 		} else {
 			currLen = remainLen;
-			PageWrite(currNode, currDstAddr, &(src[currSrcOffset]), currLen);
+			PageWrite(currNode, currDstAddr, &(src[currSrcOffset]), currLen, doFirstWriteCheck);
 		}
 		remainLen -= currLen;
 		currSrcOffset += currLen;
@@ -628,15 +628,24 @@ int VirtualMemClass::NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode /* = N
 	return 0;
 }
 
-int VirtualMemClass::PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len)
+int VirtualMemClass::PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len, bool doFirstWriteCheck /* = false */)
 {
 	BASIC_ASSERT(IsThisNodeInList((LinkedListNode *)node) != NODE_ISNT_IN_LIST);
 	BASIC_ASSERT(((dstAddr/nodeSize)*nodeSize) == node->startAddr);
 	BASIC_ASSERT((dstAddr+len) <= (node->startAddr+nodeSize)); // Cross Page
 
 	u32 nodeAddr = dstAddr - node->startAddr;
-
-	memcpy(&(node->data[nodeAddr]), src, len);
+	u8 *dst = &(node->data[nodeAddr]);
+	
+	if (doFirstWriteCheck && initVal < 0x100) {
+		for (u32 i=0; i<len; i++) {
+			if (dst[i] != (u8)initVal) {
+				BASIC_ASSERT(0);
+			}
+		}
+	}
+	
+	memcpy(dst, src, len);
 
 	if ((len+nodeAddr) > node->usedLen) {
 		node->usedLen = (len+nodeAddr);

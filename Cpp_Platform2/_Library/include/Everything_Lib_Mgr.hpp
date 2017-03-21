@@ -35,7 +35,7 @@
 #include "LibEvent.hpp"
 #include "LibBuffer.hpp"
 #include "LibThread.hpp"
-#include "LibBlueTooth.hpp"
+#include "LibBT_HCI.hpp"
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_

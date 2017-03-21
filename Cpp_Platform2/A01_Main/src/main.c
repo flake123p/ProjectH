@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 #endif
 	//Lib51Hex_Demo();
 	//LibLinkedList_Demo();
-	LibBT_Demo();
+	LibBT_HCI_Demo();
 	
 	//LibScreenLogic_Demo();
 	return 0;//LibSharedMemory_Demo_Server();

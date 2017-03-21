@@ -43,6 +43,7 @@
 #define ARRAYDUMPD(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %d\n", xi, a[xi]);}
 #define ARRAYDUMPU(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %u\n", xi, a[xi]);}
 #define ARRAYDUMPX(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%X\n", xi, a[xi]);}
+#define ARRAYDUMPX2(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)(a[xi]));}printf("\n");
 
 #define PRINT_NEXT_LINE printf("\n");
 #define PRINT_FUNC(a)  printf("%s",__func__);if(a){PRINT_NEXT_LINE}

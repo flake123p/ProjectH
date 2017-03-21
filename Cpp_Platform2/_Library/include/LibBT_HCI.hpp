@@ -1,20 +1,27 @@
 
 
 
-#ifndef _LIB_BLUETOOTH_HPP_INCLUDED_
+#ifndef _LIB_BT_HCI_HPP_INCLUDED_
 
 #include "My_Types.h"
 
 // ============================== Debug ==============================
 
 // ============================== Define ==============================
-//UART HCI packet types
 typedef enum {
-	UART_HCI_COMMAND = 1,
-	UART_HCI_ACL     = 2,
-	UART_HCI_SCO     = 3,
-	UART_HCI_EVENT   = 4,
-} UART_HCI_PACKET_TYPE_t;
+	HCI_Command_Packet,
+	HCI_ACL_Packet,
+	HCI_SCO_Packet,
+	HCI_Event_Packet,
+} HCI_PACKET_TYPE_t;
+
+//UART HCI packet types
+#define UART_HEADER_HCI_COMMAND (0x01)
+#define UART_HEADER_HCI_ACL     (0x02)
+#define UART_HEADER_HCI_SCO     (0x03)
+#define UART_HEADER_HCI_EVENT   (0x04)
+
+
 
 typedef struct {
 	u8 reserved[3];
@@ -60,17 +67,19 @@ typedef struct {
 #define HCI_EVENT_PACKET_HEADER_SIZE_FOR_CHECK (2)
 
 // ============================== Library: Cross-Platform (Manager) ==============================
-void LibBT_Diagnose(void);
-u32  LibBT_GetHciPduOffset(UART_HCI_PACKET_TYPE_t uartHciType, u32 precedentLen = 4);
-int  LibBT_MakeHciPacketHeader(UART_HCI_PACKET_TYPE_t uartHciType, u32 header, u32 dataLen, OUT u8 *buf, u32 precedentLen = 4);
-int LibBT_MakeUartHciHeader(UART_HCI_PACKET_TYPE_t uartHciType, OUT u8 *buf);
-void LibBT_DumpUartHciPacket(u8 *buf, u32 bufLen);
+void LibBT_HCI_Diagnose(void);
+// 1. UART packet
+u32  LibBT_HCI_GetUartHeaderSize(void);
+int  LibBT_HCI_PrepareUartHeader(HCI_PACKET_TYPE_t hci_packet_type, u32 start_offset, OUT u8 *buf);
+// 2. HCI packet
+u32  LibBT_HCI_GetHciHeaderSize(HCI_PACKET_TYPE_t hci_packet_type);
+int  LibBT_HCI_PrepareHciHeader(HCI_PACKET_TYPE_t hci_packet_type, u32 start_offset, u32 header, u32 dataLen, OUT u8 *buf);
 
-void LibBT_Demo(void);
+void LibBT_HCI_Demo(void);
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
 
-#define _LIB_BLUETOOTH_HPP_INCLUDED_
-#endif//_LIB_BLUETOOTH_HPP_INCLUDED_
+#define _LIB_BT_HCI_HPP_INCLUDED_
+#endif//_LIB_BT_HCI_HPP_INCLUDED_
 
 
 
