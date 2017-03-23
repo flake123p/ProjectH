@@ -4,6 +4,12 @@
 char testString1[] = "{03 04 04 FF 07 04 01 FF}>>> 01 7d fc [??] [00 20 02 00] 80";
 char testString2[] = "{03 04 04 FF 07 04 01 FF}>>> 01 7d fc ?? [00 20 02 80] 80";
 
+void abc(char ch)
+{
+    char str[] = "abcdXYZabcdXYZabcdXYZabcdXYZ";
+	str[0] = ch;
+	printf("%s\n", str);
+}
 int main(int argc, char *argv[])
 {
 	#if 0
@@ -20,12 +26,12 @@ int main(int argc, char *argv[])
 	printf("press any key to next run\n");
 	LibSysCmd_Pause();
 	LibTuiMgr_DemoSimple();
-	
+
 	LibTime_StopClock_ShowResult();
 	printf("\n");
 	LibTime_StopMicroSecondClock_ShowResult();
 	printf("\n");
-	
+
 
 	//DUMPD(LibUtil_GetRand());
 	//LibUtil_Print_RAND_MAX();
@@ -72,8 +78,10 @@ int main(int argc, char *argv[])
 #endif
 	//Lib51Hex_Demo();
 	//LibLinkedList_Demo();
-	LibBT_HCI_Demo();
-	
+	abc('X');
+	abc('Y');
+
+    LibBT_HCI_Demo();
 	//LibScreenLogic_Demo();
 	return 0;//LibSharedMemory_Demo_Server();
 	//return LibSharedMemory_Demo_Client();

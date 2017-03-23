@@ -410,10 +410,22 @@ int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool doFirstWriteCheck
 	return 0;
 }
 
+u8 *VirtualMemClass::GetRealAddress(u32 addr)
+{
+	u32 nodeAddr = CalculateNodeStartAddr(addr);
+
+	VIR_MEM_NODE_t *currNode;
+	if (NodeExist(nodeAddr, &currNode)) {
+		return &(currNode->data[addr - currNode->startAddr]);
+	} else {
+		return NULL;
+	}
+}
+
 int VirtualMemClass::CreateDummyPage(u32 dstAddr)
 {
 	u8 src[1] = {0};
-	u32 pageStartAddr = GetPageStartAddr_ByRandomAddr(dstAddr);
+	u32 pageStartAddr = CalculateNodeStartAddr(dstAddr);
 
 	if (initVal < 0x100) {
 		src[0] = (u8)initVal;
@@ -595,7 +607,7 @@ bool VirtualMemClass::NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode /
 	return false;
 }
 
-u32 VirtualMemClass::GetPageStartAddr_ByRandomAddr(u32 addr)
+u32 VirtualMemClass::CalculateNodeStartAddr(u32 addr)
 {
 	return (addr / nodeSize) * nodeSize;
 }

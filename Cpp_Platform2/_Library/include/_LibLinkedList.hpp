@@ -95,7 +95,7 @@ typedef struct {
 class VirtualMemClass: public LinkedListClass{
 private:
 	bool NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
-	u32  GetPageStartAddr_ByRandomAddr(u32 addr);
+	u32  CalculateNodeStartAddr(u32 addr);
 	int  NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode = NULL);
 	int  PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len, bool doFirstWriteCheck = false);
 public:
@@ -106,6 +106,7 @@ public:
 	~VirtualMemClass(void);
 	void SetParameters(u32 node_size, u32 initVal);
 	int  Write(u32 dstAddr, u8 *src, u32 len, bool doFirstWriteCheck = false);
+	u8  *GetRealAddress(u32 addr);
 	int  CreateDummyPage(u32 dstAddr);
 	void DumpVirMemNodeInfo(void);
 	int  DumpVirMemNodeContent_ToFile(const char *fileName, bool memDumpMode = false);
