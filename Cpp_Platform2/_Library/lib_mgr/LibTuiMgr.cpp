@@ -171,8 +171,8 @@ int LibTuiMgr_DemoDumpMem(char *memory_address)
 			lineStr[16] = 0;
 			
 			sprintf(str, 
-			        "[0x%08X] %02X %02X %02X %02X %02X %02X %02X %02X - %02X %02X %02X %02X %02X %02X %02X %02X  **%s**", 
-			        (u32)mem,
+			        "[%p] %02X %02X %02X %02X %02X %02X %02X %02X - %02X %02X %02X %02X %02X %02X %02X %02X  **%s**", 
+			        mem,
 			        mem[0], mem[1], mem[2], mem[3], mem[4], mem[5], mem[6], mem[7], mem[8], mem[9], mem[10], mem[11], mem[12], mem[13], mem[14], mem[15],
 			        lineStr
 			        );

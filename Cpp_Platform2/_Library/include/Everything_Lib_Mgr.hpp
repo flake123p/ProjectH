@@ -20,6 +20,7 @@
 		2.) Create Dump()
 */
 #include "_LibLinkedList.hpp"
+#include "_LibMemory.hpp"
 #include "_LibMenu.hpp"
 #include "_LibString.hpp"
 #include "_Lib51Hex.hpp"

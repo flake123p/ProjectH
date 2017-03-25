@@ -36,7 +36,7 @@ void LibBufPrinter::Init(IN char * start_ptr, IN u32 buf_size, IN u32 in_thresho
 
 char *LibBufPrinter::GetAlignedAddr(char *addr)
 {
-	u32 pad_size = (u32)addr % 8;
+	u32 pad_size = POINTER_TO_U32(addr) % 8;
 	if (pad_size != 0) {
 		pad_size = 8 - pad_size;
 	}
@@ -141,8 +141,8 @@ int LibBuffer_DumpMem(char *memory_address)
 		lineStr[16] = 0;
 		
 		printf(
-			"[0x%08X] %02X %02X %02X %02X %02X %02X %02X %02X - %02X %02X %02X %02X %02X %02X %02X %02X  **%s**\n", 
-			(u32)mem,
+			"[%p] %02X %02X %02X %02X %02X %02X %02X %02X - %02X %02X %02X %02X %02X %02X %02X %02X  **%s**\n", 
+			mem,
 			mem[0], mem[1], mem[2], mem[3], mem[4], mem[5], mem[6], mem[7], mem[8], mem[9], mem[10], mem[11], mem[12], mem[13], mem[14], mem[15],
 			lineStr
 			);
@@ -164,10 +164,10 @@ void LibBuffer_DemoBasic(void)
 
 	//printf((char *)obj.bufPtr);
 
-	DUMPX((u32)printer.currPtr);
+	DUMPP(printer.currPtr);
 
 	printer.Print("CCCCCCCC");
-	DUMPX((u32)printer.currPtr);
+	DUMPP(printer.currPtr);
 
 	LibBuffer_DumpMem(printer.startPtr);
 

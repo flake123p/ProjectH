@@ -12,7 +12,7 @@ LIB_DIR = lib_win
 LIB += -lpdcurses
 else
 LIB_DIR = lib_linux
-LIB += -lcurses
+LIB += -lcurses -lpthread
 endif
 
 # For g++

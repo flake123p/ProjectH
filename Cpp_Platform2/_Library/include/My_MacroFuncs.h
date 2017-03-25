@@ -30,26 +30,33 @@
 
 #define REMOVE_UNUSED_WRANING(a) (a=a)
 
-
+#include <stdint.h>
+// uintptr_t is defined in C++11 and later standards.
+#define POINTER_TO_INT(ptr) ((uintptr_t)ptr)
+#define POINTER_TO_U32(ptr) ((u32)POINTER_TO_INT(ptr))
 
 #define DUMPC(a) printf(#a " = %c\n", a)
 #define DUMPS(a) printf(#a " = %s\n", a)
-#define DUMPD(a) printf(#a " = %d\n", a)
+#define DUMPD(a) printf(#a " = %d\n", (int)a)
 #define DUMPU(a) printf(#a " = %u\n", a)
-#define DUMPX(a) printf(#a " = 0x%X\n", a)
+#define DUMPX(a) printf(#a " = 0x%X\n", (u32)a)
+#define DUMPP(a) printf(#a " = %p\n", (void *)a)
+#define DUMPA(a) printf(#a " = 0x%08X\n", POINTER_TO_U32(a))
 
 #define ARRAYDUMPC(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %c\n", xi, a[xi]);}
 #define ARRAYDUMPS(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %s\n", xi, a[xi]);}
 #define ARRAYDUMPD(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %d\n", xi, a[xi]);}
 #define ARRAYDUMPU(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %u\n", xi, a[xi]);}
-#define ARRAYDUMPX(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%X\n", xi, a[xi]);}
+#define ARRAYDUMPX(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%X\n", xi, (u32)a[xi]);}
 #define ARRAYDUMPX2(a,length) printf(#a" = ");for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)(a[xi]));}printf("\n");
-#define ARRAYDUMPX3(a,length) printf(#a" = ");for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)(a[xi]));if(xi%16==15){printf("\n");}}printf("\n");
+#define ARRAYDUMPX3(a,length) printf(#a" =\n");for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)(a[xi]));if(xi%16==15){printf("\n");}}printf("\n");
+#define ARRAYDUMPP(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %p\n", xi, (void *)a[xi]);}
+#define ARRAYDUMPA(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%08X\n", xi, POINTER_TO_U32(a[xi]));}
 
 #define PRINT_NEXT_LINE printf("\n");
-#define PRINT_FUNC(a)  printf("%s",__func__);if(a){PRINT_NEXT_LINE}
-#define PRINT_LINE(a)  printf("%d",__LINE__);if(a){PRINT_NEXT_LINE}
-#define PRINT_FILE(a)  printf("%s",__FILE__);if(a){PRINT_NEXT_LINE}
+#define PRINT_FUNC(...) printf("%s\n",__func__);
+#define PRINT_LINE(...) printf("%d\n",__LINE__);
+#define PRINT_FILE(...) printf("%s\n",__FILE__);
 //#define PRINT_FUNC(1) PRINT_FUNC PRINT_NEXT_LINE
 //#define PRINT_LINE(1) PRINT_LINE PRINT_NEXT_LINE
 //#define PRINT_FILEn PRINT_FILE PRINT_NEXT_LINE

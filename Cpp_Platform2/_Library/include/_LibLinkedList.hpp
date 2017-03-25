@@ -85,34 +85,9 @@ public:
 };
 
 
-typedef struct {
-	LinkedListNode node;
-	u32 startAddr;
-	u32 usedLen;
-	void *DummyPad;
-	u8 data[];
-}VIR_MEM_NODE_t;
-class VirtualMemClass: public LinkedListClass{
-private:
-	bool NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode = NULL);
-	u32  CalculateNodeStartAddr(u32 addr);
-	int  NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode = NULL);
-	int  PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len, bool doFirstWriteCheck = false);
-public:
-	u32 nodeSize;  // Must be multiple of 16
-	u32 initVal; // if bigger than 0xFF, won't init array from malloc()
-	
-	VirtualMemClass(void);
-	~VirtualMemClass(void);
-	void SetParameters(u32 node_size, u32 initVal);
-	int  Write(u32 dstAddr, u8 *src, u32 len, bool doFirstWriteCheck = false);
-	u8  *GetRealAddress(u32 addr);
-	int  CreateDummyPage(u32 dstAddr);
-	void DumpVirMemNodeInfo(void);
-	int  DumpVirMemNodeContent_ToFile(const char *fileName, bool memDumpMode = false);
-};
 
 void LibLinkedList_Demo(void);
+
 
 #define __LIB_LINKED_LIST_HPP_INCLUDED_
 #endif//__LIB_LINKED_LIST_HPP_INCLUDED_

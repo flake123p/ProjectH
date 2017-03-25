@@ -2,12 +2,13 @@
 1489914327 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_lib51hex.cpp
 	"Everything_Lib_Mgr.hpp"
 
-1490147363 d:\ws\workspace\projecth\cpp_platform2\_library\include\everything_lib_mgr.hpp
+1490333994 d:\ws\workspace\projecth\cpp_platform2\_library\include\everything_lib_mgr.hpp
 	<stdio.h>
 	<string.h>
 	<stdint.h>
 	<stdlib.h>
 	"My_Basics.hpp"
+	"_LibAlgoMem.hpp"
 	"_LibLinkedList.hpp"
 	"_LibMenu.hpp"
 	"_LibString.hpp"
@@ -36,7 +37,7 @@
 
 1489314439 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_macros.h
 
-1490165855 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_macrofuncs.h
+1490338356 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_macrofuncs.h
 	<stdio.h>
 	<assert.h>
 
@@ -51,7 +52,7 @@
 	<String>
 	"My_Types.h"
 
-1489748559 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libstring.hpp
+1490336874 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libstring.hpp
 	<vector>
 	<String>
 	"My_Types.h"
@@ -107,7 +108,7 @@
 	"Everything_Lib_Mgr.hpp"
 	<iostream>
 
-1489748566 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libstring.cpp
+1490337129 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libstring.cpp
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -244,9 +245,15 @@
 1490147318 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libuart.cpp
 	"Everything_Lib_Win.hpp"
 
-1490246028 source:d:\ws\workspace\projecth\cpp_platform2\a01_main\src\main.c
+1490337158 source:d:\ws\workspace\projecth\cpp_platform2\a01_main\src\main.c
 	"Everything_App.hpp"
 
 1488191025 d:\ws\workspace\projecth\cpp_platform2\a01_main\include\everything_app.hpp
+	"Everything_Lib_Mgr.hpp"
+
+1490338795 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libalgomem.hpp
+	"My_Types.h"
+
+1490339698 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libalgomem.cpp
 	"Everything_Lib_Mgr.hpp"
 

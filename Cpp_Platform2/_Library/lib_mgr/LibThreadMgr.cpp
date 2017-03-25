@@ -12,7 +12,7 @@ void *Test_Thread_1(void *arg)
 	printf("%s() 1 ... (%d)\n", __func__, gTestData);
 	LibOs_SleepMiliSeconds(10);
 	printf("%s() 2 ... (%d)\n", __func__, gTestData);
-	LibOs_SleepMiliSeconds(10);
+	LibOs_SleepMiliSeconds(100);
 	printf("%s() 3 ... (%d)\n", __func__, gTestData);
 
 

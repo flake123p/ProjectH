@@ -2,7 +2,7 @@
 
 #ifndef __LIB_VECTOR_HPP_INCLUDED_
 #include <vector>
-#include <String>
+#include <string>
 #include "My_Types.h"
 
 // ============================== Debug ==============================

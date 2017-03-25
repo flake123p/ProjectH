@@ -228,11 +228,11 @@ END:
 	return numberOfChar;
 }
 
-void LibString_2D_HexStringToCharString(u8 *dstString, char *srcString[], int maxLength)
+void LibString_2D_HexStringToCharString(u8 *dstString, char *srcString[], int scanCount)
 {
 	unsigned int temp;
 	
-	for (int i = 0; i < maxLength; i++) {
+	for (int i = 0; i < scanCount; i++) {
 		sscanf(srcString[i], "%x", &temp);
 		dstString[i] = (u8)temp;
 	}
@@ -450,7 +450,7 @@ int LibStringClass::ReplaceWithRestLength(const char *s)
 		for (u32 i = 0; i < subStrVector.size(); i++) {
 			if (subStrVector[i].find(s) != std::string::npos) {
 				char temp[10];
-				sprintf(temp, "%02X  ", subStrVector.size()-i-1);
+				sprintf(temp, "%02X  ", (u32)(subStrVector.size()-i-1));
 				tempString += temp;
 			} else {
 				tempString += subStrVector[i];
@@ -471,9 +471,36 @@ int LibStringClass::ReplaceWithRestLength(const char *s)
 void LibStringClass::Dump(void)
 {
 	printf("str = %s\n", str.c_str());
-	printf("length = %d\n", Length());
-	printf("Size of sub-string = %d\n", subStrVector.size());
+	printf("length = %d\n", (u32)Length());
+	printf("Size of sub-string = %d\n", (u32)subStrVector.size());
 	for (u32 i = 0; i < subStrVector.size(); i++) {
 		printf("subStr[%d] = %s\n", i, subStrVector[i].c_str());
 	}
+}
+
+void LibString_Demo(void)
+{
+	char testString1[] = "01 7d fc [??] xx [00 20 02 00] 80";
+	LibStringClass stringObj;
+	stringObj.Init(testString1);
+	stringObj.ReplaceWithRestLength("??");
+	printf("ReplaceWithRestLength() ==> %s\n", stringObj.str.c_str());
+	stringObj.ReplaceWithRestLength("xx");
+	printf("ReplaceWithRestLength() ==> %s\n", stringObj.str.c_str());
+
+	u8 hexArray[10];
+	int resultLen;
+	resultLen = LibString_HexStringToCharString(hexArray, stringObj.str.c_str(), 10);
+	ARRAYDUMPX3(hexArray, resultLen);
+
+	char testString2[] = "11 22 33";
+	char testString3[] = "AA";
+	char *argv[4];
+	argv[0] = &testString2[0];
+	argv[1] = &testString2[3];
+	argv[2] = &testString3[0];
+	argv[3] = &testString2[6];
+	LibString_2D_HexStringToCharString(hexArray, argv, 4);
+	ARRAYDUMPX3(hexArray, 4);
+	
 }

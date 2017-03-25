@@ -50,6 +50,7 @@
 		<Unit filename="../_Library/include/My_Macros.h" />
 		<Unit filename="../_Library/include/My_Types.h" />
 		<Unit filename="../_Library/include/_Lib51Hex.hpp" />
+		<Unit filename="../_Library/include/_LibAlgoMem.hpp" />
 		<Unit filename="../_Library/include/_LibLinkedList.hpp" />
 		<Unit filename="../_Library/include/_LibMenu.hpp" />
 		<Unit filename="../_Library/include/_LibString.hpp" />
@@ -69,6 +70,7 @@
 		<Unit filename="../_Library/lib_mgr/LibUartMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibUtilityMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/_Lib51Hex.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibAlgoMem.cpp" />
 		<Unit filename="../_Library/lib_mgr/_LibLinkedList.cpp" />
 		<Unit filename="../_Library/lib_mgr/_LibMenu.cpp" />
 		<Unit filename="../_Library/lib_mgr/_LibString.cpp" />

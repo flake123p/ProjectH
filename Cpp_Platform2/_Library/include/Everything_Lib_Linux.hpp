@@ -16,9 +16,14 @@
 #include <sys/shm.h> // for shared memory, ...
 #include <sys/time.h> // for gettimeofday(), ...
 #include <unistd.h> // for sleep(), ...
+#include <pthread.h>
 
 // ====== Basics ======
 #include "My_Basics.hpp"
+
+// ====== Platform Library ======
+//#include "LibUart.hpp"
+#include "LibThread.hpp"
 
 
 

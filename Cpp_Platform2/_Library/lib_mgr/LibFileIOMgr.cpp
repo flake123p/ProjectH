@@ -141,6 +141,11 @@ int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
 		ch = fgetc(this->fp);
 		if(ch == '\n' || ch == EOF) {
 			break;
+		} else if (ch == '\r') {
+			ch = fgetc(this->fp);
+			if(ch == '\n' || ch == EOF) {
+				break;
+			}
 		}
 
 		outputString[numberOfChar] = (unsigned char)ch;

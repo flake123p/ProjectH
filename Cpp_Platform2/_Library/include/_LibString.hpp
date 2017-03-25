@@ -2,7 +2,7 @@
 
 #ifndef __LIB_STRING_HPP_INCLUDED_
 #include <vector>
-#include <String>
+#include <string>
 #include "My_Types.h"
 
 class ConstStr {
@@ -25,7 +25,7 @@ bool LibString_IsCharNonspace(char ch);
 bool LibString_CharToIndex(IN char ch, IN bool doAddingInLowercase, OUT int *index);
 int LibString_HexStringToCharString(u8 *dstString, const char *srcString, int maxLength);
 int LibString_DecStringToCharString(u8 *dstString, const char *srcString, int maxLength);
-void LibString_2D_HexStringToCharString(u8 *dstString, char *srcString[], int maxLength);
+void LibString_2D_HexStringToCharString(u8 *dstString, char *srcString[], int scanCount);
 int LibString_DecStringToInt(const char * str);
 int LibString_HexStringToInt(const char * str);
 char * LibString_Copy(char * destination, const char * source, int num = -1);
@@ -88,6 +88,8 @@ public:
 	int ReplaceWithRestLength(const char *s);
 	void Dump(void);
 };
+
+void LibString_Demo(void);
 
 #define __LIB_STRING_HPP_INCLUDED_
 #endif//__LIB_STRING_HPP_INCLUDED_
