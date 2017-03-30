@@ -110,7 +110,7 @@ SCAN_KEY_MGR_DB_t gMyScanDB = {
 };
 void LibScreenLogic_GetEvent_DEMO(void)
 {
-	PRINT_FUNC(1);
+	PRINT_FUNC;
 	
 	USER_EVENT_t *hdl;
 	u32 retVal;
@@ -123,7 +123,7 @@ void LibScreenLogic_GetEvent_DEMO(void)
 		DUMPX(hdl->user_event);
 	} while (hdl->user_event != USER_EVT_KB_ESC);
 
-	PRINT_LINE(1);
+	PRINT_LINE;
 	LibScreenLogic_SetScanKeyDatabase(&gMyScanDB);
 	do {
 		retVal = LibScreenLogic_CB_GetEvent((void **)(&hdl));

@@ -3,6 +3,7 @@
 
 LibBufferBasic::LibBufferBasic(void)
 {
+	bufSize = 0;
 	bufPtr = NULL;
 }
 
@@ -156,9 +157,10 @@ int LibBuffer_DumpMem(char *memory_address)
 void LibBuffer_DemoBasic(void)
 {
 	LibBufferBasic obj;//(102400);
+	obj.Init(102400);
+	
 	LibBufPrinter printer;
 
-	obj.Init(102400);
 	printer.Init((char *)obj.bufPtr, 102400, 1024);
 	printer.Print("%s aab\nbcc %d, %f\nss", "STR", 12, 55.321);
 

@@ -24,6 +24,7 @@
 #include "_LibMenu.hpp"
 #include "_LibString.hpp"
 #include "_Lib51Hex.hpp"
+#include "_LibError.hpp"
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"
@@ -37,6 +38,8 @@
 #include "LibBuffer.hpp"
 #include "LibThread.hpp"
 #include "LibBT_HCI.hpp"
+#include "LibArgParser.hpp"
+
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_

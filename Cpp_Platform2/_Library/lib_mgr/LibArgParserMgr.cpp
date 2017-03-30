@@ -1,12 +1,5 @@
-//#include "stdafx.h" //For porting to "Visual Studio"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "My_Basics.hpp"
-
-#include "_LibString.hpp"
-#include "LibArgParser.hpp"
+#include "Everything_Lib_Mgr.hpp"
 
 static bool gDoesCharOptionExist = false;
 /*
@@ -155,4 +148,233 @@ bool LibArgParser_ArgvsToVariables(ARG_TYPE_DB_t *db_buf, u32 count, char *argv[
 	}
 	
 	return true;
+}
+
+
+ArgOptionSet::ArgOptionSet(Option_Set_Big_t *big_set /* = NULL */, u32 big_set_len /* = 0 */, Option_Set_Small_t * small_set /* = NULL */, u32 small_set_len /* = 0 */, u32 stand_alone_str_size /* = 0 */)
+{
+	Init(big_set, big_set_len, small_set, small_set_len, stand_alone_str_size);
+}
+
+void ArgOptionSet::Init(Option_Set_Big_t *big_set, u32 big_set_len, Option_Set_Small_t * small_set, u32 small_set_len, u32 stand_alone_str_size)
+{
+	bigSet      = big_set;
+	bigSetLen   = big_set_len;
+	smallSet    = small_set;
+	smallSetLen = small_set_len;
+	standAloneArgSize = stand_alone_str_size;
+
+	argMap.clear();
+	standAloneArgs.clear();
+}
+
+void ArgOptionSet::Dump(void)
+{
+	printf("Dump big set:\n");
+	for (u32 i = 0; i < bigSetLen; i++) {
+		printf(
+			"%2d %2d %s %s %s %s\n", 
+			bigSet[i].keyValue,
+			bigSet[i].existFollowingArgc,
+			(bigSet[i].keyStr1==NULL?"":bigSet[i].keyStr1),
+			(bigSet[i].keyStr2==NULL?"":bigSet[i].keyStr2),
+			(bigSet[i].keyStr3==NULL?"":bigSet[i].keyStr3),
+			(bigSet[i].keyStr4==NULL?"":bigSet[i].keyStr4));
+	}
+
+	printf("Dump small set:\n");
+	for (u32 i = 0; i < smallSetLen; i++) {
+		printf("%2d %c\n", smallSet[i].keyValue, smallSet[i].keyCharacter);
+	}
+
+	printf("Dump arg map:\n");
+	std::map<u32,std::string>::iterator it;
+	for (it=argMap.begin(); it!=argMap.end(); ++it) {
+		printf("%2u, %s\n", it->first, it->second.c_str());
+	}
+
+	printf("Dump stand alone argu:\n");
+	for (u32 i = 0; i < standAloneArgs.size(); i++) {
+		printf("%s\n", standAloneArgs[i].c_str());
+	}
+}
+
+int ArgOptionSet::StartParsing(int argc, char *argv[])
+{
+	int retVal;
+	char *currArgv;
+	char *nextArgv;
+	bool passNextRound;
+	
+	for (int i=0; i<argc; i++) {
+		currArgv = argv[i];
+		if (i+1 < argc)
+			nextArgv = argv[i+1];
+		else
+			nextArgv = NULL;
+		retVal = _ExtractToMap(currArgv, nextArgv, &passNextRound);
+		RETURN_IF(retVal);
+
+		if(passNextRound)
+			i++;
+	}
+	return 0;
+}
+
+bool ArgOptionSet::CheckArgByKey(u32 key, OUT const char **followingStr /* = NULL */)
+{
+	std::map<u32,std::string>::iterator it = argMap.find(key);
+	if (it == argMap.end()) {
+		return false;
+	} else {
+		if (followingStr != NULL)
+			*followingStr = it->second.c_str();
+		return true;
+	}
+}
+
+int ArgOptionSet::_ExtractToMap(char *currArgv, char *nextArgv, bool *passNextRound)
+{
+	*passNextRound = false;
+	bool matchSuccess = false;
+	
+	//printf("%s %s\n", currArgv, (nextArgv==NULL?"":nextArgv));
+
+	for (u32 i = 0; i < bigSetLen; i++) {
+		matchSuccess = false;
+		
+		if (bigSet[i].keyStr1 != NULL && 0 == strcmp(bigSet[i].keyStr1, currArgv))
+			matchSuccess = true;
+
+		if (bigSet[i].keyStr2 != NULL && 0 == strcmp(bigSet[i].keyStr2, currArgv))
+			matchSuccess = true;
+
+		if (bigSet[i].keyStr3 != NULL && 0 == strcmp(bigSet[i].keyStr3, currArgv))
+			matchSuccess = true;
+
+		if (bigSet[i].keyStr4 != NULL && 0 == strcmp(bigSet[i].keyStr4, currArgv))
+			matchSuccess = true;
+
+		
+		if (matchSuccess)
+		{
+			//printf("!! %s\n", currArgv);
+
+			std::string tempStr;
+			
+			if (bigSet[i].existFollowingArgc) {
+				if (nextArgv == NULL) {
+					printf("Need more argument after: %s\n", currArgv);
+					return 1;
+				} else {
+					tempStr = nextArgv;
+				}
+				*passNextRound = true;
+			}
+
+			std::pair<std::map<u32,std::string>::iterator,bool> ret;
+			ret = argMap.insert ( std::pair<u32,std::string>(bigSet[i].keyValue, tempStr) );
+			if (ret.second==false) {
+				printf("Option string redefine in argument: %s\n", currArgv);
+				return 2;
+			}
+			
+			return 0;
+		}
+	}
+
+	if (currArgv[0] == '-') {
+		u32 subStrLen = strlen(currArgv);
+		DUMPD(subStrLen);
+		for (u32 i=1; i<subStrLen; i++) {
+			matchSuccess = false;
+			for (u32 j=0; j<smallSetLen; j++) {
+				//printf("%2d %c\n", smallSet[i].keyValue, smallSet[i].keyCharacter);
+				if (currArgv[i] == smallSet[j].keyCharacter) {
+					matchSuccess = true;
+
+					std::string tempStr = "";
+					std::pair<std::map<u32,std::string>::iterator,bool> ret;
+					ret = argMap.insert ( std::pair<u32,std::string>(smallSet[j].keyValue, tempStr) );
+					if (ret.second==false) {
+						printf("Option character redefine in argument: %s, location:%d\n", currArgv, j);
+						return 3;
+					}
+					break;
+				}
+			}
+			if (matchSuccess == false) {
+				printf("Unknown option in argument: %s, location:%d\n", currArgv, i);
+				return 3;
+			}
+		}
+		return 0;
+	}
+
+	if (standAloneArgSize > standAloneArgs.size()) {
+		std::string tempStr = currArgv;
+		standAloneArgs.push_back(tempStr);
+		standAloneArgSize++;
+		return 0;
+	}
+	
+	printf("Unknown option: %s\n", currArgv);
+	return 10;
+}
+
+#define ARGC (9)
+int myArgc = ARGC;
+char *myArgv[ARGC];
+char argv0[] = "dummy";
+char argv1[] = "-i";
+char argv2[] = "in.txt";
+char argv3[] = "first.txt";
+char argv4[] = "--output";
+char argv5[] = "out.txt";
+char argv6[] = "-abc";
+char argv7[] = "-g";
+char argv8[] = "-xy";
+Option_Set_Big_t gDemo_BigOptionSet[] = {
+	{1, true,  "-i", "--input", NULL, NULL},
+	{2, true,  "-o", "--output", NULL, NULL},
+	{3, false, "-g", NULL, NULL, NULL},
+};
+Option_Set_Small_t gDemo_SmallOptionSet[] = {
+	{5, 'a'},
+	{6, 'b'},
+	{7, 'c'},
+	{8, 'x'},
+	{9, 'y'},
+};
+void LibArgParser_OptionSet_Demo(void)
+{
+	myArgv[0]=argv0;
+	myArgv[1]=argv1;
+	myArgv[2]=argv2;
+	myArgv[3]=argv3;
+	myArgv[4]=argv4;
+	myArgv[5]=argv5;
+	myArgv[6]=argv6;
+	myArgv[7]=argv7;
+	myArgv[8]=argv8;
+	
+	//ARRAYDUMPS(myArgv, myArgc);
+	
+	ArgOptionSet obj;
+	obj.Init(ARRAY_AND_SIZE(gDemo_BigOptionSet), ARRAY_AND_SIZE(gDemo_SmallOptionSet), 1);
+	
+
+	rc = obj.StartParsing(myArgc-1, &myArgv[1]);
+	LibError_PrintErrorMessage(rc, true);
+
+	obj.Dump();
+
+	const char *followingStr = "XXX";
+
+	if (obj.CheckArgByKey(1) && obj.standAloneArgs.size()>0) {
+		printf("Redundent argu: %s\n", obj.standAloneArgs[0].c_str());
+	}
+
+	obj.CheckArgByKey(1, &followingStr);
+	DUMPS(followingStr);
 }

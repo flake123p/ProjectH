@@ -121,7 +121,7 @@ void LibBT_HCI_Demo(void)
 {
 	LibBT_HCI_Diagnose();
 	
-	PRINT_FUNC(1);
+	PRINT_FUNC;
 	u8 *buf = (u8 *)malloc(600);
 	u8 pdu[] = {0x99, 0x88, 0x77, 0x66, 0xAA, 0xAA, 0xBB, 0xBB};
 

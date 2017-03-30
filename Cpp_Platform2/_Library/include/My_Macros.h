@@ -50,9 +50,9 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 //
 //  Obtain the number of elements in the given C array
 //
-#define GET_ARRAY_LEN( arrayName ) (sizeof( arrayName ) / sizeof(( arrayName)[ 0 ] ))
-#define SIZE_OF_ARRAY( arrayName ) GET_ARRAY_LEN(arrayName)
-
+#define GET_ARRAY_LEN(arrayName)  (sizeof( arrayName ) / sizeof(( arrayName)[ 0 ] ))
+#define SIZE_OF_ARRAY(arrayName)  GET_ARRAY_LEN(arrayName)
+#define ARRAY_AND_SIZE(arrayName) (arrayName),GET_ARRAY_LEN(arrayName)
 
 
 //

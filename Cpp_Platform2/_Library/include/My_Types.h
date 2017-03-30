@@ -61,6 +61,16 @@ typedef int64_t s64;
 #define EC_EXIT_SUCCESS (0)
 #define EC_EXIT_FAILURE (1)
 
+//Generic Return Code:
+//0x00010000: Memory issue
+#define RC_MEMORY_ALLOCATE_FAILED (0x00010000)
+#define RC_BUFFER_FULL            (0x00011000)
+#define RC_BUFFER_OVERFLOW        (0x00011001)
+#define RC_BUFFER_TOO_SMALL       (0x00011002)
+//0x00020000: File issue
+#define RC_FILE_REACH_EOF         (0x00020000)
+#define RC_FILE_OPEN_ERROR        (0x00020001)
+#define RC_FILE_CLOSE_ERROR       (0x00020002)
 
 
 #define _MY_TYPES_H_INCLUDED_

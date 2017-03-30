@@ -10,49 +10,50 @@ typedef struct File_Profiles{
 	FILE       *fp;
 } File_Profiles_t;
 
-void LibFileIo_OpenFile(File_Profiles_t *fileProfile);
+int  LibFileIo_OpenFile(File_Profiles_t *fileProfile);
 void LibFileIo_CloseFile(File_Profiles_t *fileProfile);
-void LibLibFileIoClass_Demo_Output_A_File(void);
 
 //
 // C++
 //
+#include "LibBuffer.hpp" // LibBufferBasic
+#include <string.h>
+typedef enum {
+	NextLine_Win,
+	NextLine_Unix,
+	NextLine_None,
+} NextLineStyle_t;
 class LibFileIoClass 
 {
 	public:
-		const char *fileName;
-		const char *openMode;
+		std::string fileName;
+		std::string openMode;
+		//const char *fileName;
+		//const char *openMode;
 		FILE *fp;
 		bool isFileDbgMsgOn;
+		LibBufferBasic lineBuffer;
+		char *lineStr;
+		int lineLen;
 		
-		LibFileIoClass(const char *inFileName, const char *inOpenMode)
-		{
-			fileName=inFileName;
-			openMode=inOpenMode;
-			fp=NULL;
-			isFileDbgMsgOn=false;
-		};
+		LibFileIoClass(const char *inFileName = NULL, const char *inOpenMode = NULL);
 		~LibFileIoClass(void);
-		void FileOpen(void);
-		void FileClose(void);
+		int  FileOpen(void);
+		int  FileOpenForRead(u32 lineBufferSize = 0);
+		int  FileClose(void);
 		bool IsFileExist(void);
 		void EnableFileDbgMsg(void){isFileDbgMsgOn=true;};
 		void DisableFileDbgMsg(void){isFileDbgMsgOn=false;};
-		int GetLine(unsigned char *outputString, int maxLength);
-		int GetCharacter(void);
+		int  GetLine(unsigned char *outputString, int maxLength, OUT NextLineStyle_t *nextLineStyle = NULL);
+		int  GetLine(OUT NextLineStyle_t *nextLineStyle = NULL);
+		int  GetLineEx(unsigned char *outputString, int maxLength, OUT int *readLength, OUT NextLineStyle_t *nextLineStyle = NULL);
+		int  GetCharacter(void);
 };
 
-class LibFileIoClass_Lite : public LibFileIoClass {
-	public:
-		LibFileIoClass_Lite(const char *inFileName, const char *inOpenMode) : LibFileIoClass(inFileName, inOpenMode)
-		{
-			EnableFileDbgMsg();
-			FileOpen();
-		};
-};
+void LibFileIoClass_Demo_Output_A_File(void);
+void LibFileIoClass_Demo_Lite(void);
 
-void LibLibFileIoClass_Demo_Output_A_File_Cpp(void);
-void LibLibFileIoClass_Demo_Output_A_File_Cpp_Lite(void);
+int  LibFileIO_TestNextLine_InWinAndLinux(const char *testFileName);
 
 #define _LIB_FILE_IO_HPP_INCLUDED_
 #endif//_LIB_FILE_IO_HPP_INCLUDED_

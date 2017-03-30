@@ -1,35 +1,26 @@
-//#include "stdafx.h" //For porting to "Visual Studio"
-#include <stdio.h>
-#include <stdlib.h>
 
-#include "My_Basics.hpp"
+#include "Everything_Lib_Mgr.hpp"
 
-#include "LibFileIO.hpp"
-
-
-void LibFileIo_OpenFile(File_Profiles_t *fileProfile)
+int LibFileIo_OpenFile(File_Profiles_t *fileProfile)
 {
 	fileProfile->fp = fopen(fileProfile->fileName, fileProfile->openMode); 
 
 	if (fileProfile->fp == NULL) { 
 		printf("Cannot open: %s in mode: %s. Exit Now!\n", fileProfile->fileName, fileProfile->openMode);
-		//exit (EXIT_FAILURE);
-		return;
+		return RC_FILE_OPEN_ERROR;
 	}
+
+	return 0;
 }
 
 void LibFileIo_CloseFile(File_Profiles_t *fileProfile)
 {
 	if (fileProfile->fp == NULL) { 
 		printf("fp is NULL: %s in mode: %s. Exit Now!\n", fileProfile->fileName, fileProfile->openMode);
-		//exit (EXIT_FAILURE);
 		return;
 	}
 
-	int closeResult = 0;
-	
-	closeResult = fclose(fileProfile->fp);
-
+	int closeResult = fclose(fileProfile->fp);
 	if(closeResult == EOF) {
 		BASIC_ASSERT(0);
 	}
@@ -37,77 +28,88 @@ void LibFileIo_CloseFile(File_Profiles_t *fileProfile)
 	fileProfile->fp = NULL;
 }
 
-void LibLibFileIoClass_Demo_Output_A_File(void)
+LibFileIoClass::LibFileIoClass(const char *inFileName /* = NULL */, const char *inOpenMode /* = NULL */)
 {
-	File_Profiles_t outFp = {
-		"LibLibFileIoClass_Demo_Output_A_File.txt",
-		"w+b",
-		NULL
-	};
+	if (inFileName == NULL) {
+		fileName = "";
+	} else {
+		fileName = inFileName;
+	}
 
-	LibFileIo_OpenFile(&outFp);
+	if (inOpenMode == NULL) {
+		openMode = "";
+	} else {
+		openMode = inOpenMode;
+	}
 
-	fprintf(outFp.fp, "Hello: LibLibFileIoClass_Demo_Output_A_File\n");
-
-	LibFileIo_CloseFile(&outFp);
-}
+	fp=NULL;
+	isFileDbgMsgOn=false;
+	lineStr=NULL;
+};
 
 LibFileIoClass::~LibFileIoClass(void)
 {
-	if(fp != NULL) {
-		FileClose();
-	}
+	FileClose();
 }
 
-void LibFileIoClass::FileOpen(void)
+int LibFileIoClass::FileOpen(void)
 {
-	File_Profiles_t filePara = {
-		NULL,
-		NULL,
-		NULL
-	};
-
-	filePara.fileName = this->fileName;
-	filePara.openMode = this->openMode;
-
 	if(isFileDbgMsgOn) {
-		printf("[LibLibFileIoClass]Open: %s (mode:%s)\n", this->fileName, this->openMode);
+		printf("[LibFileIoClass] Open: %s (mode:%s)\n", this->fileName.c_str(), this->openMode.c_str());
 	}
-	
-	LibFileIo_OpenFile(&filePara);
 
-	this->fp = filePara.fp;
+	this->fp = fopen(this->fileName.c_str(), this->openMode.c_str()); 
+
+	if (this->fp == NULL) { 
+		printf("[LibFileIoClass] Cannot open: %s in mode: %s.\n", this->fileName.c_str(), this->openMode.c_str());
+		return RC_FILE_OPEN_ERROR;
+	}
+
+	return 0;
 }
 
-void LibFileIoClass::FileClose(void)
+int LibFileIoClass::FileOpenForRead(u32 lineBufferSize /* = 0 */)
 {
-	File_Profiles_t filePara = {
-		NULL,
-		NULL,
-		NULL
-	};
+	int retVal = FileOpen();
+	RETURN_IF(retVal);
+	
+	if (lineBufferSize == 0) {
+		lineBufferSize = 1024;
+	}
 
+	lineBuffer.Init(lineBufferSize);
+	lineStr = (char *)lineBuffer.bufPtr;
+
+	return 0;
+}
+
+int LibFileIoClass::FileClose(void)
+{
 	if (this->fp == NULL) {
-		return;
+		if(isFileDbgMsgOn) {
+			printf("[LibFileIoClass] fp is NULL: %s in mode: %s. Do nothing!\n", this->fileName.c_str(), this->openMode.c_str());
+		}
+		return 0;
 	}
-	
-	filePara.fileName = this->fileName;
-	filePara.openMode = this->openMode;
-	filePara.fp       = this->fp;
 
 	if(isFileDbgMsgOn) {
-		printf("[LibLibFileIoClass]Close: %s (mode:%s)\n", this->fileName, this->openMode);
+		printf("[LibFileIoClass] Close: %s (mode:%s)\n", this->fileName.c_str(), this->openMode.c_str());
 	}
 	
-	LibFileIo_CloseFile(&filePara);
-
+	int closeResult = fclose(this->fp);
+	if(closeResult == EOF) {
+		return RC_FILE_CLOSE_ERROR;
+	}
+	
 	this->fp = NULL;
+
+	return 0;
 }
 
 bool LibFileIoClass::IsFileExist(void)
 {
 	fp = NULL;
-	fp = fopen(fileName, openMode); 
+	fp = fopen(fileName.c_str(), openMode.c_str()); 
 
 	if (fp == NULL) { 
 		return false;
@@ -126,12 +128,15 @@ bool LibFileIoClass::IsFileExist(void)
 	   3.) Max return value = maxLength - 1
 	   4.) Last character will be set to 0
 */
-int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
+int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength, OUT NextLineStyle_t *nextLineStyle /* = NULL */)
 {
 	int ch;
 	int numberOfChar = 0;
 
 	outputString[0] = 0; // Clear string
+
+	if (nextLineStyle != NULL)
+		*nextLineStyle = NextLine_None;
 	
 	while (1) {
 		if(numberOfChar >= maxLength-1) {
@@ -139,12 +144,20 @@ int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
 		}
 		
 		ch = fgetc(this->fp);
-		if(ch == '\n' || ch == EOF) {
+		if(ch == EOF) {
+			break;
+		} else if(ch == '\n') {
+			if (nextLineStyle != NULL)
+				*nextLineStyle = NextLine_Unix;
 			break;
 		} else if (ch == '\r') {
 			ch = fgetc(this->fp);
-			if(ch == '\n' || ch == EOF) {
+			if(ch == '\n') {
+				if (nextLineStyle != NULL)
+					*nextLineStyle = NextLine_Win;
 				break;
+			} else {
+				BASIC_ASSERT(0); // file format error
 			}
 		}
 
@@ -161,24 +174,132 @@ int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength)
 	}
 }
 
+int LibFileIoClass::GetLine(OUT NextLineStyle_t *nextLineStyle /* = NULL */)
+{
+	return GetLineEx((u8 *)lineStr, lineBuffer.bufSize, &lineLen, nextLineStyle);
+}
+
+int LibFileIoClass::GetLineEx(unsigned char *outputString, int maxLength, OUT int *readLength, OUT NextLineStyle_t *nextLineStyle /* = NULL */)
+{
+	int ch;
+	int numberOfChar = 0;
+
+	outputString[0] = 0; // Clear string
+
+	if (nextLineStyle != NULL)
+		*nextLineStyle = NextLine_None;
+	
+	while (1) {
+		if(numberOfChar >= maxLength-1) {
+			break;
+		}
+		
+		ch = fgetc(this->fp);
+		if(ch == EOF) {
+			break;
+		} else if(ch == '\n') {
+			if (nextLineStyle != NULL)
+				*nextLineStyle = NextLine_Unix;
+			break;
+		} else if (ch == '\r') {
+			ch = fgetc(this->fp);
+			if(ch == '\n') {
+				if (nextLineStyle != NULL)
+					*nextLineStyle = NextLine_Win;
+				break;
+			} else {
+				BASIC_ASSERT(0); // file format error
+			}
+		}
+
+		outputString[numberOfChar] = (unsigned char)ch;
+		numberOfChar++;
+	}
+
+	outputString[numberOfChar] = 0; // End of string
+	if (numberOfChar == maxLength-1) {
+		return RC_BUFFER_FULL;
+	} else if (numberOfChar > maxLength-1) {
+		BASIC_ASSERT(0);
+	}
+
+	*readLength = numberOfChar;
+	
+	if (ch == EOF && numberOfChar == 0) {
+		return RC_FILE_REACH_EOF;
+	} else {
+		return 0;
+	}
+}
+
 int LibFileIoClass::GetCharacter(void)
 {
 	return fgetc(this->fp);
 }
 
-void LibLibFileIoClass_Demo_Output_A_File_Cpp(void)
+void LibFileIoClass_Demo_Output_A_File(void)
 {
-	LibFileIoClass outFile("LibLibFileIoClass_Demo_Output_A_File_Cpp.txt", "w+b");
+	LibFileIoClass outFile("LibFileIoClass_Demo_Output_A_File.txt", "w+b");
 
 	outFile.FileOpen();
 
-	fprintf(outFile.fp, "Hello: LibLibFileIoClass_Demo_Output_A_File_Cpp\n");
+	fprintf(outFile.fp, "Hello: LibFileIoClass_Demo_Output_A_File\n");
 }
 
-void LibLibFileIoClass_Demo_Output_A_File_Cpp_Lite(void)
+void LibFileIoClass_Demo_Lite(void)
 {
-	LibFileIoClass_Lite outFile("LibLibFileIoClass_Demo_Output_A_File_Cpp_Lite.txt", "w+b");
 
-	fprintf(outFile.fp, "Hello: LibLibFileIoClass_Demo_Output_A_File_Cpp_Lite\n");
 }
 
+int LibFileIO_TestNextLine_InWinAndLinux(const char *testFileName)
+{
+	int retVal;
+	
+	PRINT_FUNC;
+
+	LibFileIoClass testFile(testFileName, "r+b");
+
+	retVal = testFile.FileOpen();
+	DUMPX(retVal);
+
+	LibBufferBasic obj;//(102400);
+	obj.Init(1024);
+	u8 *outStr = (u8 *)obj.bufPtr;
+	NextLineStyle_t nextLineStyle;
+
+	printf("[LINE] [LEN]\n");
+	int lineCtr = 0;
+	const char *nextLineStyleString;
+	while (1) {
+		retVal = testFile.GetLine(outStr, 1024, &nextLineStyle);
+		if (retVal == 1023) {
+			printf("Error, buffer too small. The length in single line is too long!! In line:%d\n", lineCtr);
+			return RC_BUFFER_TOO_SMALL;
+		}
+
+		if (retVal == EOF)
+			break;
+
+		switch (nextLineStyle) {
+			case NextLine_Win:
+				nextLineStyleString = "\\r\\n";
+			break;
+
+			case NextLine_Unix:
+				nextLineStyleString = "\\n";
+			break;
+
+			case NextLine_None:
+				nextLineStyleString = "EOF";
+			break;
+
+			default:
+				BASIC_ASSERT(0);
+				break;
+		}
+		printf("[%4d] [%3d] [%4s] :%s\n", lineCtr, retVal, nextLineStyleString, outStr);
+		lineCtr++;
+	}
+
+	return 0;
+}

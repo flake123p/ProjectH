@@ -28,6 +28,8 @@
 #define CALLER_ASSERT2(...)
 #endif
 
+#define RETURN_IF(a) if(a){return (a);}
+
 #define REMOVE_UNUSED_WRANING(a) (a=a)
 
 #include <stdint.h>
@@ -54,9 +56,9 @@
 #define ARRAYDUMPA(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%08X\n", xi, POINTER_TO_U32(a[xi]));}
 
 #define PRINT_NEXT_LINE printf("\n");
-#define PRINT_FUNC(...) printf("%s\n",__func__);
-#define PRINT_LINE(...) printf("%d\n",__LINE__);
-#define PRINT_FILE(...) printf("%s\n",__FILE__);
+#define PRINT_FUNC      printf("%s\n",__func__);
+#define PRINT_LINE      printf("%d\n",__LINE__);
+#define PRINT_FILE      printf("%s\n",__FILE__);
 //#define PRINT_FUNC(1) PRINT_FUNC PRINT_NEXT_LINE
 //#define PRINT_LINE(1) PRINT_LINE PRINT_NEXT_LINE
 //#define PRINT_FILEn PRINT_FILE PRINT_NEXT_LINE

@@ -1,11 +1,5 @@
-//#include "stdafx.h" //For porting to "Visual Studio"
-#include <stdio.h>
-#include <stdlib.h>     /* atoi */
-#include <string.h>
 
-#include "My_Basics.hpp"
-
-#include "_LibString.hpp"
+#include "Everything_Lib_Mgr.hpp"
 
 ConstStr::ConstStr(void)
 {
@@ -419,7 +413,9 @@ bool LibStringClass::FindString(const char *s, size_t pos /* = 0 */, OUT u32 *re
 int LibStringClass::Split(void)
 {
 	u32 string_length = str.size();
-	char *buf = (char *)malloc(string_length+1);
+	LibBufferBasic bufferObj;
+	bufferObj.Init(string_length+1);
+	char *buf = (char *)bufferObj.bufPtr;
 	std::string bufString;
 	const char *src = str.c_str();
 
@@ -502,5 +498,4 @@ void LibString_Demo(void)
 	argv[3] = &testString2[6];
 	LibString_2D_HexStringToCharString(hexArray, argv, 4);
 	ARRAYDUMPX3(hexArray, 4);
-	
 }
