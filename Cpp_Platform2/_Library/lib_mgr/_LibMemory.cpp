@@ -1,6 +1,36 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
+int LibMemory_SetBit(u8 *buf, u32 bit, u32 val)
+{
+	BASIC_ASSERT(val < 2);
+
+	u32 byteNum = bit / 8;
+	u32 bitNum = 7 - (bit % 8);
+
+	if (val) {
+		SET_BIT(buf[byteNum], bitNum);
+	} else {
+		CLEAR_BIT(buf[byteNum], bitNum);
+	}
+
+	return 0;
+}
+
+int LibMemory_GetBit(u8 *buf, u32 bit, OUT u32 *val)
+{
+	u32 byteNum = bit / 8;
+	u32 bitNum = 7 - (bit % 8);
+
+	if (CHECK_BIT(buf[byteNum], bitNum)) {
+		*val = 1;
+	} else {
+		*val = 0;
+	}
+
+	return 0;
+}
+
 /*
 	Return value:
 		0: Last page
@@ -69,9 +99,9 @@ int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool autoCreatePage /*
 	while(len) {
 		isLastPage = LibMemory_CalculateCrossPageInfo(dstAddr, len, pageStartAddr, nodeSize, &newLen);
 
-		unless (NodeExist(pageStartAddr, &currNode)) {
+		unless (_NodeExist(pageStartAddr, &currNode)) {
 			if (autoCreatePage) {
-				NewNode(pageStartAddr, &currNode);
+				_CreateNode(pageStartAddr, &currNode);
 				LINKED_LIST_LOG_MSG("NEW NODE\n");
 			} else {
 				return 0xF0;
@@ -79,9 +109,8 @@ int VirtualMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool autoCreatePage /*
 		} else {
 			LINKED_LIST_LOG_MSG("NODE EXIST\n");
 		}
-		retVal = PageWrite(currNode, dstAddr, src, newLen);
-		if (retVal)
-			return retVal;
+		retVal = _PageWrite(currNode, dstAddr, src, newLen);
+		RETURN_IF(retVal);
 
 		dstAddr += newLen;
 		len -= newLen;
@@ -103,13 +132,12 @@ int VirtualMemClass::Read(u8 *dst, u32 srcAddr, u32 len)
 	while(len) {
 		isLastPage = LibMemory_CalculateCrossPageInfo(srcAddr, len, pageStartAddr, nodeSize, &newLen);
 
-		unless (NodeExist(pageStartAddr, &currNode)) {
+		unless (_NodeExist(pageStartAddr, &currNode)) {
 			return MEM_ERROR_PAGE_NOT_EXIST;
 		}
-		retVal = PageRead(currNode, dst, srcAddr, newLen);
-		if (retVal)
-			return retVal;
-			
+		retVal = _PageRead(currNode, dst, srcAddr, newLen);
+		RETURN_IF(retVal);
+
 		srcAddr += newLen;
 		len -= newLen;
 		pageStartAddr += nodeSize;
@@ -121,10 +149,10 @@ int VirtualMemClass::Read(u8 *dst, u32 srcAddr, u32 len)
 
 u8 *VirtualMemClass::GetRealAddress(u32 addr, VIR_MEM_NODE_t **matchNode /* = NULL */)
 {
-	u32 nodeAddr = CalculateNodeStartAddr(addr);
+	u32 nodeAddr = _CalculateNodeStartAddr(addr);
 
 	VIR_MEM_NODE_t *currNode;
-	if (NodeExist(nodeAddr, &currNode)) {
+	if (_NodeExist(nodeAddr, &currNode)) {
 		if (matchNode != NULL)
 			*matchNode = currNode;
 		return &(currNode->data[addr - currNode->startAddr]);
@@ -135,11 +163,11 @@ u8 *VirtualMemClass::GetRealAddress(u32 addr, VIR_MEM_NODE_t **matchNode /* = NU
 
 int VirtualMemClass::CreateEmptyPage(u32 dstAddr, VIR_MEM_NODE_t **matchNode /* = NULL */)
 {
-	u32 pageStartAddr = CalculateNodeStartAddr(dstAddr);
+	u32 pageStartAddr = _CalculateNodeStartAddr(dstAddr);
 	
-	unless (NodeExist(pageStartAddr, matchNode)) {
+	unless (_NodeExist(pageStartAddr, matchNode)) {
 		VIR_MEM_NODE_t *currNode;
-		NewNode(pageStartAddr, &currNode);
+		_CreateNode(pageStartAddr, &currNode);
 		if (matchNode != NULL)
 			*matchNode = currNode;
 	}
@@ -151,12 +179,12 @@ bool VirtualMemClass::GetPage(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode)
 {
 	BASIC_ASSERT(matchNode != NULL);
 	
-	u32 pageStartAddr = CalculateNodeStartAddr(start_addr);
+	u32 pageStartAddr = _CalculateNodeStartAddr(start_addr);
 
-	return NodeExist(pageStartAddr, matchNode);
+	return _NodeExist(pageStartAddr, matchNode);
 }
 
-void VirtualMemClass::DumpVirMemNodeInfo(void)
+void VirtualMemClass::DumpVirMemInfo(void)
 {
 	printf("==================================== %s() start\n", __func__);
 	DUMPD(info.count);
@@ -180,7 +208,7 @@ void VirtualMemClass::DumpVirMemNodeInfo(void)
 	printf("==================================== %s() end\n", __func__);
 }
 
-int  VirtualMemClass::DumpVirMemNodeContent_ToFile(const char *fileName, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
+int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
 {
 	LibFileIoClass outFile(fileName, "w+b");
 
@@ -307,7 +335,7 @@ int  VirtualMemClass::DumpVirMemNodeContent_ToFile(const char *fileName, bool me
 	return 0;
 }
 
-bool VirtualMemClass::NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode /* = NULL */)
+bool VirtualMemClass::_NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode /* = NULL */)
 {
 	if (info.count == 0) {
 		return false;
@@ -326,12 +354,12 @@ bool VirtualMemClass::NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode /
 	return false;
 }
 
-u32 VirtualMemClass::CalculateNodeStartAddr(u32 addr)
+u32 VirtualMemClass::_CalculateNodeStartAddr(u32 addr)
 {
 	return PAGE_START_ADDR(addr, nodeSize);
 }
 
-int VirtualMemClass::NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode /* = NULL */)
+int VirtualMemClass::_CreateNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode /* = NULL */)
 {
 	VIR_MEM_NODE_t *newVirMemNode = (VIR_MEM_NODE_t *)malloc(sizeof(VIR_MEM_NODE_t) + nodeSize + 32);
 	BASIC_ASSERT(newVirMemNode != NULL);
@@ -360,7 +388,7 @@ int VirtualMemClass::NewNode(u32 start_addr, OUT VIR_MEM_NODE_t **newNode /* = N
 	return 0;
 }
 
-int VirtualMemClass::PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len)
+int VirtualMemClass::_PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 len)
 {
 	BASIC_ASSERT(IsThisNodeInList((LinkedListNode *)node) != NODE_ISNT_IN_LIST);
 	BASIC_ASSERT(((dstAddr/nodeSize)*nodeSize) == node->startAddr);
@@ -381,7 +409,7 @@ int VirtualMemClass::PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 l
 	return 0;
 }
 
-int VirtualMemClass::PageRead(VIR_MEM_NODE_t *node, u8 *dst, u32 srcAddr, u32 len)
+int VirtualMemClass::_PageRead(VIR_MEM_NODE_t *node, u8 *dst, u32 srcAddr, u32 len)
 {
 	BASIC_ASSERT(IsThisNodeInList((LinkedListNode *)node) != NODE_ISNT_IN_LIST);
 	BASIC_ASSERT(((srcAddr/nodeSize)*nodeSize) == node->startAddr);
@@ -429,7 +457,9 @@ int ProtectedMemClass::InitMemory(u32 startAddr, u32 size)
 int ProtectedMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool doWriteOnceCheck /* = false */)
 {
 	int retVal;
-	u8 *attrSrc = (u8 *)malloc(len);
+	LibBufferBasic bufObj;
+	bufObj.Init(len);
+	u8 *attrSrc = (u8 *)bufObj.bufPtr;
 
 	retVal = attrMem.Read(attrSrc, dstAddr, len);
 	BASIC_ASSERT(retVal == 0);
@@ -439,24 +469,30 @@ int ProtectedMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool doWriteOnceChec
 			return MEM_ERROR_BYTE_ALREADY_WRITTEN;
 		attrSrc[i] |= MEMROY_WAS_WRITTEN_FLAG;
 	}
-	retVal = attrMem.Write(dstAddr, attrSrc, len, false);
-	if (retVal)
-		return retVal;
-
+	
 	retVal = virMem.Write(dstAddr, src, len, false);
-	if (retVal)
-		return retVal;
+	RETURN_IF(retVal);
+		
+	retVal = attrMem.Write(dstAddr, attrSrc, len, false);
+	RETURN_IF(retVal);
 
-	free(attrSrc);
 	return 0;
 }
 
-int ProtectedMemClass::AddPageAttributes(u32 addr, u32 flags)
+int ProtectedMemClass::Read(u8 *dst, u32 srcAddr, u32 len)
+{
+	return virMem.Read(dst, srcAddr, len);
+}
+
+int ProtectedMemClass::AddPageAttributes(u32 addr, u32 flags, OUT u32 *attr /* = NULL */)
 {
 	VIR_MEM_NODE_t *matchNode;
 	if (virMem.GetPage(addr, &matchNode)) {
 		FLG_ADD(matchNode->pageAttr, flags);
 
+		if (attr != NULL)
+			*attr = matchNode->pageAttr;
+			
 		if (attrMem.GetPage(addr, &matchNode)) {
 			FLG_ADD(matchNode->pageAttr, flags);
 		} else {
@@ -469,12 +505,15 @@ int ProtectedMemClass::AddPageAttributes(u32 addr, u32 flags)
 	return 1;
 }
 
-int ProtectedMemClass::RemovePageAttributes(u32 addr, u32 flags)
+int ProtectedMemClass::RemovePageAttributes(u32 addr, u32 flags, OUT u32 *attr /* = NULL */)
 {
 	VIR_MEM_NODE_t *matchNode;
 	if (virMem.GetPage(addr, &matchNode)) {
 		FLG_RMV(matchNode->pageAttr, flags);
 
+		if (attr != NULL)
+			*attr = matchNode->pageAttr;
+			
 		if (attrMem.GetPage(addr, &matchNode)) {
 			FLG_RMV(matchNode->pageAttr, flags);
 		} else {
@@ -513,10 +552,10 @@ int ProtectedMemClass::ClearByteWrittenFlag(u32 startAddr, u32 len)
 	return 0;
 }
 
-int ProtectedMemClass::DumpProtectedMemNodeContent_ToFile(const char *fileName1, const char *fileName2, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
+int ProtectedMemClass::DumpProtectedMemContent_ToFile(const char *fileName1, const char *fileName2, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
 {
-	virMem.DumpVirMemNodeContent_ToFile(fileName1, memDumpMode, dumpAllData);
-	attrMem.DumpVirMemNodeContent_ToFile(fileName2, memDumpMode, dumpAllData);
+	virMem.DumpVirMemContent_ToFile(fileName1, memDumpMode, dumpAllData);
+	attrMem.DumpVirMemContent_ToFile(fileName2, memDumpMode, dumpAllData);
 	return 0;
 }
 
@@ -542,7 +581,7 @@ void LibMemory_Demo2(void)
 	virMem.Write(0x00000020, ary1, 3);
 	virMem.Write(0x00000021, ary1, 3);
 	virMem.Write(0x00007FFF, ary1, 3);
-	virMem.DumpVirMemNodeInfo();
+	virMem.DumpVirMemInfo();
 	virMem.CreateEmptyPage(0x2001);
 
 	VIR_MEM_NODE_t *currPage;
@@ -571,7 +610,7 @@ void LibMemory_Demo2(void)
 	DUMPD(virMem.Read(ary1, 0x00007FFE, 10));
 	ARRAYDUMPX2(ary1, 10);
 
-	virMem.DumpVirMemNodeContent_ToFile("LibMemoryDEMO2.txt");
+	virMem.DumpVirMemContent_ToFile("LibMemoryDEMO2.txt");
 }
 
 void LibMemory_Demo3(void)
@@ -598,6 +637,22 @@ void LibMemory_Demo3(void)
 
 	protectedMem.ClearByteWrittenFlag(0x0FFF, 3);
 
-	protectedMem.DumpProtectedMemNodeContent_ToFile("LibMemoryDEMO3_A.txt", "LibMemoryDEMO3_B.txt", false, true);
+	protectedMem.DumpProtectedMemContent_ToFile("LibMemoryDEMO3_A.txt", "LibMemoryDEMO3_B.txt", false, true);
 }
 
+void LibMemory_Demo4(void)
+{
+	u8 buf[4] = {0};
+
+	LibMemory_SetBit((u8 *)buf, 0, 1);
+
+	ARRAYDUMPX2(buf, 4);
+
+	LibMemory_SetBit((u8 *)buf, 7, 1);
+
+	ARRAYDUMPX2(buf, 4);
+
+	LibMemory_SetBit((u8 *)buf, 8, 1);
+
+	ARRAYDUMPX2(buf, 4);
+}

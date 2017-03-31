@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-	LibArgParser_OptionSet_Demo();
-	
+	//LibArgParser_OptionSet_Demo();
+	LibThreadMgr_DemoEvent();
 	return 0;
 }

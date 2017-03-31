@@ -69,3 +69,49 @@ int LibThread_ReleaseHandle(THREAD_HANDLE_t threadHdl)
 	free(threadHdl);
 	return 0;
 }
+
+
+
+typedef struct {
+	HANDLE winHdl;
+}EVENT_HANDLE_WIN_t;
+int LibThread_NewEvent(OUT EVENT_HANDLE_t *eventHdlPtr) // AUTO RESET EVENT !!
+{
+	EVENT_HANDLE_WIN_t *eHdl = (EVENT_HANDLE_WIN_t *)malloc(sizeof(EVENT_HANDLE_WIN_t));
+	if (eHdl == NULL)
+		return -1;
+
+	eHdl->winHdl = CreateEvent(NULL, FALSE, FALSE, NULL);
+	
+	*eventHdlPtr = eHdl;
+	return 0;
+}
+
+int LibThread_ReleaseEvent(EVENT_HANDLE_t eventHdl)
+{
+	EVENT_HANDLE_WIN_t *eHdl = (EVENT_HANDLE_WIN_t *)eventHdl;
+
+	CloseHandle(eHdl->winHdl);
+
+	free(eventHdl);
+	return 0;
+}
+
+int LibThread_SetEvent(EVENT_HANDLE_t eventHdl)
+{
+	EVENT_HANDLE_WIN_t *eHdl = (EVENT_HANDLE_WIN_t *)eventHdl;
+
+	SetEvent(eHdl->winHdl);
+	
+	return 0;
+}
+
+int LibThread_WaitEvent(EVENT_HANDLE_t eventHdl)
+{
+	EVENT_HANDLE_WIN_t *eHdl = (EVENT_HANDLE_WIN_t *)eventHdl;
+
+	WaitForSingleObject(eHdl->winHdl, INFINITE);
+	
+	return 0;
+}
+

@@ -16,6 +16,8 @@
 #define SM_LOG_MSG(...)
 #endif
 
+// ============================== Define ==============================
+
 // ============================== Library: Cross-Platform (Manager) ==============================
 typedef enum {
 	SHM_SERVER,

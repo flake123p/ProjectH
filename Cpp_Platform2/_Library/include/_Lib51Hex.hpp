@@ -2,6 +2,9 @@
 
 #ifndef __LIB_51HEX_HPP_INCLUDED_
 
+// ============================== Debug ==============================
+
+// ============================== Define ==============================
 //Error Code: Hex format error
 #define COLON_NOT_AT_START     (1)
 #define RECORD_LENGTH_TO_SMALL (2)

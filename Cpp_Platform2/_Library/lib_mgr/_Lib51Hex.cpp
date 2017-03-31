@@ -307,7 +307,7 @@ int Lib51Hex_Demo(void)
 
 	LibTime_StartMicroSecondClock();
 	
-	reader.virMem.DumpVirMemNodeContent_ToFile("Lib51DEMO.txt", false);
+	reader.virMem.DumpVirMemContent_ToFile("Lib51DEMO.txt", false);
 
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;

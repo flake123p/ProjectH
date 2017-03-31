@@ -53,9 +53,9 @@ void LibThreadMgr_Demo(void)
 	LibOs_SleepMiliSeconds(100);
 	printf("%s() 3\n", __func__);gTestData++;
 
-	LibThread_WaitThreads(threadHdlAry, SIZE_OF_ARRAY(threadHdlAry));
-	//LibThread_WaitThread(threadHdlAry[0]);
-	//LibThread_WaitThread(threadHdlAry[1]);
+	//LibThread_WaitThreads(threadHdlAry, SIZE_OF_ARRAY(threadHdlAry));
+	LibThread_WaitThread(threadHdlAry[0]);
+	LibThread_WaitThread(threadHdlAry[1]);
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;
 
@@ -90,4 +90,74 @@ void LibThreadMgr_DemoLite(void)
 	if ( LibThread_ReleaseHandle(threadHdl) ) {
 		BASIC_ASSERT(0);
 	}
+}
+
+EVENT_HANDLE_t gEvent_A;
+EVENT_HANDLE_t gEvent_B;
+void *Test_Thread_A(void *arg)
+{
+	LibThread_WaitEvent(gEvent_A);
+	
+	for (u32 i=0; i<20; i++) {
+		PRINT_FUNC;
+		LibOs_SleepMiliSeconds(1);
+	}
+
+	LibThread_SetEvent(gEvent_B);
+	
+	return 0;
+}
+
+void *Test_Thread_B(void *arg)
+{
+	LibThread_WaitEvent(gEvent_B);
+	
+	for (u32 i=0; i<20; i++) {
+		PRINT_FUNC;
+		LibOs_SleepMiliSeconds(1);
+	}
+
+	return 0;
+}
+
+void LibThreadMgr_DemoEvent(void)
+{
+	THREAD_HANDLE_t threadHdl_A;
+	THREAD_HANDLE_t threadHdl_B;
+
+	int retVal;
+
+	retVal = LibThread_NewHandle(&threadHdl_A);
+	ASSERT_IF(retVal);
+	retVal = LibThread_NewHandle(&threadHdl_B);
+	ASSERT_IF(retVal);
+
+	retVal = LibThread_NewEvent(&gEvent_A);
+	ASSERT_IF(retVal);
+	retVal = LibThread_NewEvent(&gEvent_B);
+	ASSERT_IF(retVal);
+
+	retVal = LibThread_Create(threadHdl_A, Test_Thread_A);
+	ASSERT_IF(retVal);
+	retVal = LibThread_Create(threadHdl_B, Test_Thread_B);
+	ASSERT_IF(retVal);
+
+	LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
+	LibThread_SetEvent(gEvent_A);
+	
+	LibTime_StartMicroSecondClock();
+	LibThread_WaitThread(threadHdl_A);
+	LibThread_WaitThread(threadHdl_B);
+	LibTime_StopMicroSecondClock_ShowResult();
+	PRINT_NEXT_LINE;
+
+	retVal = LibThread_ReleaseEvent(gEvent_A);
+	ASSERT_IF(retVal);
+	retVal = LibThread_ReleaseEvent(gEvent_B);
+	ASSERT_IF(retVal);
+
+	retVal = LibThread_ReleaseHandle(threadHdl_A);
+	ASSERT_IF(retVal);
+	retVal = LibThread_ReleaseHandle(threadHdl_B);
+	ASSERT_IF(retVal);
 }

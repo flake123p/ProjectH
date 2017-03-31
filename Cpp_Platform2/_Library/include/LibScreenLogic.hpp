@@ -4,6 +4,10 @@
 
 #include "My_Basics.hpp"
 
+// ============================== Debug ==============================
+
+// ============================== Define ==============================
+
 // ============================== Manager ==============================
 typedef int (* ON_ENTRY_t) (IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl);
 typedef int (* ON_DRAW_t)  (IN  u32 ScrnEvtId, IN  void *ScrnEvtHdl);

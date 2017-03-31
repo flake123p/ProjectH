@@ -2,6 +2,10 @@
 
 #ifndef _LIB_SCREEN_LOGIC_GET_EVENT_HPP_INCLUDED_
 
+// ============================== Debug ==============================
+
+// ============================== Define ==============================
+
 #include "My_Basics.hpp"
 #include "LibBuffer.hpp"
 

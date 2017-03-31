@@ -51,3 +51,61 @@ int LibThread_ReleaseHandle(THREAD_HANDLE_t threadHdl)
 	free(threadHdl);
 	return 0;
 }
+
+
+
+typedef struct {
+	pthread_cond_t cond;
+	pthread_mutex_t mutex;
+}EVENT_HANDLE_LINUX_t;
+int LibThread_NewEvent(OUT EVENT_HANDLE_t *eventHdlPtr)
+{
+	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)malloc(sizeof(EVENT_HANDLE_LINUX_t));
+	if (eHdl == NULL)
+		return -1;
+
+	int retVal = pthread_cond_init(&eHdl->cond, NULL);
+	RETURN_IF(retVal);
+	retVal = pthread_mutex_init(&eHdl->mutex, NULL);
+	RETURN_IF(retVal);
+	
+	*eventHdlPtr = eHdl;
+	return 0;
+}
+
+int LibThread_ReleaseEvent(EVENT_HANDLE_t eventHdl)
+{
+	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)eventHdl;
+
+	int retVal = pthread_mutex_destroy(&eHdl->mutex);
+	RETURN_IF(retVal);
+	
+	retVal = pthread_cond_destroy(&eHdl->cond);
+	RETURN_IF(retVal);
+	
+	free(eventHdl);
+	return 0;
+}
+
+int LibThread_SetEvent(EVENT_HANDLE_t eventHdl)
+{
+	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)eventHdl;
+	//PRINT_FUNC;
+	pthread_mutex_lock(&eHdl->mutex);
+	pthread_cond_signal(&eHdl->cond);
+	pthread_mutex_unlock(&eHdl->mutex);
+
+	return 0;
+}
+
+int LibThread_WaitEvent(EVENT_HANDLE_t eventHdl)
+{
+	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)eventHdl;
+	//PRINT_FUNC;
+	pthread_mutex_lock(&eHdl->mutex);
+	pthread_cond_wait(&eHdl->cond, &eHdl->mutex);
+	pthread_mutex_unlock(&eHdl->mutex);
+	
+	return 0;
+}
+

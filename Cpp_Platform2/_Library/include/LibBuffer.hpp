@@ -6,6 +6,10 @@
 #include "stdarg.h"
 #include "My_Basics.hpp"
 
+// ============================== Debug ==============================
+
+// ============================== Define ==============================
+
 // ============================== Library: Cross-Platform (Manager) ==============================
 template<typename T1>
 class LibBufferLog{

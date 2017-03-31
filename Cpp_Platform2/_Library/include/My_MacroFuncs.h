@@ -28,10 +28,6 @@
 #define CALLER_ASSERT2(...)
 #endif
 
-#define RETURN_IF(a) if(a){return (a);}
-
-#define REMOVE_UNUSED_WRANING(a) (a=a)
-
 #include <stdint.h>
 // uintptr_t is defined in C++11 and later standards.
 #define POINTER_TO_INT(ptr) ((uintptr_t)ptr)
@@ -39,10 +35,10 @@
 
 #define DUMPC(a) printf(#a " = %c\n", a)
 #define DUMPS(a) printf(#a " = %s\n", a)
-#define DUMPD(a) printf(#a " = %d\n", (int)a)
+#define DUMPD(a) printf(#a " = %d\n", (int)(a))
 #define DUMPU(a) printf(#a " = %u\n", a)
-#define DUMPX(a) printf(#a " = 0x%X\n", (u32)a)
-#define DUMPP(a) printf(#a " = %p\n", (void *)a)
+#define DUMPX(a) printf(#a " = 0x%X\n", (u32)(a))
+#define DUMPP(a) printf(#a " = %p\n", (void *)(a))
 #define DUMPA(a) printf(#a " = 0x%08X\n", POINTER_TO_U32(a))
 
 #define ARRAYDUMPC(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %c\n", xi, a[xi]);}
@@ -96,6 +92,11 @@
 	#endif
 #endif
 */
+
+#define ASSERT_IF(retVal) if(retVal){DUMPX(retVal);BASIC_ASSERT(0);};
+#define RETURN_IF(retVal) if(retVal){return (retVal);}
+
+#define REMOVE_UNUSED_WRANING(a) (a=a)
 
 #define _MY_MACROFUNCS_H_INCLUDED_
 #endif//_MY_MACROFUNCS_H_INCLUDED_

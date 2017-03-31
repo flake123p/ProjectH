@@ -29,6 +29,8 @@
 #define UART_ERR_MSG(...)
 #endif
 
+// ============================== Define ==============================
+
 // ============================== Manager ==============================
 int LibUartMgr_DemoTxRx(void);
 void LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate = NULL);

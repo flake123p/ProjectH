@@ -2,6 +2,10 @@
 
 #ifndef _LIB_FILE_IO_HPP_INCLUDED_
 
+// ============================== Debug ==============================
+
+// ============================== Define ==============================
+
 #include <stdio.h>
 
 typedef struct File_Profiles{

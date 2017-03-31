@@ -2,6 +2,10 @@
 
 #ifndef _LIB_EVENT_HPP_INCLUDED_
 
+// ============================== Debug ==============================
+
+// ============================== Define ==============================
+
 // ============================== Library: Cross-Platform (Manager) ==============================
 // For minimizing the global variable uses
 void LibEvent_SendSimpleEvent(int inputEvent);
