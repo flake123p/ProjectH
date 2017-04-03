@@ -193,10 +193,13 @@ void ArgOptionSet::Dump(void)
 		printf("%2u, %s\n", it->first, it->second.c_str());
 	}
 
+	DUMPD(standAloneArgSize);
 	printf("Dump stand alone argu:\n");
 	for (u32 i = 0; i < standAloneArgs.size(); i++) {
 		printf("%s\n", standAloneArgs[i].c_str());
 	}
+
+	printf("Dump complete. ============\n");
 }
 
 int ArgOptionSet::StartParsing(int argc, char *argv[])
@@ -314,7 +317,6 @@ int ArgOptionSet::_ExtractToMap(char *currArgv, char *nextArgv, bool *passNextRo
 	if (standAloneArgSize > standAloneArgs.size()) {
 		std::string tempStr = currArgv;
 		standAloneArgs.push_back(tempStr);
-		standAloneArgSize++;
 		return 0;
 	}
 	

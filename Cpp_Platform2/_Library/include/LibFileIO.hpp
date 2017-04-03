@@ -39,6 +39,7 @@ class LibFileIoClass
 		LibBufferBasic lineBuffer;
 		char *lineStr;
 		int lineLen;
+		u32 lineCount;
 		
 		LibFileIoClass(const char *inFileName = NULL, const char *inOpenMode = NULL);
 		~LibFileIoClass(void);

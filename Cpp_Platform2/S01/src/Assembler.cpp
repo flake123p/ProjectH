@@ -1,19 +1,41 @@
 
 #include "Everything_App.hpp"
 
-LibFileIoClass gInputFile;
+typedef enum {
+  ARG_KEY_INPUT_FILE,
+  ARG_KEY_OUTPUT_FILE,
 
-static int _Assembler_Pass_1_LineParser(void)
+  ARG_KEY_DUMP_LIST_FILE,
+}ARG_KEY_t;
+Option_Set_Big_t gBigOptionSet[] = {
+	{ARG_KEY_INPUT_FILE,  true,  "-i", "--input", NULL, NULL},
+	{ARG_KEY_OUTPUT_FILE, true,  "-o", "--output", NULL, NULL},
+};
+Option_Set_Small_t gSmallOptionSet[] = {
+	{ARG_KEY_DUMP_LIST_FILE, 'l'},
+};
+ArgOptionSet gArgOption;
+
+
+LibFileIoClass gInputFile;
+LibFileIoClass gListFile;
+LibFileIoClass gOutputFile;
+
+static int _Assembler_1_CreateListFile_Pass_1_LineParser(void)
 {
+	DUMPS(gInputFile.lineStr);
+	DUMPD(gInputFile.lineCount);
 	return 0;
 }
 
-static int _Assembler_Pass_1(void)
+static int _Assembler_1_CreateListFile_Pass_1(void)
 {
 	int retVal;
 
 	//gInputFile.EnableFileDbgMsg();
 	retVal = gInputFile.FileOpenForRead();
+	RETURN_IF(retVal);
+	retVal = gListFile.FileOpenForRead();
 	RETURN_IF(retVal);
 
 	while (1) {
@@ -27,9 +49,7 @@ static int _Assembler_Pass_1(void)
 			}
 		}
 
-		DUMPS(gInputFile.lineStr);
-
-		retVal = _Assembler_Pass_1_LineParser();
+		retVal = _Assembler_1_CreateListFile_Pass_1_LineParser();
 		RETURN_IF(retVal);
 	}
 	
@@ -46,40 +66,43 @@ void Assembler_PrintUsage(void)
 
 int Assembler_Main(int argc, char *argv[])
 {
-	switch (argc) {
-		case 1:
-			printf("Error, arguments are too few. (Only:%d)\n", argc);
+	gArgOption.Init(ARRAY_AND_SIZE(gBigOptionSet), ARRAY_AND_SIZE(gSmallOptionSet), 1);
+
+	rc = gArgOption.StartParsing(argc, argv);
+	LibError_PrintErrorMessage(rc, true);
+	RETURN_IF(rc);
+
+	//gArgOption.Dump();
+
+	const char *inputFile;
+	if (gArgOption.CheckArgByKey(ARG_KEY_INPUT_FILE, &inputFile)) {
+
+	} else {
+		if (gArgOption.standAloneArgs.size()>0) {
+			inputFile = gArgOption.standAloneArgs[0].c_str();
+		} else {
+			printf("Error!! No input file.\n\n");
 			Assembler_PrintUsage();
-			return 1;
-		break;
-
-		case 2:
-			#if 0
-			if (LibArgParser_CharOptionParserEx(argc, argv, "x")) {
-				printf("Error, arguments are too few. (Only:%d, No Inpu File.)\n", argc);
-				Assembler_PrintUsage();
-				return 1;
-			}
-			#endif
-			gInputFile.openMode = "r+b";
-			gInputFile.fileName = argv[1];
-		break;
-
-		case 3:
-			gInputFile.openMode = "r+b";
-			gInputFile.fileName = argv[2];
-		break;
-
-		default:
-			printf("Error, arguments are too much. (Only:%d)\n", argc);
-			Assembler_PrintUsage();
-			return 1;
-		break;
+			exit(1);
+		}
 	}
+	DUMPS(inputFile);
+	gInputFile.openMode = "r+b";
+	gInputFile.fileName = inputFile;
 
-	int retVal;
+	LibStringClass str;
+	str.Init(inputFile);
+	str.ReplaceExtension('.', "_list.txt");
+	DUMPS(str.CStr());
+	gListFile.openMode = "w+b";
+	gListFile.fileName = str.CStr();
 	
-	retVal = _Assembler_Pass_1();
+	str.Init(inputFile);
+	str.ReplaceExtension('.', "_obj.txt");
+	DUMPS(str.CStr());
+
+
+	int retVal = _Assembler_1_CreateListFile_Pass_1();
 	if (retVal)
 		return retVal;
 

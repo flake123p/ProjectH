@@ -84,12 +84,16 @@ public:
 	LibStringClass(){}; // Do nothing.
 	~LibStringClass(void){}; // Do nothing.
 	void Init(char *cString);
+	void Init(const char *cString);
 	size_t Length(void); //Same result as Size()
 	size_t Size(void); //Same result as Length()
 	bool FindChar(const char ch, size_t pos = 0, OUT u32 *result_position = NULL);
 	bool FindString(const char *s, size_t pos = 0, OUT u32 *result_position = NULL);
 	int Split(void);
 	int ReplaceWithRestLength(const char *s);
+	int RemoveExtension(char ch);
+	int ReplaceExtension(char ch, const char *s);
+	const char* CStr(void);
 	void Dump(void);
 };
 

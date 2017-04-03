@@ -45,6 +45,7 @@ LibFileIoClass::LibFileIoClass(const char *inFileName /* = NULL */, const char *
 	fp=NULL;
 	isFileDbgMsgOn=false;
 	lineStr=NULL;
+	lineCount=0;
 };
 
 LibFileIoClass::~LibFileIoClass(void)
@@ -170,6 +171,7 @@ int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength, OUT Next
 	if (ch == EOF && numberOfChar == 0) {
 		return EOF;
 	} else {
+		lineCount++;
 		return numberOfChar;
 	}
 }
@@ -228,6 +230,7 @@ int LibFileIoClass::GetLineEx(unsigned char *outputString, int maxLength, OUT in
 	if (ch == EOF && numberOfChar == 0) {
 		return RC_FILE_REACH_EOF;
 	} else {
+		lineCount++;
 		return 0;
 	}
 }

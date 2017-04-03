@@ -372,6 +372,12 @@ void LibStringClass::Init(char *cString)
 	subStrVector.clear();
 }
 
+void LibStringClass::Init(const char *cString)
+{
+	str = cString;
+	subStrVector.clear();
+}
+
 size_t LibStringClass::Length(void) //Same result as Size()
 {
 	return str.length();
@@ -462,6 +468,29 @@ int LibStringClass::ReplaceWithRestLength(const char *s)
 	//Dump();
 	
 	return 0;
+}
+
+int LibStringClass::RemoveExtension(char ch)
+{
+	std::size_t pos = str.find(ch);
+
+	str = str.substr(0, pos);
+
+	return 0;
+}
+
+int LibStringClass::ReplaceExtension(char ch, const char *s)
+{
+	RemoveExtension(ch);
+
+	str = str + s;
+	
+	return 0;
+}
+
+const char * LibStringClass::CStr(void)
+{
+	return str.c_str();
 }
 
 void LibStringClass::Dump(void)

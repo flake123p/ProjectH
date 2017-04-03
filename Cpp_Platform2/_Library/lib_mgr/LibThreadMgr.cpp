@@ -98,12 +98,20 @@ void *Test_Thread_A(void *arg)
 {
 	LibThread_WaitEvent(gEvent_A);
 	
-	for (u32 i=0; i<20; i++) {
+	for (u32 i=0; i<10; i++) {
 		PRINT_FUNC;
 		LibOs_SleepMiliSeconds(1);
 	}
 
 	LibThread_SetEvent(gEvent_B);
+  LibThread_WaitEvent(gEvent_A);
+
+  for (u32 i=0; i<10; i++) {
+		PRINT_FUNC;
+		LibOs_SleepMiliSeconds(1);
+	}
+
+  LibThread_SetEvent(gEvent_B);
 	
 	return 0;
 }
@@ -112,11 +120,19 @@ void *Test_Thread_B(void *arg)
 {
 	LibThread_WaitEvent(gEvent_B);
 	
-	for (u32 i=0; i<20; i++) {
+	for (u32 i=0; i<10; i++) {
 		PRINT_FUNC;
 		LibOs_SleepMiliSeconds(1);
 	}
 
+  LibThread_SetEvent(gEvent_A);
+  LibThread_WaitEvent(gEvent_B);
+
+	for (u32 i=0; i<10; i++) {
+		PRINT_FUNC;
+		LibOs_SleepMiliSeconds(1);
+	}
+  
 	return 0;
 }
 
