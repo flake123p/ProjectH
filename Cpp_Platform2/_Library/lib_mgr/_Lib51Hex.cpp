@@ -210,13 +210,13 @@ void Lib51Hex_DumpHexFile(const char *fileName)
 	free(tempString);
 }
 
-Lib51HexReader::Lib51HexReader(void)
+Lib51HexReader::Lib51HexReader(u32 node_size /* = 0x8000 */, u32 init_val /* = 0x100 */)
 {
 	//Dump();
 	GlobalAddress = 0;
 	workingRecord.dataBuf = (u8 *)malloc(500);
 	workingReadOutString = (u8 *)malloc(1000);
-	virMem.SetParameters(0x8000, 0xFF);
+	virMem.SetParameters(node_size, init_val);
 }
 
 Lib51HexReader::~Lib51HexReader(void)
@@ -227,16 +227,13 @@ Lib51HexReader::~Lib51HexReader(void)
 
 int Lib51HexReader::ReadFile(const char *fileName)
 {
+	int retVal;
+	
 	LibFileIoClass inFile(fileName, "r");
 
-	inFile.FileOpen();
-
-	if (inFile.fp == NULL) {
-		printf("FILE NOT EXIST\n");
-		return 1;
-	}
-
-	int retVal;
+	retVal = inFile.FileOpen();
+	RETURN_IF(retVal);
+	
 	while (1) {
 		retVal = inFile.GetLine(workingReadOutString, 1000);
 		//DUMPD(retVal);
@@ -307,7 +304,7 @@ int Lib51Hex_Demo(void)
 
 	LibTime_StartMicroSecondClock();
 	
-	reader.virMem.DumpVirMemContent_ToFile("Lib51DEMO.txt", false);
+	reader.virMem.DumpVirMemContent_ToFile("Lib51DEMO.txt");
 
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;

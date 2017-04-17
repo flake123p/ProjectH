@@ -11,25 +11,37 @@ void ConstStr::SetStr(const char *inStr)
 	str = inStr;
 }
 
-bool LibString_IsCharHexadecimal(char ch)
+bool LibString_IsCharHexadecimal(char ch, OUT u32 *val /* = NULL */)
 {
-	if (ch >= '0' && ch <= '9')
+	if (ch >= '0' && ch <= '9') {
+		if (val != NULL)
+			*val = ch - '0';
 		return true;
-
-	if (ch >= 'A' && ch <= 'F')
+	}
+	
+	if (ch >= 'A' && ch <= 'F') {
+		if (val != NULL)
+			*val = ch - 'A' + 10;
 		return true;
-
-	if (ch >= 'a' && ch <= 'f')
+	}
+	
+	if (ch >= 'a' && ch <= 'f') {
+		if (val != NULL)
+			*val = ch - 'a' + 10;
 		return true;
-
+	}
+	
 	return false;
 }
 
-bool LibString_IsCharDecimal(char ch)
+bool LibString_IsCharDecimal(char ch, OUT u32 *val /* = NULL */)
 {
-	if (ch >= '0' && ch <= '9')
+	if (ch >= '0' && ch <= '9') {
+		if (val != NULL)
+			*val = ch - '0';
 		return true;
-
+	}
+	
 	return false;
 }
 
@@ -365,6 +377,11 @@ void LibString_DumpPrintableChar(void)
 	printf("\n");
 }
 
+LibStringClass::LibStringClass(const char *cString /* = NULL */)
+{
+	if (cString != NULL)
+		Init(cString);
+}
 
 void LibStringClass::Init(char *cString)
 {

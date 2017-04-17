@@ -2,10 +2,10 @@
 #include "Everything_App.hpp"
 
 typedef enum {
-  ARG_KEY_INPUT_FILE,
-  ARG_KEY_OUTPUT_FILE,
+	ARG_KEY_INPUT_FILE,
+	ARG_KEY_OUTPUT_FILE,
 
-  ARG_KEY_DUMP_LIST_FILE,
+	ARG_KEY_DUMP_LIST_FILE,
 }ARG_KEY_t;
 Option_Set_Big_t gBigOptionSet[] = {
 	{ARG_KEY_INPUT_FILE,  true,  "-i", "--input", NULL, NULL},
@@ -20,11 +20,13 @@ ArgOptionSet gArgOption;
 LibFileIoClass gInputFile;
 LibFileIoClass gListFile;
 LibFileIoClass gOutputFile;
+AsmLists gAsmLists;
 
 static int _Assembler_1_CreateListFile_Pass_1_LineParser(void)
 {
-	DUMPS(gInputFile.lineStr);
-	DUMPD(gInputFile.lineCount);
+	//DUMPS(gInputFile.lineStr);
+	//DUMPD(gInputFile.lineCount);
+	gAsmLists.AddLine(gInputFile.lineStr);
 	return 0;
 }
 
@@ -45,12 +47,26 @@ static int _Assembler_1_CreateListFile_Pass_1(void)
 			if (retVal == RC_FILE_REACH_EOF) {
 				break;
 			} else {
-				EXIT_IF_ERROR(retVal);
+				EXIT_LOC_IF(retVal);
 			}
 		}
 
 		retVal = _Assembler_1_CreateListFile_Pass_1_LineParser();
 		RETURN_IF(retVal);
+	}
+
+	gAsmLists.Dump();
+	
+	return 0;
+}
+
+static int _Assembler_2_CreateObjFile(void)
+{
+	RETURN_CHK(rc, gOutputFile.FileOpenForRead());
+
+	for (u32 i = 0; i < gAsmLists.lineVec.size(); i++) {
+		
+		fprintf(gOutputFile.fp, "%06X\n", gAsmLists.lineVec[i].machineCode);
 	}
 	
 	return 0;
@@ -69,7 +85,7 @@ int Assembler_Main(int argc, char *argv[])
 	gArgOption.Init(ARRAY_AND_SIZE(gBigOptionSet), ARRAY_AND_SIZE(gSmallOptionSet), 1);
 
 	rc = gArgOption.StartParsing(argc, argv);
-	LibError_PrintErrorMessage(rc, true);
+	LibError_PrintErrorMessage(rc, false);
 	RETURN_IF(rc);
 
 	//gArgOption.Dump();
@@ -100,11 +116,15 @@ int Assembler_Main(int argc, char *argv[])
 	str.Init(inputFile);
 	str.ReplaceExtension('.', "_obj.txt");
 	DUMPS(str.CStr());
+	gOutputFile.openMode = "w+b";
+	gOutputFile.fileName = str.CStr();
 
 
-	int retVal = _Assembler_1_CreateListFile_Pass_1();
-	if (retVal)
-		return retVal;
+	int retVal;
+
+	RETURN_CHK(retVal, _Assembler_1_CreateListFile_Pass_1());
+
+	RETURN_CHK(retVal, _Assembler_2_CreateObjFile());
 
 	return 0;
 }

@@ -20,15 +20,21 @@ typedef enum {
 #define UART_HEADER_HCI_ACL     (0x02)
 #define UART_HEADER_HCI_SCO     (0x03)
 #define UART_HEADER_HCI_EVENT   (0x04)
+typedef struct {
+	u8 uartHeader;
+	u8 data[15];
+} HCI_UART_HEADER_t;
+#define HCI_UART_HEADER_SIZE (sizeof(HCI_UART_HEADER_t)-15)
+#define HCI_UART_HEADER_SIZE_FOR_CHECK (1)
 
-
-
+#if 0
 typedef struct {
 	u8 reserved[3];
 	u8 packetType;
 } UART_HCI_HEADER_t;
 #define UART_HCI_HEADER_SIZE (sizeof(UART_HCI_HEADER_t)-3)
 #define UART_HCI_HEADER_SIZE_FOR_CHECK (1)
+#endif
 
 typedef struct {
 	u8 opcode_L;

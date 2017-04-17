@@ -7,6 +7,7 @@
 // ============================== Define ==============================
 
 #include <stdio.h>
+#include <stdarg.h>
 
 typedef struct File_Profiles{
 	const char *fileName;
@@ -40,6 +41,8 @@ class LibFileIoClass
 		char *lineStr;
 		int lineLen;
 		u32 lineCount;
+		u32 scanCount;
+		bool printErrorMsg;
 		
 		LibFileIoClass(const char *inFileName = NULL, const char *inOpenMode = NULL);
 		~LibFileIoClass(void);
@@ -53,6 +56,7 @@ class LibFileIoClass
 		int  GetLine(OUT NextLineStyle_t *nextLineStyle = NULL);
 		int  GetLineEx(unsigned char *outputString, int maxLength, OUT int *readLength, OUT NextLineStyle_t *nextLineStyle = NULL);
 		int  GetCharacter(void);
+		int  FileScan(const char *format, ...);
 };
 
 void LibFileIoClass_Demo_Output_A_File(void);

@@ -59,7 +59,7 @@ public:
 	u8 *workingReadOutString;
 	VirtualMemClass virMem;
 	
-	Lib51HexReader(void);
+	Lib51HexReader(u32 node_size = 0x8000, u32 init_val = 0x100);
 	~Lib51HexReader(void);
 	int ReadFile(const char *file_name);
 };

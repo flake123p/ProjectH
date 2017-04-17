@@ -147,6 +147,26 @@ int VirtualMemClass::Read(u8 *dst, u32 srcAddr, u32 len)
 	return 0;
 }
 
+int VirtualMemClass::ClearPage(u32 start_addr)
+{
+	u32 nodeAddr = _CalculateNodeStartAddr(start_addr);
+
+	VIR_MEM_NODE_t *currNode;
+	if (_NodeExist(nodeAddr, &currNode)) {
+		currNode->usedLen = 0;
+		u32 memsetVal;
+		if (initVal < 0x100) {
+			memsetVal = initVal;
+		} else {
+			memsetVal = 0;
+		}
+		memset(currNode->data, memsetVal, nodeSize);
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 u8 *VirtualMemClass::GetRealAddress(u32 addr, VIR_MEM_NODE_t **matchNode /* = NULL */)
 {
 	u32 nodeAddr = _CalculateNodeStartAddr(addr);
@@ -208,7 +228,7 @@ void VirtualMemClass::DumpVirMemInfo(void)
 	printf("==================================== %s() end\n", __func__);
 }
 
-int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
+int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbose /* = false */, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
 {
 	LibFileIoClass outFile(fileName, "w+b");
 
@@ -220,8 +240,10 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool memDum
 
 	if (memDumpMode == false) {
 		fprintf(outFile.fp, "info.count = %d\n", info.count);
-		fprintf(outFile.fp, "info.head = %p\n", info.head);
-		fprintf(outFile.fp, "info.tail = %p\n", info.tail);
+		if (verbose) {
+			fprintf(outFile.fp, "info.head = %p\n", info.head);
+			fprintf(outFile.fp, "info.tail = %p\n", info.tail);
+		}
 		fprintf(outFile.fp, "nodeSize = 0x%x\n", nodeSize);
 		fprintf(outFile.fp, "initVal  = 0x%x\n", initVal);
 
@@ -230,9 +252,11 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool memDum
 		for (u32 i = 0; i < info.count; i++) {
 			currVirMemNode = (VIR_MEM_NODE_t *)currNode;
 			fprintf(outFile.fp, "Node(%d):\n", i+1);
-			fprintf(outFile.fp, "[ %p ]\n", currNode);
-			fprintf(outFile.fp, "currNode->prev = %p\n", currNode->prev);
-			fprintf(outFile.fp, "currNode->next = %p\n", currNode->next);
+			if (verbose) {
+				fprintf(outFile.fp, "[ %p ]\n", currNode);
+				fprintf(outFile.fp, "currNode->prev = %p\n", currNode->prev);
+				fprintf(outFile.fp, "currNode->next = %p\n", currNode->next);
+			}
 			fprintf(outFile.fp, "currVirMemNode->startAddr = 0x%x\n", currVirMemNode->startAddr);
 			fprintf(outFile.fp, "currVirMemNode->usedLen   = 0x%x\n", currVirMemNode->usedLen);
 			fprintf(outFile.fp, "currVirMemNode->pageAttr  = 0x%x\n", currVirMemNode->pageAttr);
@@ -461,8 +485,7 @@ int ProtectedMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool doWriteOnceChec
 	bufObj.Init(len);
 	u8 *attrSrc = (u8 *)bufObj.bufPtr;
 
-	retVal = attrMem.Read(attrSrc, dstAddr, len);
-	BASIC_ASSERT(retVal == 0);
+	EXIT_CHK(retVal, attrMem.Read(attrSrc, dstAddr, len));
 	
 	for (u32 i = 0; i < len; i++) {
 		if (doWriteOnceCheck && FLG_CHK(attrSrc[i], MEMROY_WAS_WRITTEN_FLAG))

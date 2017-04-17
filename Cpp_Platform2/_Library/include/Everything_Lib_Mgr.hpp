@@ -25,6 +25,7 @@
 #include "_LibString.hpp"
 #include "_Lib51Hex.hpp"
 #include "_LibError.hpp"
+#include "_LibSyntex.hpp"
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"

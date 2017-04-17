@@ -46,6 +46,8 @@ LibFileIoClass::LibFileIoClass(const char *inFileName /* = NULL */, const char *
 	isFileDbgMsgOn=false;
 	lineStr=NULL;
 	lineCount=0;
+
+	printErrorMsg = true;
 };
 
 LibFileIoClass::~LibFileIoClass(void)
@@ -61,8 +63,9 @@ int LibFileIoClass::FileOpen(void)
 
 	this->fp = fopen(this->fileName.c_str(), this->openMode.c_str()); 
 
-	if (this->fp == NULL) { 
-		printf("[LibFileIoClass] Cannot open: %s in mode: %s.\n", this->fileName.c_str(), this->openMode.c_str());
+	if (this->fp == NULL) {
+		if (printErrorMsg)
+			printf("[LibFileIoClass] Cannot open: %s in mode: %s.\n", this->fileName.c_str(), this->openMode.c_str());
 		return RC_FILE_OPEN_ERROR;
 	}
 
@@ -99,6 +102,8 @@ int LibFileIoClass::FileClose(void)
 	
 	int closeResult = fclose(this->fp);
 	if(closeResult == EOF) {
+		if (printErrorMsg)
+			printf("[LibFileIoClass] File Close Error - %s in mode: %s.\n", this->fileName.c_str(), this->openMode.c_str());
 		return RC_FILE_CLOSE_ERROR;
 	}
 	
@@ -238,6 +243,27 @@ int LibFileIoClass::GetLineEx(unsigned char *outputString, int maxLength, OUT in
 int LibFileIoClass::GetCharacter(void)
 {
 	return fgetc(this->fp);
+}
+
+int LibFileIoClass::FileScan(const char *format, ...)
+{
+	int retVal;
+
+	scanCount = 0;
+	
+	va_list vl;
+	va_start(vl, format);
+	retVal = vfscanf(this->fp, format, vl);
+	va_end(vl);
+
+	if (retVal == EOF) {
+		return RC_FILE_REACH_EOF;
+	} else if (retVal == 0) {
+		return RC_FILE_SCAN_ERROR;
+	} else {
+		scanCount = (u32)retVal;
+		return 0;
+	}
 }
 
 void LibFileIoClass_Demo_Output_A_File(void)

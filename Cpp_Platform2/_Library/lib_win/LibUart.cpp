@@ -121,7 +121,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 		timeouts.WriteTotalTimeoutMultiplier = 10;
 	} else {
 		timeouts.ReadIntervalTimeout         = 1;
-		timeouts.ReadTotalTimeoutConstant    = 0;
+		timeouts.ReadTotalTimeoutConstant    = 1;
 		timeouts.ReadTotalTimeoutMultiplier  = 0;
 		timeouts.WriteTotalTimeoutConstant   = 5;
 		timeouts.WriteTotalTimeoutMultiplier = 1;
@@ -229,7 +229,7 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 		}
 		#endif
 	}	
-	
+
 	UART_LOG_MSG("\n%s() Success.\n", __func__);
 	return 0;
 }

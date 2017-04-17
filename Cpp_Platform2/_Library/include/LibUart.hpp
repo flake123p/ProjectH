@@ -33,7 +33,7 @@
 
 // ============================== Manager ==============================
 int LibUartMgr_DemoTxRx(void);
-void LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate = NULL);
+int LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate = NULL);
 int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint32_t miliSeconds = 10000);
 
 // ============================== Library ==============================
@@ -56,6 +56,27 @@ int LibUart_UninitComPort(void);
 int LibUart_Send(uint8_t *buffer, uint32_t length);
 int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength);
 int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength);
+
+#include <string>
+class LibUartClass {
+public:
+	std::string comPortName;
+	u32 baudRate;
+	u32 rxBufLen;
+	u8 *rxBuf;
+	u32 receivedLen;
+	
+	LibUartClass(const char *comPortNameFile = NULL, u32 rx_buf_len = 0);
+	~LibUartClass(void);
+	int GetComPortConfigFromFile(const char *comPortNameFile);
+	int InitRxBuffer(u32 rx_buf_len);
+	int InitComPort(int quickReadLevel = 0);
+	int UninitComPort(void);
+	int Send(u8 *buffer, u32 length);
+	int SendAndReceive(u8 *buffer, u32 length);
+	int Receive(void);
+	int ReceiveEx(u32 singleReadlength, u32 bufOffset = 0);
+};
 
 #define _LIB_UART_HPP_INCLUDED_
 #endif//_LIB_UART_HPP_INCLUDED_

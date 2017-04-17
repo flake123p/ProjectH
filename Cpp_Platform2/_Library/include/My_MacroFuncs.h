@@ -94,7 +94,9 @@
 */
 
 #define ASSERT_IF(retVal) if(retVal){DUMPX(retVal);BASIC_ASSERT(0);};
+#define ASSERT_CHK(a, b)  a=b;ASSERT_IF(a)
 #define RETURN_IF(retVal) if(retVal){return (retVal);}
+#define RETURN_CHK(a, b)  a=b;RETURN_IF(a)
 
 #define REMOVE_UNUSED_WRANING(a) (a=a)
 

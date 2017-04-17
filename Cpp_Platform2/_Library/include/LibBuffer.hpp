@@ -91,7 +91,7 @@ public:
 	void *bufPtr;
 	u32 bufSize;
 
-	LibBufferBasic(void);
+	LibBufferBasic(u32 buf_size = 0);
 	void *Init(u32 buf_size);
 	~LibBufferBasic(void); // Do nothing
 };

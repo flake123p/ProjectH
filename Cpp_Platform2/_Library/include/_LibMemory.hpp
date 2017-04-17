@@ -51,11 +51,12 @@ public:
 	void SetParameters(u32 node_size, u32 initVal, u32 init_page_attr = 0);
 	int  Write(u32 dstAddr, u8 *src, u32 len, bool autoCreatePage = true);
 	int  Read(u8 *dst, u32 srcAddr, u32 len);
+	int  ClearPage(u32 start_addr);
 	u8  *GetRealAddress(u32 addr, VIR_MEM_NODE_t **matchNode = NULL);
 	int  CreateEmptyPage(u32 dstAddr, VIR_MEM_NODE_t **matchNode = NULL);
 	bool GetPage(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode);
 	void DumpVirMemInfo(void);
-	int  DumpVirMemContent_ToFile(const char *fileName, bool memDumpMode = false, bool dumpAllData = false);
+	int  DumpVirMemContent_ToFile(const char *fileName, bool verbose = false, bool memDumpMode = false, bool dumpAllData = false);
 };
 
 

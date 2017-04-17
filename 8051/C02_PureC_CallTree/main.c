@@ -56,6 +56,7 @@ void func5() {
 	char var_5[16]; 	var_5[15] = 0x5;
 }	
 void DummyMain() {
+	func5();
 }
 int main()
 {

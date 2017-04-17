@@ -3,6 +3,7 @@
 
 void LibBT_HCI_Diagnose(void)
 {
+	BASIC_ASSERT(HCI_UART_HEADER_SIZE           == HCI_UART_HEADER_SIZE_FOR_CHECK);
 	BASIC_ASSERT(HCI_COMMAND_PACKET_HEADER_SIZE == HCI_COMMAND_PACKET_HEADER_SIZE_FOR_CHECK);
 	BASIC_ASSERT(HCI_ACL_PACKET_HEADER_SIZE     == HCI_ACL_PACKET_HEADER_SIZE_FOR_CHECK);
 	BASIC_ASSERT(HCI_SCO_PACKET_HEADER_SIZE     == HCI_SCO_PACKET_HEADER_SIZE_FOR_CHECK);
@@ -11,7 +12,7 @@ void LibBT_HCI_Diagnose(void)
 
 u32  LibBT_HCI_GetUartHeaderSize(void)
 {
-	return 1;
+	return HCI_UART_HEADER_SIZE;
 }
 
 int  LibBT_HCI_PrepareUartHeader(HCI_PACKET_TYPE_t hci_packet_type, u32 start_offset, OUT u8 *buf)
@@ -36,6 +37,31 @@ int  LibBT_HCI_PrepareUartHeader(HCI_PACKET_TYPE_t hci_packet_type, u32 start_of
 		default:
 			BASIC_ASSERT(0);
 			break;
+	}
+	return 0;
+}
+
+int LibBT_HCI_ParsingUartHeader(u8 *buf, OUT HCI_UART_HEADER_t *hdr)
+{
+	switch (buf[0]) {
+		case UART_HEADER_HCI_COMMAND: {
+			hdr->uartHeader = HCI_Command_Packet;
+		} break;
+		
+		case UART_HEADER_HCI_ACL: {
+			hdr->uartHeader = HCI_ACL_Packet;
+		} break;
+		
+		case UART_HEADER_HCI_SCO: {
+			hdr->uartHeader = HCI_SCO_Packet;
+		} break;
+		
+		case UART_HEADER_HCI_EVENT: {
+			hdr->uartHeader = HCI_Event_Packet;
+		} break;
+			
+		default:
+			return 1;
 	}
 	return 0;
 }

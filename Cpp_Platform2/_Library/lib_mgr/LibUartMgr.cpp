@@ -28,25 +28,32 @@ int LibUartMgr_DemoTxRx(void)
 	return 0;
 }
 
-void LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate /* = NULL */)
+int LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate /* = NULL */)
 {
 	int retVal;
 	
 	LibFileIoClass file_ComPortName(comPortNameFile, "r");
-	BASIC_ASSERT(file_ComPortName.IsFileExist() == true);
-	file_ComPortName.FileOpen();
+
+	retVal = file_ComPortName.FileOpen();
+	RETURN_IF(retVal);
 
 	retVal = fscanf(file_ComPortName.fp, "ComPortName=%s", strComPortName);
-	BASIC_ASSERT(retVal > 0); // file format error
+	if (retVal == 0) {
+		printf("ComPortName format error!!\n");
+		return RC_FILE_SCAN_ERROR;
+	}
 
 	if (baudRate != NULL) {
 		retVal = fscanf(file_ComPortName.fp, "\nBaudRate=%u", baudRate);
-		BASIC_ASSERT(retVal > 0); // file format error
+		if (retVal == 0) {
+			printf("BaudRate format error!!\n");
+			return RC_FILE_SCAN_ERROR;
+		}
 	}
 
 	file_ComPortName.FileClose();
 
-	REMOVE_UNUSED_WRANING(retVal);
+	return 0;
 }
 
 int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint32_t miliSeconds /* = 10000 */)
@@ -77,4 +84,86 @@ int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint3
 	}
 
 	return retVal;
+}
+
+LibUartClass::LibUartClass(const char *comPortNameFile /* = NULL */, u32 rx_buf_len /* = 0 */)
+{
+	baudRate = 0;
+	rxBuf = NULL;
+
+	if (comPortNameFile != NULL)
+		GetComPortConfigFromFile(comPortNameFile);
+	else
+		comPortName = "";
+
+	InitRxBuffer(rx_buf_len);
+}
+
+LibUartClass::~LibUartClass(void)
+{
+	if (rxBuf != NULL) {
+		free(rxBuf);
+		rxBuf = NULL;
+	}
+}
+
+int LibUartClass::GetComPortConfigFromFile(const char *comPortNameFile)
+{
+	char str[30] = {0};
+	int retVal;
+
+	retVal = LibUartMgr_GetComPortConfigFromFile(comPortNameFile, str, &baudRate);
+	RETURN_IF(retVal);
+	
+	comPortName = str;
+	
+	return 0;
+}
+
+int LibUartClass::InitRxBuffer(u32 rx_buf_len)
+{
+	if (rxBuf != NULL) {
+		BASIC_ASSERT(0);
+	}
+	
+	rxBufLen = rx_buf_len;
+
+	if (rxBufLen != 0) {
+		rxBuf = (u8 *)malloc(rxBufLen);
+	}
+	
+	return 0;
+}
+
+int LibUartClass::InitComPort(int quickReadLevel /* = 0 */)
+{
+	return LibUart_InitComPort(comPortName.c_str(), baudRate, quickReadLevel);
+}
+
+int LibUartClass::UninitComPort(void)
+{
+	return LibUart_UninitComPort();
+}
+
+int LibUartClass::Send(u8 *buffer, u32 length)
+{
+	return LibUart_Send(buffer, length);
+}
+
+int LibUartClass::SendAndReceive(u8 *buffer, u32 length)
+{
+	int retVal = LibUart_Send(buffer, length);
+	RETURN_IF(retVal);
+
+	return Receive();
+}
+
+int LibUartClass::Receive(void)
+{
+	return LibUart_Receive(rxBuf, &receivedLen);
+}
+
+int LibUartClass::ReceiveEx(u32 singleReadlength, u32 bufOffset /* = 0 */)
+{
+	return LibUart_ReceiveEx(ADDRX(rxBuf, bufOffset), &receivedLen, singleReadlength);
 }

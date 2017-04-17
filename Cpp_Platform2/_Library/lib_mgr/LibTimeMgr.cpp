@@ -25,7 +25,7 @@ double LibTime_CalculateClock(void)
 void LibTime_StopClock_ShowResult(void)
 {
 	gClock = clock() - gClock;
-	printf ("It took me %d clicks (%f seconds).", (int)gClock, ((double)gClock)/CLOCKS_PER_SEC);
+	printf ("It took me %4d clicks (%f seconds).", (int)gClock, ((double)gClock)/CLOCKS_PER_SEC);
 }
 
 void LibTime_DemoClockTimer(void)

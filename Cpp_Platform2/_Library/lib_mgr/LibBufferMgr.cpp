@@ -1,10 +1,14 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
-LibBufferBasic::LibBufferBasic(void)
+LibBufferBasic::LibBufferBasic(u32 buf_size /* = 0 */)
 {
-	bufSize = 0;
-	bufPtr = NULL;
+	if (buf_size != 0) {
+		Init(buf_size);
+	} else {
+		bufSize = 0;
+		bufPtr = NULL;
+	}
 }
 
 void *LibBufferBasic::Init(u32 buf_size)

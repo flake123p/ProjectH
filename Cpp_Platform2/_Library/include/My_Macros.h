@@ -89,13 +89,13 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
         ((numToInc) < (numHigh) ? (numToInc)+1 : (numToInc))
 
 #define INC_IN_RANGE_CYCLE(numToInc, numLow, numHigh) \
-        ((numToInc) < (numHigh) ? (numToInc)+1 : (numLow))
+        ((numToInc)+1 < (numHigh) ? (numToInc)+1 : (numLow))
 
 #define DEC_IN_RANGE(numToDec, numLow, numHigh) \
         ((numToDec) > (numLow) ? (numToDec)-1 : (numToDec))
 
 #define DEC_IN_RANGE_CYCLE(numToDec, numLow, numHigh) \
-        ((numToDec) > (numLow) ? (numToDec)-1 : (numHigh))
+        ((numToDec) > (numLow) ? (numToDec)-1 : (numHigh)-1)
 
 
 
@@ -123,7 +123,8 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 // with effect
 #define FLG_ADD(a, b)  ((a) |= (b))
 #define FLG_RMV(a, b)  ((a) &= (~(b)))
-
+#define FLG_SET(a, b)  FLG_ADD((a), (b))
+#define FLG_CLR(a, b)  FLG_RMV((a), (b))
 
 
 //
@@ -282,7 +283,9 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define CHECK_BIT_FIELD(a, value, size, offset) ((GET_BIT_FIELD(a, size, offset))==((value)<<(offset)))
 #define GET_BIT_FIELD_2(a, size, offset)          (((a)>>(offset))&(BIT_MASK(size)))
 #define CHECK_BIT_FIELD_2(a, value, size, offset) (GET_BIT_FIELD_2(a, size, offset)==(value))
-
+//
+// No Effect Version.  Beware of using this!!!
+//
 #define ClearBitField(a, size, offset)      FlgRmv((a), BIT_MASK(size)<<(offset))
 #define SetBitField(a, value, size, offset) FlgAdd(FlgRmv((a), (BIT_MASK(size)<<(offset))), (value)<<(offset))
 
@@ -314,6 +317,16 @@ http://www.codeproject.com/Articles/567335/EssentialplusMacrosplusforplusCplusPr
 */
 
 
+#define SHIFT_OR_2(a,b)     (((a)<<8)|(b))
+#define SHIFT_OR_3(a,b,c)   (((a)<<16)|((b)<<8)|(c))
+#define SHIFT_OR_4(a,b,c,d) (((a)<<24)|((b)<<16)|((c)<<8)|(d))
+
+#define ADDR(a)             (&(a))
+#define ADDRX(array,offset) ADDR(array[(offset)])
+
+#define U8ADDR(a)            (u8 *)ADDR(a)
+#define U16ADDR(a)           (u16 *)ADDR(a)
+#define U32ADDR(a)           (u32 *)ADDR(a)
 
 #define _MY_MACROS_H_INCLUDED_
 #endif//_MY_MACROS_H_INCLUDED_

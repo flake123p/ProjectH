@@ -18,8 +18,8 @@ class ConstStr {
 		void SetStr(const char *inStr);
 };
 
-bool LibString_IsCharHexadecimal(char ch);
-bool LibString_IsCharDecimal(char ch);
+bool LibString_IsCharHexadecimal(char ch, OUT u32 *val = NULL);
+bool LibString_IsCharDecimal(char ch, OUT u32 *val = NULL);
 bool LibString_IsCharLetter(char ch);
 bool LibString_IsCharPrintable(char ch);
 bool LibString_IsCharLegal(char ch, const char *legalCharAry, int aryLen);
@@ -81,7 +81,7 @@ public:
 	std::string str;
 	std::vector<std::string> subStrVector;
 	
-	LibStringClass(){}; // Do nothing.
+	LibStringClass(const char *cString = NULL);
 	~LibStringClass(void){}; // Do nothing.
 	void Init(char *cString);
 	void Init(const char *cString);

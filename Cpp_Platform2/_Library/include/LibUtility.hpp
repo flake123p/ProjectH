@@ -25,5 +25,16 @@ bool LibUtil_FindInArray(IN T1 val, IN T1 *array, IN u32 len)
 	return false;
 }
 
+int LibUtil_BytesToInt32(u32 &dst, u8 *src, bool isSrcBigEndian);
+int LibUtil_Int32ToBytes(u8 *dst, u32 &src, bool isDstBigEndian);
+int LibUtil_BytesToInt16(u16 &dst, u8 *src, bool isSrcBigEndian);
+int LibUtil_Int16ToBytes(u8 *dst, u16 &src, bool isDstBigEndian);
+int LibUtil_IntSwapCopy(u8 *dst, u8 *src, u32 len, bool swap);
+int LibUtil_DemoEndian(void);
+
+#include "My_Macros.h"
+#define INT_TO_ARRAY(dst,src,currOffset,swap) LibUtil_IntSwapCopy(ADDRX(dst,currOffset),(u8 *)&(src),sizeof(src),swap);currOffset+=sizeof(src)
+#define ARRAY_TO_INT(dst,src,currOffset,swap) LibUtil_IntSwapCopy((u8 *)&(dst),ADDRX(src,currOffset),sizeof(dst),swap);currOffset+=sizeof(dst)
+
 #define _LIB_UTILITY_HPP_INCLUDED_
 #endif//_LIB_UTILITY_HPP_INCLUDED_

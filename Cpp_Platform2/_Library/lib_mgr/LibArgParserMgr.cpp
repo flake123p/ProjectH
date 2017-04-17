@@ -325,17 +325,17 @@ int ArgOptionSet::_ExtractToMap(char *currArgv, char *nextArgv, bool *passNextRo
 }
 
 #define ARGC (9)
-int myArgc = ARGC;
-char *myArgv[ARGC];
-char argv0[] = "dummy";
-char argv1[] = "-i";
-char argv2[] = "in.txt";
-char argv3[] = "first.txt";
-char argv4[] = "--output";
-char argv5[] = "out.txt";
-char argv6[] = "-abc";
-char argv7[] = "-g";
-char argv8[] = "-xy";
+static int myArgc = ARGC;
+static char *myArgv[ARGC];
+static char argv0[] = "dummy";
+static char argv1[] = "-i";
+static char argv2[] = "in.txt";
+static char argv3[] = "first.txt";
+static char argv4[] = "--output";
+static char argv5[] = "out.txt";
+static char argv6[] = "-abc";
+static char argv7[] = "-g";
+static char argv8[] = "-xy";
 Option_Set_Big_t gDemo_BigOptionSet[] = {
 	{1, true,  "-i", "--input", NULL, NULL},
 	{2, true,  "-o", "--output", NULL, NULL},
