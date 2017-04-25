@@ -85,17 +85,17 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 //
 // Increas/Decrease in range. Include both numLow and numHigh!!
 //
-#define INC_IN_RANGE(numToInc, numLow, numHigh) \
-        ((numToInc) < (numHigh) ? (numToInc)+1 : (numToInc))
+#define INC_IN_RANGE(numToInc, numLow, smallerThan) \
+        ((numToInc)+1 < (smallerThan) ? (numToInc)+1 : (numToInc))
 
-#define INC_IN_RANGE_CYCLE(numToInc, numLow, numHigh) \
-        ((numToInc)+1 < (numHigh) ? (numToInc)+1 : (numLow))
+#define INC_IN_RANGE_CYCLE(numToInc, numLow, smallerThan) \
+        ((numToInc)+1 < (smallerThan) ? (numToInc)+1 : (numLow))
 
-#define DEC_IN_RANGE(numToDec, numLow, numHigh) \
+#define DEC_IN_RANGE(numToDec, numLow, smallerThan) \
         ((numToDec) > (numLow) ? (numToDec)-1 : (numToDec))
 
-#define DEC_IN_RANGE_CYCLE(numToDec, numLow, numHigh) \
-        ((numToDec) > (numLow) ? (numToDec)-1 : (numHigh)-1)
+#define DEC_IN_RANGE_CYCLE(numToDec, numLow, smallerThan) \
+        ((numToDec) > (numLow) ? (numToDec)-1 : (smallerThan)-1)
 
 
 
