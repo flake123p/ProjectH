@@ -230,6 +230,8 @@ void VirtualMemClass::DumpVirMemInfo(void)
 
 int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbose /* = false */, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
 {
+	VIR_MEM_NODE_t *currVirMemNode;
+	
 	LibFileIoClass outFile(fileName, "w+b");
 
 	outFile.FileOpen();
@@ -247,7 +249,6 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 		fprintf(outFile.fp, "nodeSize = 0x%x\n", nodeSize);
 		fprintf(outFile.fp, "initVal  = 0x%x\n", initVal);
 
-		VIR_MEM_NODE_t *currVirMemNode;
 		LinkedListNode *currNode = info.head;
 		for (u32 i = 0; i < info.count; i++) {
 			currVirMemNode = (VIR_MEM_NODE_t *)currNode;
@@ -301,7 +302,7 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 		BASIC_ASSERT(currNode == NULL);
 	} 
 	else {
-		VIR_MEM_NODE_t *currVirMemNode;
+		
 		LinkedListNode *currNode = info.head;
 		for (u32 i = 0; i < info.count; i++) {
 			currVirMemNode = (VIR_MEM_NODE_t *)currNode;
@@ -356,6 +357,14 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 		BASIC_ASSERT(currNode == NULL);
 	}
 
+	printf("Dump Result:\n");
+	printf("\tTotal Size = 0x%X\n", currVirMemNode->startAddr + currVirMemNode->usedLen);
+	printf("\tTotal Size = %d KB\n", (currVirMemNode->startAddr + currVirMemNode->usedLen) / 1024 + 1);
+
+	fprintf(outFile.fp, "\nDump Result:\n");
+	fprintf(outFile.fp, "\tTotal Size = 0x%X\n", currVirMemNode->startAddr + currVirMemNode->usedLen);
+	fprintf(outFile.fp, "\tTotal Size = %d KB\n", (currVirMemNode->startAddr + currVirMemNode->usedLen) / 1024 + 1);
+	
 	return 0;
 }
 
@@ -443,7 +452,7 @@ int VirtualMemClass::_PageRead(VIR_MEM_NODE_t *node, u8 *dst, u32 srcAddr, u32 l
 	BASIC_ASSERT(src != NULL);
 
 	if (FLG_CHK(node->pageAttr, MEMORY_READ_PROTECT_FLAG))
-		return MEMORY_READ_PROTECT_FLAG;
+		return MEM_ERROR_READ_PROTECTED;
 	
 	memcpy(dst, src, len);
 

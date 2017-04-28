@@ -59,7 +59,7 @@ public:
 	
 	ArgOptionSet(Option_Set_Big_t *big_set = NULL, u32 big_set_len = 0, Option_Set_Small_t * small_set = NULL, u32 small_set_len = 0, u32 stand_alone_str_size = 0);
 	~ArgOptionSet(void){}; // do nothing
-	void Init(Option_Set_Big_t *big_set, u32 big_set_len, Option_Set_Small_t * small_set, u32 small_set_len, u32 stand_alone_str_size);
+	void Init(Option_Set_Big_t *big_set, u32 big_set_len, Option_Set_Small_t * small_set, u32 small_set_len, u32 stand_alone_str_size = 0);
 	void Dump(void);
 	int  StartParsing(int argc, char *argv[]);
 	bool CheckArgByKey(u32 key, OUT const char **followingStr = NULL);

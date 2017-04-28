@@ -156,7 +156,7 @@ ArgOptionSet::ArgOptionSet(Option_Set_Big_t *big_set /* = NULL */, u32 big_set_l
 	Init(big_set, big_set_len, small_set, small_set_len, stand_alone_str_size);
 }
 
-void ArgOptionSet::Init(Option_Set_Big_t *big_set, u32 big_set_len, Option_Set_Small_t * small_set, u32 small_set_len, u32 stand_alone_str_size)
+void ArgOptionSet::Init(Option_Set_Big_t *big_set, u32 big_set_len, Option_Set_Small_t * small_set, u32 small_set_len, u32 stand_alone_str_size /* = 0 */)
 {
 	bigSet      = big_set;
 	bigSetLen   = big_set_len;
