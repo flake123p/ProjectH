@@ -471,4 +471,6 @@ void LibIO_Demo_SPrintf_SScanf(void)
 	DUMPS(scanTempStr2);
 	DUMPS(scanTempStr3);
 	DUMPD(rc);
+
+	perror("perror()");
 }

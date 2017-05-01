@@ -8,14 +8,14 @@
 #define USE_MY_ASSERT (1)
 #if USE_MY_ASSERT
 #include <stdio.h>
-#define BASIC_ASSERT(a) if(a){;}else{printf(" Assertion failed: in %s(), line %d\n",__FUNCTION__,__LINE__);while(1){;}}
-#define CALLER_ASSERT(a) if(a){;}else{printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
-#define CALLER_ASSERT2(caller,a) if(a){;}else{printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
+#define BASIC_ASSERT(a) if(a){;}else{perror("perror()");printf(" Assertion failed: in %s(), line %d\n",__FUNCTION__,__LINE__);while(1){;}}
+#define CALLER_ASSERT(a) if(a){;}else{perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
+#define CALLER_ASSERT2(caller,a) if(a){;}else{perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
 #else
 #include <assert.h>
 #define BASIC_ASSERT assert
-#define CALLER_ASSERT(a) if(a){;}else{printf("Caller: %s()",caller);assert(0);}
-#define CALLER_ASSERT2(caller,a) if(a){;}else{printf("Caller: %s()",caller);assert(0);}
+#define CALLER_ASSERT(a) if(a){;}else{perror("perror()");printf("Caller: %s()",caller);assert(0);}
+#define CALLER_ASSERT2(caller,a) if(a){;}else{perror("perror()");printf("Caller: %s()",caller);assert(0);}
 #endif
 
 #define NO_ASSERT (0)
