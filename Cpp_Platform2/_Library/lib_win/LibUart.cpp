@@ -271,7 +271,7 @@ int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t single
 		while (NoBytesRead > 0);
 		*receivedLength = i - 1; // Set output variable
 #else
-		g_Status = ReadFile(g_hComm, buffer, 40, (DWORD *)receivedLength, NULL);
+		g_Status = ReadFile(g_hComm, buffer, singleReadlength, (DWORD *)receivedLength, NULL);
 #endif
 		/*------------Printing the RXed String to Console----------------------*/
 

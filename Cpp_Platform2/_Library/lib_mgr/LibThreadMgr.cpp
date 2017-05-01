@@ -96,37 +96,37 @@ EVENT_HANDLE_t gEvent_A;
 EVENT_HANDLE_t gEvent_B;
 void *Test_Thread_A(void *arg)
 {
-	LibThread_WaitEvent(gEvent_A);
+	LibIPC_Event_Wait(gEvent_A);
 	
 	for (u32 i=0; i<10; i++) {
 		PRINT_FUNC;
 		LibOs_SleepMiliSeconds(1);
 	}
 
-	LibThread_SetEvent(gEvent_B);
-	LibThread_WaitEvent(gEvent_A);
+	LibIPC_Event_Set(gEvent_B);
+	LibIPC_Event_Wait(gEvent_A);
 
 	for (u32 i=0; i<10; i++) {
 		PRINT_FUNC;
 		LibOs_SleepMiliSeconds(1);
 	}
 
-	LibThread_SetEvent(gEvent_B);
+	LibIPC_Event_Set(gEvent_B);
 	
 	return 0;
 }
 
 void *Test_Thread_B(void *arg)
 {
-	LibThread_WaitEvent(gEvent_B);
+	LibIPC_Event_Wait(gEvent_B);
 	
 	for (u32 i=0; i<10; i++) {
 		PRINT_FUNC;
 		LibOs_SleepMiliSeconds(1);
 	}
 
-	LibThread_SetEvent(gEvent_A);
-	LibThread_WaitEvent(gEvent_B);
+	LibIPC_Event_Set(gEvent_A);
+	LibIPC_Event_Wait(gEvent_B);
 
 	for (u32 i=0; i<10; i++) {
 		PRINT_FUNC;
@@ -148,9 +148,9 @@ void LibThreadMgr_DemoEvent(void)
 	retVal = LibThread_NewHandle(&threadHdl_B);
 	ASSERT_IF(retVal);
 
-	retVal = LibThread_NewEvent(&gEvent_A);
+	retVal = LibIPC_Event_Create(&gEvent_A);
 	ASSERT_IF(retVal);
-	retVal = LibThread_NewEvent(&gEvent_B);
+	retVal = LibIPC_Event_Create(&gEvent_B);
 	ASSERT_IF(retVal);
 
 	retVal = LibThread_Create(threadHdl_A, Test_Thread_A);
@@ -159,7 +159,7 @@ void LibThreadMgr_DemoEvent(void)
 	ASSERT_IF(retVal);
 
 	LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
-	LibThread_SetEvent(gEvent_A);
+	LibIPC_Event_Set(gEvent_A);
 	
 	LibTime_StartMicroSecondClock();
 	LibThread_WaitThread(threadHdl_A);
@@ -167,9 +167,9 @@ void LibThreadMgr_DemoEvent(void)
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;
 
-	retVal = LibThread_ReleaseEvent(gEvent_A);
+	retVal = LibIPC_Event_Release(gEvent_A);
 	ASSERT_IF(retVal);
-	retVal = LibThread_ReleaseEvent(gEvent_B);
+	retVal = LibIPC_Event_Release(gEvent_B);
 	ASSERT_IF(retVal);
 
 	retVal = LibThread_ReleaseHandle(threadHdl_A);

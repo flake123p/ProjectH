@@ -58,7 +58,7 @@ typedef struct {
 	pthread_cond_t cond;
 	pthread_mutex_t mutex;
 }EVENT_HANDLE_LINUX_t;
-int LibThread_NewEvent(OUT EVENT_HANDLE_t *eventHdlPtr)
+int LibIPC_Event_Create(OUT EVENT_HANDLE_t *eventHdlPtr)
 {
 	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)malloc(sizeof(EVENT_HANDLE_LINUX_t));
 	if (eHdl == NULL)
@@ -73,7 +73,7 @@ int LibThread_NewEvent(OUT EVENT_HANDLE_t *eventHdlPtr)
 	return 0;
 }
 
-int LibThread_ReleaseEvent(EVENT_HANDLE_t eventHdl)
+int LibIPC_Event_Release(EVENT_HANDLE_t eventHdl)
 {
 	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)eventHdl;
 
@@ -87,7 +87,7 @@ int LibThread_ReleaseEvent(EVENT_HANDLE_t eventHdl)
 	return 0;
 }
 
-int LibThread_SetEvent(EVENT_HANDLE_t eventHdl)
+int LibIPC_Event_Set(EVENT_HANDLE_t eventHdl)
 {
 	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)eventHdl;
 	//PRINT_FUNC;
@@ -98,7 +98,7 @@ int LibThread_SetEvent(EVENT_HANDLE_t eventHdl)
 	return 0;
 }
 
-int LibThread_WaitEvent(EVENT_HANDLE_t eventHdl)
+int LibIPC_Event_Wait(EVENT_HANDLE_t eventHdl)
 {
 	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)eventHdl;
 	//PRINT_FUNC;

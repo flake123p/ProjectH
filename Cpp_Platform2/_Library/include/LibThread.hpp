@@ -31,10 +31,10 @@ int LibThread_WaitThreads(THREAD_HANDLE_t *threadHdlArray, u32 count);
 int LibThread_ReleaseHandle(THREAD_HANDLE_t threadHdl);
 
 typedef void * EVENT_HANDLE_t;
-int LibThread_NewEvent(OUT EVENT_HANDLE_t *eventHdlPtr); // AUTO RESET EVENT !!
-int LibThread_ReleaseEvent(EVENT_HANDLE_t eventHdl);
-int LibThread_SetEvent(EVENT_HANDLE_t eventHdl);
-int LibThread_WaitEvent(EVENT_HANDLE_t eventHdl);
+int LibIPC_Event_Create(OUT EVENT_HANDLE_t *eventHdlPtr); // AUTO RESET EVENT !!
+int LibIPC_Event_Release(EVENT_HANDLE_t eventHdl);
+int LibIPC_Event_Set(EVENT_HANDLE_t eventHdl);
+int LibIPC_Event_Wait(EVENT_HANDLE_t eventHdl);
 
 #define _LIB_THREAD_HPP_INCLUDED_
 #endif//_LIB_THREAD_HPP_INCLUDED_
