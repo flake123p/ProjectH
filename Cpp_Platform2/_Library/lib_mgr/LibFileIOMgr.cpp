@@ -332,3 +332,143 @@ int LibFileIO_TestNextLine_InWinAndLinux(const char *testFileName)
 
 	return 0;
 }
+
+int LibIO_FScanf(OUT u32 &scanCount, FILE *stream, const char * format, ...)
+{
+	int retVal;
+
+	scanCount = 0;
+	
+	va_list vl;
+	va_start(vl, format);
+	retVal = vfscanf(stream, format, vl);
+	va_end(vl);
+
+	if (retVal == EOF) {
+		return RC_FILE_REACH_EOF;
+	} else if (retVal == 0) {
+		return RC_FILE_SCAN_ERROR;
+	} else {
+		scanCount = (u32)retVal;
+		return 0;
+	}
+}
+
+int LibIO_FPrintf(OUT u32 &printCharCount, FILE *stream, const char * format, ...)
+{
+	int retVal;
+
+	printCharCount = 0;
+	
+	va_list vl;
+	va_start(vl, format);
+	retVal = vfprintf(stream, format, vl);
+	va_end(vl);
+
+	if (retVal < 0) {
+		return RC_FILE_PRINT_ERROR;
+	} else {
+		printCharCount = (u32)retVal;
+		return 0;
+	}
+}
+
+int LibIO_SScanf(OUT u32 &scanCount, const char *srcStr, const char * format, ...)
+{
+	int retVal;
+
+	scanCount = 0;
+	
+	va_list vl;
+	va_start(vl, format);
+	retVal = vsscanf(srcStr, format, vl);
+	va_end(vl);
+
+	if (retVal == EOF) {
+		return RC_FILE_REACH_EOF;
+	} else if (retVal == 0) {
+		return RC_FILE_SCAN_ERROR;
+	} else {
+		scanCount = (u32)retVal;
+		return 0;
+	}
+}
+
+int LibIO_SPrintf(OUT u32 &printCharCount, OUT char *dstStr, const char * format, ...)
+{
+	int retVal;
+
+	printCharCount = 0;
+	
+	va_list vl;
+	va_start(vl, format);
+	retVal = vsprintf(dstStr, format, vl);
+	va_end(vl);
+
+	if (retVal < 0) {
+		return RC_FILE_PRINT_ERROR;
+	} else {
+		printCharCount = (u32)retVal;
+		return 0;
+	}
+}
+
+void LibIO_Demo_FPrintf_FScanf(void)
+{
+	u32 printCharCount;
+	
+	LibFileIoClass ioFile("Test_DeleteMe.txt", "w+b");
+
+	ioFile.FileOpen();
+
+	ASSERT_CHK( rc, LibIO_FPrintf(printCharCount, ioFile.fp, "123 %d %d\n", 33, 44) );
+
+	DUMPD(printCharCount);
+
+	rewind(ioFile.fp);
+
+	char tempStr[10];
+	u32 scanCount;
+	ASSERT_CHK( rc, LibIO_FScanf(scanCount, ioFile.fp, "%s", tempStr) );
+	DUMPD(scanCount);
+	DUMPS(tempStr);
+	ASSERT_CHK( rc, LibIO_FScanf(scanCount, ioFile.fp, "%s", tempStr) );
+	DUMPD(scanCount);
+	DUMPS(tempStr);
+	ASSERT_CHK( rc, LibIO_FScanf(scanCount, ioFile.fp, "%s", tempStr) );
+	DUMPD(scanCount);
+	DUMPS(tempStr);
+	
+	rc = LibIO_FScanf(scanCount, ioFile.fp, "%s", tempStr);
+	LibError_PrintErrorMessage(rc);
+}
+
+void LibIO_Demo_SPrintf_SScanf(void)
+{
+	char tempStr[15];
+	char scanTempStr0[10];
+	char scanTempStr1[10];
+	char scanTempStr2[10];
+	char scanTempStr3[10];
+	u32 printCharCount;
+	u32 scanCount;
+
+	ASSERT_CHK( rc, LibIO_SPrintf(printCharCount, tempStr, "123 %d %d\n", 33, 44) );
+	DUMPD(printCharCount);
+	DUMPS(tempStr);
+
+	ASSERT_CHK( rc, LibIO_SScanf(scanCount, tempStr, "%s", scanTempStr0) );
+	DUMPD(scanCount);
+	DUMPS(scanTempStr0);
+	ASSERT_CHK( rc, LibIO_SScanf(scanCount, tempStr, "%s%s", scanTempStr0, scanTempStr1) );
+	DUMPD(scanCount);
+	DUMPS(scanTempStr0);
+	DUMPS(scanTempStr1);
+	ASSERT_CHK( rc, LibIO_SScanf(scanCount, tempStr, "%s%s%s%s", scanTempStr0, scanTempStr1, scanTempStr2, scanTempStr3) );
+	DUMPD(scanCount);
+	DUMPS(scanTempStr0);
+	DUMPS(scanTempStr1);
+	DUMPS(scanTempStr2);
+	DUMPS(scanTempStr3);
+	DUMPD(rc);
+}

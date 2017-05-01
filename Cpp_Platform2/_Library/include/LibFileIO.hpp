@@ -64,6 +64,13 @@ void LibFileIoClass_Demo_Lite(void);
 
 int  LibFileIO_TestNextLine_InWinAndLinux(const char *testFileName);
 
+
+
+int LibIO_FScanf(OUT u32 &scanCount, FILE *stream, const char * format, ...);
+int LibIO_FPrintf(OUT u32 &charCount, FILE *stream, const char * format, ...);
+void LibIO_Demo_FPrintf_FScanf(void);
+void LibIO_Demo_SPrintf_SScanf(void);
+
 #define _LIB_FILE_IO_HPP_INCLUDED_
 #endif//_LIB_FILE_IO_HPP_INCLUDED_
 

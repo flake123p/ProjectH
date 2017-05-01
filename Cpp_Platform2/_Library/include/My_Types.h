@@ -72,6 +72,7 @@ typedef int64_t s64;
 #define RC_FILE_OPEN_ERROR        (0x00020001)
 #define RC_FILE_CLOSE_ERROR       (0x00020002)
 #define RC_FILE_SCAN_ERROR        (0x00020003)
+#define RC_FILE_PRINT_ERROR       (0x00020004)
 
 #define DO_ENDIAN_SWAP (true)
 #define NO_ENDIAN_SWAP (false)
