@@ -62,9 +62,9 @@ void LibThreadMgr_Demo(void)
 	//DUMPD((u32)threadHdlAry[0]);
 	//DUMPD((u32)threadHdlAry[1]);
 	
-	retVal = LibThread_ReleaseHandle(threadHdlAry[0]);
+	retVal = LibThread_DestroyHandle(threadHdlAry[0]);
 	BASIC_ASSERT(retVal == 0);
-	retVal = LibThread_ReleaseHandle(threadHdlAry[1]);
+	retVal = LibThread_DestroyHandle(threadHdlAry[1]);
 	BASIC_ASSERT(retVal == 0);
 
 	REMOVE_UNUSED_WRANING(retVal);
@@ -87,7 +87,7 @@ void LibThreadMgr_DemoLite(void)
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;
 
-	if ( LibThread_ReleaseHandle(threadHdl) ) {
+	if ( LibThread_DestroyHandle(threadHdl) ) {
 		BASIC_ASSERT(0);
 	}
 }
@@ -167,13 +167,81 @@ void LibThreadMgr_DemoEvent(void)
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;
 
-	retVal = LibIPC_Event_Release(gEvent_A);
+	retVal = LibIPC_Event_Destroy(gEvent_A);
 	ASSERT_IF(retVal);
-	retVal = LibIPC_Event_Release(gEvent_B);
+	retVal = LibIPC_Event_Destroy(gEvent_B);
 	ASSERT_IF(retVal);
 
-	retVal = LibThread_ReleaseHandle(threadHdl_A);
+	retVal = LibThread_DestroyHandle(threadHdl_A);
 	ASSERT_IF(retVal);
-	retVal = LibThread_ReleaseHandle(threadHdl_B);
+	retVal = LibThread_DestroyHandle(threadHdl_B);
 	ASSERT_IF(retVal);
+}
+
+MUTEX_HANDLE_t gTextMutexHdl;
+
+
+void Test_Mutex_Print(int base)
+{
+// if no mutex, print result is chaos.
+#define MUTEX_ENABLE ( 1 )
+
+#if MUTEX_ENABLE
+	LibIPC_Mutex_Lock(gTextMutexHdl);
+#endif
+
+	for (int i = base; i < base+10; i++ ) {
+		printf("%s() %d\n", __func__, i);
+		LibOs_SleepMicroSeconds(1); // For linux, prevent printing isn't chaos!!
+	}
+
+#if MUTEX_ENABLE
+	int retVal;
+	ASSERT_CHK( retVal, LibIPC_Mutex_Unlock(gTextMutexHdl) );
+#endif
+}
+
+void *Test_Thread_C(void *arg)
+{
+	Test_Mutex_Print(0);
+	
+	return 0;
+}
+
+void *Test_Thread_D(void *arg)
+{
+	Test_Mutex_Print(100);
+	
+	return 0;
+}
+
+void LibThreadMgr_DemoMutex(void)
+{
+	THREAD_HANDLE_t threadHdl_C;
+	THREAD_HANDLE_t threadHdl_D;
+
+	int retVal;
+
+	ASSERT_CHK( retVal, LibThread_NewHandle(&threadHdl_C) );
+	ASSERT_CHK( retVal, LibThread_NewHandle(&threadHdl_D) );
+
+	ASSERT_CHK( retVal, LibIPC_Mutex_Create(&gTextMutexHdl) );
+	
+	ASSERT_CHK( retVal, LibThread_Create(threadHdl_C, Test_Thread_C) );
+	ASSERT_CHK( retVal, LibThread_Create(threadHdl_D, Test_Thread_D) );
+
+	LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
+
+	LibTime_StartMicroSecondClock();
+	LibThread_WaitThread(threadHdl_C);
+	LibThread_WaitThread(threadHdl_D);
+	LibTime_StopMicroSecondClock_ShowResult();
+	PRINT_NEXT_LINE;
+
+	LibIPC_Mutex_Lock(gTextMutexHdl);
+	LibIPC_Mutex_Unlock(gTextMutexHdl);
+	ASSERT_CHK( retVal, LibIPC_Mutex_Destroy(gTextMutexHdl) );
+
+	ASSERT_CHK( retVal, LibThread_DestroyHandle(threadHdl_C) );
+	ASSERT_CHK( retVal, LibThread_DestroyHandle(threadHdl_D) );
 }

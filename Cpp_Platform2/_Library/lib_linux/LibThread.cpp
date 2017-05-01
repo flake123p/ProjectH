@@ -46,7 +46,7 @@ int LibThread_WaitThreads(THREAD_HANDLE_t *threadHdlArray, u32 count)
 	return 0;
 }
 
-int LibThread_ReleaseHandle(THREAD_HANDLE_t threadHdl)
+int LibThread_DestroyHandle(THREAD_HANDLE_t threadHdl)
 {
 	free(threadHdl);
 	return 0;
@@ -73,7 +73,7 @@ int LibIPC_Event_Create(OUT EVENT_HANDLE_t *eventHdlPtr)
 	return 0;
 }
 
-int LibIPC_Event_Release(EVENT_HANDLE_t eventHdl)
+int LibIPC_Event_Destroy(EVENT_HANDLE_t eventHdl)
 {
 	EVENT_HANDLE_LINUX_t *eHdl = (EVENT_HANDLE_LINUX_t *)eventHdl;
 
@@ -107,5 +107,40 @@ int LibIPC_Event_Wait(EVENT_HANDLE_t eventHdl)
 	pthread_mutex_unlock(&eHdl->mutex);
 	
 	return 0;
+}
+
+typedef struct {
+	pthread_mutex_t mutex;
+}MUTEX_HANDLE_LINUX_t;
+int LibIPC_Mutex_Create(OUT MUTEX_HANDLE_t *mutexHdlPtr)
+{
+	MUTEX_HANDLE_LINUX_t *linuxMutexHdl = (MUTEX_HANDLE_LINUX_t *)malloc(sizeof(MUTEX_HANDLE_LINUX_t));
+
+	int retVal = pthread_mutex_init(&linuxMutexHdl->mutex, NULL);
+
+	*mutexHdlPtr = linuxMutexHdl;
+
+	return retVal;
+}
+
+int LibIPC_Mutex_Destroy(MUTEX_HANDLE_t mutexHdl)
+{
+	MUTEX_HANDLE_LINUX_t *linuxMutexHdl = (MUTEX_HANDLE_LINUX_t *)mutexHdl;
+
+	return pthread_mutex_destroy(&linuxMutexHdl->mutex);
+}
+
+int LibIPC_Mutex_Lock(MUTEX_HANDLE_t mutexHdl)
+{
+	MUTEX_HANDLE_LINUX_t *linuxMutexHdl = (MUTEX_HANDLE_LINUX_t *)mutexHdl;
+
+	return pthread_mutex_lock(&linuxMutexHdl->mutex);
+}
+
+int LibIPC_Mutex_Unlock(MUTEX_HANDLE_t mutexHdl)
+{
+	MUTEX_HANDLE_LINUX_t *linuxMutexHdl = (MUTEX_HANDLE_LINUX_t *)mutexHdl;
+
+	return pthread_mutex_unlock(&linuxMutexHdl->mutex);
 }
 

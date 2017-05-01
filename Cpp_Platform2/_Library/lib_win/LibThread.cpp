@@ -64,7 +64,7 @@ int LibThread_WaitThreads(THREAD_HANDLE_t *threadHdlArray, u32 count)
 	return 0;
 }
 
-int LibThread_ReleaseHandle(THREAD_HANDLE_t threadHdl)
+int LibThread_DestroyHandle(THREAD_HANDLE_t threadHdl)
 {
 	free(threadHdl);
 	return 0;
@@ -87,7 +87,7 @@ int LibIPC_Event_Create(OUT EVENT_HANDLE_t *eventHdlPtr) // AUTO RESET EVENT !!
 	return 0;
 }
 
-int LibIPC_Event_Release(EVENT_HANDLE_t eventHdl)
+int LibIPC_Event_Destroy(EVENT_HANDLE_t eventHdl)
 {
 	EVENT_HANDLE_WIN_t *eHdl = (EVENT_HANDLE_WIN_t *)eventHdl;
 
@@ -115,3 +115,53 @@ int LibIPC_Event_Wait(EVENT_HANDLE_t eventHdl)
 	return 0;
 }
 
+
+
+typedef struct {
+	HANDLE winHdl;
+}MUTEX_HANDLE_WIN_t;
+int LibIPC_Mutex_Create(OUT MUTEX_HANDLE_t *mutexHdlPtr)
+{
+	MUTEX_HANDLE_WIN_t *winMutexHdl = (MUTEX_HANDLE_WIN_t *)malloc(sizeof(MUTEX_HANDLE_WIN_t));
+	if (winMutexHdl == NULL)
+		return -1;
+
+	winMutexHdl->winHdl = CreateMutex( 
+		NULL,              // default security attributes
+		FALSE,             // initially not owned
+		NULL);             // unnamed mutex
+
+	*mutexHdlPtr = winMutexHdl;
+
+	return 0;
+}
+
+int LibIPC_Mutex_Destroy(MUTEX_HANDLE_t mutexHdl)
+{
+	MUTEX_HANDLE_WIN_t *winMutexHdl = (MUTEX_HANDLE_WIN_t *)mutexHdl;
+
+	CloseHandle(winMutexHdl->winHdl);
+
+	free(winMutexHdl);
+	return 0;
+}
+
+int LibIPC_Mutex_Lock(MUTEX_HANDLE_t mutexHdl)
+{
+	MUTEX_HANDLE_WIN_t *winMutexHdl = (MUTEX_HANDLE_WIN_t *)mutexHdl;
+
+	WaitForSingleObject(winMutexHdl->winHdl, INFINITE);
+
+	return 0;
+}
+
+int LibIPC_Mutex_Unlock(MUTEX_HANDLE_t mutexHdl)
+{
+	MUTEX_HANDLE_WIN_t *winMutexHdl = (MUTEX_HANDLE_WIN_t *)mutexHdl;
+
+	if ( NOT( ReleaseMutex(winMutexHdl->winHdl) ) ) {
+		return 1;
+	}
+
+	return 0;
+}
