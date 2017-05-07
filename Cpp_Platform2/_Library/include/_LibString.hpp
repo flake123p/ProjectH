@@ -90,7 +90,7 @@ public:
 	size_t Size(void); //Same result as Length()
 	bool FindChar(const char ch, size_t pos = 0, OUT u32 *result_position = NULL);
 	bool FindString(const char *s, size_t pos = 0, OUT u32 *result_position = NULL);
-	int Split(void);
+	int Split(bool checkDoubleQuote = false);
 	int ReplaceWithRestLength(const char *s);
 	int RemoveExtension(char ch);
 	int ReplaceExtension(char ch, const char *s);
@@ -101,7 +101,6 @@ public:
 	int RemoveEmptyPostfixChar(void);
 	int InsertBefore(const char *pattern, const char *s);
 	int InsertAfter(const char *pattern, const char *s);
-	int FindValueStr(const char *variableStr, const char *equalStr, OUT const char * &s);
 	
 	const char* CStr(void);
 	void Dump(void);

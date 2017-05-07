@@ -32,35 +32,35 @@ typedef enum {
 } NextLineStyle_t;
 class LibFileIoClass 
 {
-	public:
-		std::string fileName;
-		std::string openMode;
-		//const char *fileName;
-		//const char *openMode;
-		FILE *fp;
-		bool isFileDbgMsgOn;
+public:
+	std::string fileName;
+	std::string openMode;
+	//const char *fileName;
+	//const char *openMode;
+	FILE *fp;
+	bool isFileDbgMsgOn;
 
-		// For reading file line by line.
-		LibBufferBasic lineBuffer;
-		char *lineStr;
-		int lineLen;
-		u32 lineCount;
-		u32 scanCount;
-		bool printErrorMsg;
-		
-		LibFileIoClass(const char *inFileName = NULL, const char *inOpenMode = NULL);
-		~LibFileIoClass(void);
-		int  FileOpen(void);
-		int  FileOpenForRead(u32 lineBufferSize = 0);
-		int  FileClose(void);
-		bool IsFileExist(void);
-		void EnableFileDbgMsg(void){isFileDbgMsgOn=true;};
-		void DisableFileDbgMsg(void){isFileDbgMsgOn=false;};
-		int  GetLine(unsigned char *outputString, int maxLength, OUT NextLineStyle_t *nextLineStyle = NULL);
-		int  GetLine(OUT NextLineStyle_t *nextLineStyle = NULL);
-		int  GetLineEx(unsigned char *outputString, int maxLength, OUT int *readLength, OUT NextLineStyle_t *nextLineStyle = NULL);
-		int  GetCharacter(void);
-		int  FileScan(const char *format, ...);
+	// For reading file line by line.
+	LibBufferBasic lineBuffer;
+	char *lineStr;
+	int lineLen;
+	u32 lineCount;
+	u32 scanCount;
+	bool printErrorMsg;
+	
+	LibFileIoClass(const char *inFileName = NULL, const char *inOpenMode = NULL);
+	~LibFileIoClass(void);
+	int  FileOpen(void);
+	int  FileOpenForRead(u32 lineBufferSize = 0);
+	int  FileClose(void);
+	bool IsFileExist(void);
+	void EnableFileDbgMsg(void){isFileDbgMsgOn=true;};
+	void DisableFileDbgMsg(void){isFileDbgMsgOn=false;};
+	int  GetLine(unsigned char *outputString, int maxLength, OUT NextLineStyle_t *nextLineStyle = NULL);
+	int  GetLine(OUT NextLineStyle_t *nextLineStyle = NULL);
+	int  GetLineEx(unsigned char *outputString, int maxLength, OUT int *readLength, OUT NextLineStyle_t *nextLineStyle = NULL);
+	int  GetCharacter(void);
+	int  FileScan(const char *format, ...);
 };
 
 void LibFileIoClass_Demo_Output_A_File(void);

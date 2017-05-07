@@ -5,6 +5,7 @@
 // ============================== Debug ==============================
 
 // ============================== Define ==============================
+#if 0
 typedef enum {
 	INI_VAR_STR,
 	INI_VAR_DEC,
@@ -15,6 +16,42 @@ typedef struct {
 	INI_File_Var_Type_t varType;
 	void *valPtr;
 } INI_File_Field_t;
+#endif
+#include <map>
+#include <string>
+#include "My_Types.h"
+#include "LibFileIO.hpp"
+
+#define VAR_MAP_TYPE std::map<std::string,std::string>
+class LibFile_INI : public LibFileIoClass 
+{
+private:
+	u32 section_name_index_counter_for_vector;
+	bool _IsSector(std::string &str);
+	int  _AddNewSector(std::string &str);
+	int  _AddNewVarMap(std::string &keyStr, std::string &valStr);
+	
+public:
+	std::map<std::string,u32> mapSectionName;
+	std::vector<VAR_MAP_TYPE> vecVarMap;
+	
+	LibFile_INI(const char *inFileName = NULL, const char *inOpenMode = NULL) : LibFileIoClass(inFileName, inOpenMode)
+	{
+		ClearParameters();
+	}
+
+	int ClearParameters(void);
+	int StartParse(void);
+	int GetValueString(const char *secName, const char *varName, OUT std::string &valStr);
+	int GetValueString(std::string &secName, std::string &varName, OUT std::string &valStr);
+
+	int GetValueU32(const char *secName, const char *varName, OUT u32 &val);
+	int GetValueU32(std::string &secName, std::string &varName, OUT u32 &val);
+	int GetValueS32(const char *secName, const char *varName, OUT s32 &val);
+	int GetValueS32(std::string &secName, std::string &varName, OUT s32 &val);
+
+	void Dump(void);
+};
 
 void LibFileIO2_Demo_INI_File(void);
 

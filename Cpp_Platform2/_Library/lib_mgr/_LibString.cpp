@@ -458,7 +458,7 @@ bool LibStringClass::FindString(const char *s, size_t pos /* = 0 */, OUT u32 *re
 	}
 }
 
-int LibStringClass::Split(void)
+int LibStringClass::Split(bool checkDoubleQuote /* = false */)
 {
 	u32 string_length = str.size();
 	LibBufferBasic bufferObj;
@@ -472,10 +472,28 @@ int LibStringClass::Split(void)
 	for (u32 i = 0; i < string_length; ) {
 		//DUMPD(i);
 		if (LibString_IsCharNonspace(src[i])) {
-			sscanf(&(src[i]), "%s", buf);
-			bufString = buf;
-			subStrVector.push_back(bufString);
-			i+=strlen(buf);
+			if (checkDoubleQuote && src[i] == '\"') {
+				u32 j;
+				u32 x = 0;
+				buf[0] = 0;
+				for (j=i+1; j < string_length; j++) {
+					if (src[j] != '\"') {
+						buf[x] = src[j];
+						x++;
+					} else {
+						break;
+					}
+				}
+				buf[x] = 0;
+				bufString = buf;
+				subStrVector.push_back(bufString);
+				i = j+1;
+			} else {
+				sscanf(&(src[i]), "%s", buf);
+				bufString = buf;
+				subStrVector.push_back(bufString);
+				i+=strlen(buf);
+			}
 		} else {
 			i++;
 		}
@@ -642,28 +660,6 @@ int LibStringClass::InsertAfter(const char *pattern, const char *s)
 		return 0;
 
 	str = str.insert(pos + strlen(pattern), s);
-
-	return 0;
-}
-
-int LibStringClass::FindValueStr(const char *variableStr, const char *equalStr, OUT const char * &s)
-{
-	if (subStrVector.size() < 3) {
-		LibError_SetExtErrorMessage("%s(), size small than 3 (%d)\n", __func__, subStrVector.size());
-		return 1;
-	}
-
-	if (0 != subStrVector[0].compare(variableStr)) {
-		LibError_SetExtErrorMessage("%s(), %s not equal to variable string: %s\n", __func__, subStrVector[0].c_str(), variableStr);
-		return 2;
-	}
-
-	if (0 != subStrVector[1].compare(equalStr)) {
-		LibError_SetExtErrorMessage("%s(), %s not equal to equal string: %s\n", __func__, subStrVector[1].c_str(), equalStr);
-		return 3;
-	}
-
-	s = subStrVector[2].c_str();
 
 	return 0;
 }

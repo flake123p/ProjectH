@@ -58,6 +58,9 @@ LibFileIoClass::~LibFileIoClass(void)
 
 int LibFileIoClass::FileOpen(void)
 {
+	BASIC_ASSERT(this->fileName.size() != 0);
+	BASIC_ASSERT(this->openMode.size() != 0);
+	
 	if(isFileDbgMsgOn) {
 		printf("[LibFileIoClass] Open: %s (mode:%s)\n", this->fileName.c_str(), this->openMode.c_str());
 	}
