@@ -230,6 +230,7 @@ void VirtualMemClass::DumpVirMemInfo(void)
 
 int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbose /* = false */, bool memDumpMode /* = false */, bool dumpAllData /* = false */)
 {
+	u32 minAddr = 0;
 	VIR_MEM_NODE_t *currVirMemNode;
 	
 	LibFileIoClass outFile(fileName, "w+b");
@@ -252,6 +253,10 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 		LinkedListNode *currNode = info.head;
 		for (u32 i = 0; i < info.count; i++) {
 			currVirMemNode = (VIR_MEM_NODE_t *)currNode;
+
+			// for dumping total size
+			if (i == 0)minAddr = currVirMemNode->startAddr;
+			
 			fprintf(outFile.fp, "Node(%d):\n", i+1);
 			if (verbose) {
 				fprintf(outFile.fp, "[ %p ]\n", currNode);
@@ -314,9 +319,13 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 			}
 			for (u32 j = 0; j < maxLen; j+=16) {
 				#define FOR_PRINT(a) (LibString_IsCharPrintable(a)?a:' ')
+
+				// for dumping total size
+				if (i == 0)minAddr = currVirMemNode->startAddr;
+			
 				sprintf(
 					buf,
-					"%08x: %02X %02X %02X %02X %02X %02X %02X %02X - %02X %02X %02X %02X %02X %02X %02X %02X |%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c|\n",
+					"%08x: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X |%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c|\n",
 					currVirMemNode->startAddr + j,
 					currVirMemNode->data[j+0],
 					currVirMemNode->data[j+1],
@@ -357,13 +366,16 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 		BASIC_ASSERT(currNode == NULL);
 	}
 
-	printf("Dump Result:\n");
-	printf("\tTotal Size = 0x%X\n", currVirMemNode->startAddr + currVirMemNode->usedLen);
-	printf("\tTotal Size = %d KB\n", (currVirMemNode->startAddr + currVirMemNode->usedLen) / 1024 + 1);
+	u32 maxAddr = currVirMemNode->startAddr + currVirMemNode->usedLen;
+	u32 totalSize = maxAddr - minAddr;
+	
+	printf("[ %s ] Dump Result:\n", fileName);
+	printf("\tTotal Size = 0x%X\n", totalSize);
+	printf("\tTotal Size = %d KB\n", (totalSize) / 1024 + 1);
 
 	fprintf(outFile.fp, "\nDump Result:\n");
-	fprintf(outFile.fp, "\tTotal Size = 0x%X\n", currVirMemNode->startAddr + currVirMemNode->usedLen);
-	fprintf(outFile.fp, "\tTotal Size = %d KB\n", (currVirMemNode->startAddr + currVirMemNode->usedLen) / 1024 + 1);
+	fprintf(outFile.fp, "\tTotal Size = 0x%X\n", totalSize);
+	fprintf(outFile.fp, "\tTotal Size = %d KB\n", (totalSize) / 1024 + 1);
 	
 	return 0;
 }

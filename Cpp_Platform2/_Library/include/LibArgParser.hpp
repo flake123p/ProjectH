@@ -31,9 +31,14 @@ bool LibArgParser_CheckCharOption(char ch);
 bool LibArgParser_DoesCharOptionExist(void);
 bool LibArgParser_ArgvsToVariables(ARG_TYPE_DB_t *db_buf, u32 count, char *argv[], u32 argv_start_index, OUT u32 *error_index);
 
+typedef enum {
+	NO_ARG,
+	ARG_BY_SPACE,
+	ARG_CONCAT,
+} FOLLOWING_ARG_TYPES;
 typedef struct {
 	u32 keyValue;
-	bool existFollowingArgc;
+	FOLLOWING_ARG_TYPES followingArgType;
 	const char *keyStr1;
 	const char *keyStr2;
 	const char *keyStr3;
@@ -63,6 +68,7 @@ public:
 	void Dump(void);
 	int  StartParsing(int argc, char *argv[]);
 	bool CheckArgByKey(u32 key, OUT const char **followingStr = NULL);
+	bool CheckArgByKey_StrToDec(u32 key, OUT int *followingDec = NULL);
 private:
 	int  _ExtractToMap(char *currArgv, char *nextArgv, bool *passNextRound);
 };

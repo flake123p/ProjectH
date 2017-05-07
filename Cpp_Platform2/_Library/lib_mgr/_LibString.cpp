@@ -255,7 +255,32 @@ int LibString_DecStringToInt(const char * str)
 
 int LibString_HexStringToInt(const char * str)
 {
+	if (strlen(str) >= 2) {
+		if (str[0] == '0') {
+			if (str[1] == 'x' || str[1] == 'X') {
+				str += 2;
+			}
+		}
+	}
+	
 	int retVal;
+
+	sscanf(str, "%x", &retVal);
+
+	return retVal;
+}
+
+u32 LibString_HexStringToU32(const char * str)
+{
+	if (strlen(str) >= 2) {
+		if (str[0] == '0') {
+			if (str[1] == 'x' || str[1] == 'X') {
+				str += 2;
+			}
+		}
+	}
+	
+	u32 retVal;
 
 	sscanf(str, "%x", &retVal);
 
@@ -459,6 +484,14 @@ int LibStringClass::Split(void)
 	return 0;
 }
 
+/*
+	Turn:
+		"01 7d fc [??] xx [00 20 02 00] 80"
+	Into:
+		"01 7d fc [??] 05 [00 20 02 00] 80"
+	By:
+		ReplaceWithRestLength("??");
+*/
 int LibStringClass::ReplaceWithRestLength(const char *s)
 {
 	if (FindString(s)) {
@@ -491,6 +524,9 @@ int LibStringClass::RemoveExtension(char ch)
 {
 	std::size_t pos = str.find(ch);
 
+	if (pos == std::string::npos)
+		return 0;
+
 	str = str.substr(0, pos);
 
 	return 0;
@@ -502,6 +538,133 @@ int LibStringClass::ReplaceExtension(char ch, const char *s)
 
 	str = str + s;
 	
+	return 0;
+}
+
+/*
+	Turn:
+		"123 456 //789"
+	Into:
+		"123 456 "
+	By:
+		RemoveRestString("//");
+*/
+int LibStringClass::RemoveRestString(const char *s)
+{
+	std::size_t pos = str.find(s);
+
+	if (pos == std::string::npos)
+		return 0;
+
+	str = str.substr(0, pos);
+
+	return 0;
+}
+
+int LibStringClass::RemoveEmptyPrefixChar(void)
+{
+	do {
+		if (0 == this->Size())
+			break;
+
+		if (str[0] == ' ') {
+			str.erase(0);
+			continue;
+		}
+
+		if (str[0] == '\t') {
+			str.erase(0);
+			continue;
+		}
+
+	} while (false);
+
+	return 0;
+}
+
+int LibStringClass::RemoveEmptyPostfixChar(void)
+{
+	size_t len;
+	
+	do {
+		len = this->Size();
+		if (0 == len)
+			break;
+
+		if (str[len-1] == ' ') {
+			str.erase(len-1);
+			continue;
+		}
+
+		if (str[len-1] == '\t') {
+			str.erase(len-1);
+			continue;
+		}
+
+	} while (false);
+
+	return 0;
+}
+
+/*
+	Turn:
+		"a=b"
+	Into:
+		"axx=b"
+	By:
+		InsertBefore("=", "xx");
+*/
+int LibStringClass::InsertBefore(const char *pattern, const char *s)
+{
+	std::size_t pos = str.find(pattern);
+
+	if (pos == std::string::npos)
+		return 0;
+
+	str = str.insert(pos, s);
+
+	return 0;
+}
+
+/*
+	Turn:
+		"a=b"
+	Into:
+		"a=xxb"
+	By:
+		InsertAfter("=", "xx");
+*/
+int LibStringClass::InsertAfter(const char *pattern, const char *s)
+{
+	std::size_t pos = str.find(pattern);
+
+	if (pos == std::string::npos)
+		return 0;
+
+	str = str.insert(pos + strlen(pattern), s);
+
+	return 0;
+}
+
+int LibStringClass::FindValueStr(const char *variableStr, const char *equalStr, OUT const char * &s)
+{
+	if (subStrVector.size() < 3) {
+		LibError_SetExtErrorMessage("%s(), size small than 3 (%d)\n", __func__, subStrVector.size());
+		return 1;
+	}
+
+	if (0 != subStrVector[0].compare(variableStr)) {
+		LibError_SetExtErrorMessage("%s(), %s not equal to variable string: %s\n", __func__, subStrVector[0].c_str(), variableStr);
+		return 2;
+	}
+
+	if (0 != subStrVector[1].compare(equalStr)) {
+		LibError_SetExtErrorMessage("%s(), %s not equal to equal string: %s\n", __func__, subStrVector[1].c_str(), equalStr);
+		return 3;
+	}
+
+	s = subStrVector[2].c_str();
+
 	return 0;
 }
 
@@ -545,3 +708,4 @@ void LibString_Demo(void)
 	LibString_2D_HexStringToCharString(hexArray, argv, 4);
 	ARRAYDUMPX3(hexArray, 4);
 }
+

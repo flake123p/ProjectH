@@ -32,6 +32,7 @@ int LibString_DecStringToCharString(u8 *dstString, const char *srcString, int ma
 void LibString_2D_HexStringToCharString(u8 *dstString, char *srcString[], int scanCount);
 int LibString_DecStringToInt(const char * str);
 int LibString_HexStringToInt(const char * str);
+u32 LibString_HexStringToU32(const char * str);
 char * LibString_Copy(char * destination, const char * source, int num = -1);
 u8 LibString_GetCheckSumU8(u8 *srcAry, u32 srcAryLen);
 
@@ -93,11 +94,21 @@ public:
 	int ReplaceWithRestLength(const char *s);
 	int RemoveExtension(char ch);
 	int ReplaceExtension(char ch, const char *s);
+
+	// For INI file parsing
+	int RemoveRestString(const char *s);
+	int RemoveEmptyPrefixChar(void);
+	int RemoveEmptyPostfixChar(void);
+	int InsertBefore(const char *pattern, const char *s);
+	int InsertAfter(const char *pattern, const char *s);
+	int FindValueStr(const char *variableStr, const char *equalStr, OUT const char * &s);
+	
 	const char* CStr(void);
 	void Dump(void);
 };
 
 void LibString_Demo(void);
+
 
 #define __LIB_STRING_HPP_INCLUDED_
 #endif//__LIB_STRING_HPP_INCLUDED_

@@ -15,6 +15,7 @@
 #include "My_Basics.hpp"
 
 // ====== Platform Library ======
+#include "_LibError.hpp"
 #include "LibUart.hpp"
 #include "LibThread.hpp"
 

@@ -3,6 +3,7 @@
 
 #include "My_Basics.hpp"
 
+#include "_LibError.hpp"
 #include "_LibString.hpp"
 #include "LibBuffer.hpp"
 #include "LibEvent.hpp"        // LibEvent_GetOneKeyBoard()

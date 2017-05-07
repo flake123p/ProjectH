@@ -10,6 +10,7 @@ using namespace std;
 #include "My_Basics.hpp"
 
 // ====== Platform Library ======
+#include "_LibError.hpp"
 #include "LibSharedMemory.hpp"
 #include "LibEvent.hpp"
 #include "LibOs.hpp"

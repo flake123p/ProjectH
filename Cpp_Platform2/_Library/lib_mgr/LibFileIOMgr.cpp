@@ -46,6 +46,7 @@ LibFileIoClass::LibFileIoClass(const char *inFileName /* = NULL */, const char *
 	isFileDbgMsgOn=false;
 	lineStr=NULL;
 	lineCount=0;
+	lineLen = 0;
 
 	printErrorMsg = true;
 };
@@ -136,6 +137,8 @@ bool LibFileIoClass::IsFileExist(void)
 */
 int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength, OUT NextLineStyle_t *nextLineStyle /* = NULL */)
 {
+	BASIC_ASSERT(lineBuffer.bufSize > 0);
+	
 	int ch;
 	int numberOfChar = 0;
 
@@ -188,6 +191,8 @@ int LibFileIoClass::GetLine(OUT NextLineStyle_t *nextLineStyle /* = NULL */)
 
 int LibFileIoClass::GetLineEx(unsigned char *outputString, int maxLength, OUT int *readLength, OUT NextLineStyle_t *nextLineStyle /* = NULL */)
 {
+	BASIC_ASSERT(lineBuffer.bufSize > 0);
+	
 	int ch;
 	int numberOfChar = 0;
 
@@ -273,11 +278,6 @@ void LibFileIoClass_Demo_Output_A_File(void)
 	outFile.FileOpen();
 
 	fprintf(outFile.fp, "Hello: LibFileIoClass_Demo_Output_A_File\n");
-}
-
-void LibFileIoClass_Demo_Lite(void)
-{
-
 }
 
 int LibFileIO_TestNextLine_InWinAndLinux(const char *testFileName)
@@ -404,6 +404,41 @@ int LibIO_SPrintf(OUT u32 &printCharCount, OUT char *dstStr, const char * format
 	va_start(vl, format);
 	retVal = vsprintf(dstStr, format, vl);
 	va_end(vl);
+
+	if (retVal < 0) {
+		return RC_FILE_PRINT_ERROR;
+	} else {
+		printCharCount = (u32)retVal;
+		return 0;
+	}
+}
+
+int LibIO_SNPrintf(OUT u32 &printCharCount, OUT char *dstStr, size_t dstSize, const char * format, ...)
+{
+	int retVal;
+
+	printCharCount = 0;
+	
+	va_list vl;
+	va_start(vl, format);
+	retVal = vsnprintf(dstStr, dstSize, format, vl);
+	va_end(vl);
+
+	if (retVal < 0) {
+		return RC_FILE_PRINT_ERROR;
+	} else {
+		printCharCount = (u32)retVal;
+		return 0;
+	}
+}
+
+int LibIO_SNPrintfEX(OUT u32 &printCharCount, OUT char *dstStr, size_t dstSize, const char * format, va_list vl)
+{
+	int retVal;
+
+	printCharCount = 0;
+	
+	retVal = vsnprintf(dstStr, dstSize, format, vl);
 
 	if (retVal < 0) {
 		return RC_FILE_PRINT_ERROR;

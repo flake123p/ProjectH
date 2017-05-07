@@ -10,6 +10,7 @@
 #include <time.h>
 
 // ====== Platform Library ======
+#include "_LibError.hpp"
 #include "LibUtility.hpp"
 #include "My_Basics.hpp"
 

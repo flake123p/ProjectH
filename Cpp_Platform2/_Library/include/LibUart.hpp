@@ -76,6 +76,7 @@ public:
 	int SendAndReceive(u8 *buffer, u32 length);
 	int Receive(void);
 	int ReceiveEx(u32 singleReadlength, u32 bufOffset = 0);
+	int ReceiveWithLength(u32 maxRxLen);
 };
 
 #define _LIB_UART_HPP_INCLUDED_

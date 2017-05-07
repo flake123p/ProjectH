@@ -175,7 +175,7 @@ void ArgOptionSet::Dump(void)
 		printf(
 			"%2d %2d %s %s %s %s\n", 
 			bigSet[i].keyValue,
-			bigSet[i].existFollowingArgc,
+			bigSet[i].followingArgType,
 			(bigSet[i].keyStr1==NULL?"":bigSet[i].keyStr1),
 			(bigSet[i].keyStr2==NULL?"":bigSet[i].keyStr2),
 			(bigSet[i].keyStr3==NULL?"":bigSet[i].keyStr3),
@@ -215,8 +215,8 @@ int ArgOptionSet::StartParsing(int argc, char *argv[])
 			nextArgv = argv[i+1];
 		else
 			nextArgv = NULL;
-		retVal = _ExtractToMap(currArgv, nextArgv, &passNextRound);
-		RETURN_IF(retVal);
+
+		RETURN_CHK( retVal, _ExtractToMap(currArgv, nextArgv, &passNextRound) );
 
 		if(passNextRound)
 			i++;
@@ -236,43 +236,91 @@ bool ArgOptionSet::CheckArgByKey(u32 key, OUT const char **followingStr /* = NUL
 	}
 }
 
+bool ArgOptionSet::CheckArgByKey_StrToDec(u32 key, OUT int *followingDec /* = NULL */)
+{
+	const char *followingStr = NULL;
+
+	bool retVal;
+
+	retVal = CheckArgByKey(key, &followingStr);
+
+	if (retVal && followingDec != NULL && followingStr != NULL) {
+		*followingDec = LibString_DecStringToInt(followingStr);
+	}
+
+	return retVal;
+}
+
 int ArgOptionSet::_ExtractToMap(char *currArgv, char *nextArgv, bool *passNextRound)
 {
 	*passNextRound = false;
 	bool matchSuccess = false;
+	u32 str_offset_for_arg_concat = 0;
 	
 	//printf("%s %s\n", currArgv, (nextArgv==NULL?"":nextArgv));
 
 	for (u32 i = 0; i < bigSetLen; i++) {
 		matchSuccess = false;
-		
-		if (bigSet[i].keyStr1 != NULL && 0 == strcmp(bigSet[i].keyStr1, currArgv))
-			matchSuccess = true;
 
-		if (bigSet[i].keyStr2 != NULL && 0 == strcmp(bigSet[i].keyStr2, currArgv))
-			matchSuccess = true;
+		switch (bigSet[i].followingArgType) {
+			case ARG_CONCAT: {
+				if (bigSet[i].keyStr1 != NULL && 0 == strncmp(bigSet[i].keyStr1, currArgv, strlen(bigSet[i].keyStr1))) {
+					matchSuccess = true;
+					str_offset_for_arg_concat = strlen(bigSet[i].keyStr1);
+				}
+				else if (bigSet[i].keyStr2 != NULL && 0 == strncmp(bigSet[i].keyStr2, currArgv, strlen(bigSet[i].keyStr2))) {
+					matchSuccess = true;
+					str_offset_for_arg_concat = strlen(bigSet[i].keyStr2);
+				}
+				else if (bigSet[i].keyStr3 != NULL && 0 == strncmp(bigSet[i].keyStr3, currArgv, strlen(bigSet[i].keyStr3))) {
+					matchSuccess = true;
+					str_offset_for_arg_concat = strlen(bigSet[i].keyStr3);
+				}
+				else if (bigSet[i].keyStr4 != NULL && 0 == strncmp(bigSet[i].keyStr4, currArgv, strlen(bigSet[i].keyStr4))) {
+					matchSuccess = true;
+					str_offset_for_arg_concat = strlen(bigSet[i].keyStr4);
+				}
+			} break;
 
-		if (bigSet[i].keyStr3 != NULL && 0 == strcmp(bigSet[i].keyStr3, currArgv))
-			matchSuccess = true;
+			default: {
+				if (bigSet[i].keyStr1 != NULL && 0 == strcmp(bigSet[i].keyStr1, currArgv))
+					matchSuccess = true;
 
-		if (bigSet[i].keyStr4 != NULL && 0 == strcmp(bigSet[i].keyStr4, currArgv))
-			matchSuccess = true;
+				if (bigSet[i].keyStr2 != NULL && 0 == strcmp(bigSet[i].keyStr2, currArgv))
+					matchSuccess = true;
 
-		
+				if (bigSet[i].keyStr3 != NULL && 0 == strcmp(bigSet[i].keyStr3, currArgv))
+					matchSuccess = true;
+
+				if (bigSet[i].keyStr4 != NULL && 0 == strcmp(bigSet[i].keyStr4, currArgv))
+					matchSuccess = true;
+			} break;
+		}
+
 		if (matchSuccess)
 		{
 			//printf("!! %s\n", currArgv);
 
 			std::string tempStr;
-			
-			if (bigSet[i].existFollowingArgc) {
-				if (nextArgv == NULL) {
-					printf("Need more argument after: %s\n", currArgv);
-					return 1;
-				} else {
-					tempStr = nextArgv;
-				}
-				*passNextRound = true;
+
+			switch (bigSet[i].followingArgType) {
+				case ARG_BY_SPACE: {
+					if (nextArgv == NULL) {
+						printf("Need more argument after: %s\n", currArgv);
+						return 1;
+					} else {
+						tempStr = nextArgv;
+					}
+					*passNextRound = true;
+				} break;
+
+				case ARG_CONCAT: {
+					tempStr = ADDRX(currArgv, str_offset_for_arg_concat);
+				} break;
+
+				default:
+					tempStr = "";
+					break;
 			}
 
 			std::pair<std::map<u32,std::string>::iterator,bool> ret;
@@ -334,12 +382,12 @@ static char argv3[] = "first.txt";
 static char argv4[] = "--output";
 static char argv5[] = "out.txt";
 static char argv6[] = "-abc";
-static char argv7[] = "-g";
+static char argv7[] = "-g3";
 static char argv8[] = "-xy";
 Option_Set_Big_t gDemo_BigOptionSet[] = {
-	{1, true,  "-i", "--input", NULL, NULL},
-	{2, true,  "-o", "--output", NULL, NULL},
-	{3, false, "-g", NULL, NULL, NULL},
+	{1, ARG_BY_SPACE, "-i", "--input", NULL, NULL},
+	{2, ARG_BY_SPACE, "-o", "--output", NULL, NULL},
+	{3, ARG_CONCAT,   "-g", NULL, NULL, NULL},
 };
 Option_Set_Small_t gDemo_SmallOptionSet[] = {
 	{5, 'a'},

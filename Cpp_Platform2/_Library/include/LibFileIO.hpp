@@ -18,6 +18,8 @@ typedef struct File_Profiles{
 int  LibFileIo_OpenFile(File_Profiles_t *fileProfile);
 void LibFileIo_CloseFile(File_Profiles_t *fileProfile);
 
+
+
 //
 // C++
 //
@@ -37,6 +39,8 @@ class LibFileIoClass
 		//const char *openMode;
 		FILE *fp;
 		bool isFileDbgMsgOn;
+
+		// For reading file line by line.
 		LibBufferBasic lineBuffer;
 		char *lineStr;
 		int lineLen;
@@ -60,7 +64,6 @@ class LibFileIoClass
 };
 
 void LibFileIoClass_Demo_Output_A_File(void);
-void LibFileIoClass_Demo_Lite(void);
 
 int  LibFileIO_TestNextLine_InWinAndLinux(const char *testFileName);
 
@@ -68,6 +71,11 @@ int  LibFileIO_TestNextLine_InWinAndLinux(const char *testFileName);
 
 int LibIO_FScanf(OUT u32 &scanCount, FILE *stream, const char * format, ...);
 int LibIO_FPrintf(OUT u32 &charCount, FILE *stream, const char * format, ...);
+int LibIO_SScanf(OUT u32 &scanCount, const char *srcStr, const char * format, ...);
+int LibIO_SPrintf(OUT u32 &printCharCount, OUT char *dstStr, const char * format, ...);
+int LibIO_SNPrintf(OUT u32 &printCharCount, OUT char *dstStr, size_t dstSize, const char * format, ...);
+int LibIO_SNPrintfEX(OUT u32 &printCharCount, OUT char *dstStr, size_t dstSize, const char * format, va_list vl);
+
 void LibIO_Demo_FPrintf_FScanf(void);
 void LibIO_Demo_SPrintf_SScanf(void);
 

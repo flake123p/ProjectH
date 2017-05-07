@@ -44,3 +44,31 @@ void LibError_Demo(void)
 {
 	LibError_PrintErrorMessage(RC_FILE_REACH_EOF);
 }
+
+std::string gExtErrorMessage = "";
+int LibError_SetExtErrorMessage(const char *errorStr, ...)
+{
+	char dstStr[260];
+	int retVal;
+
+	u32 printCharCount;
+	
+	va_list vl;
+	va_start(vl, errorStr);
+	retVal = LibIO_SNPrintfEX(printCharCount, dstStr, 260, errorStr, vl);
+	va_end(vl);
+
+	EXIT_IF(retVal);
+
+	gExtErrorMessage = dstStr;
+	return retVal;
+}
+
+int LibError_PrintExtErrorMessage(const char *precStr)
+{
+	if (0 != gExtErrorMessage.size()) {
+		printf("%s %s", precStr, gExtErrorMessage.c_str());
+	}
+	
+	return 0;
+}
