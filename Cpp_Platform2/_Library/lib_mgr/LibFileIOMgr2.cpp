@@ -38,8 +38,8 @@ int LibFile_INI::_AddNewVarMap(std::string &keyStr, std::string &valStr)
 	std::pair<std::map<std::string,std::string>::iterator,bool> ret;
 	ret = vecVarMap[vecIndex].insert ( std::pair<std::string,std::string>(keyStr, valStr) );
 	if (ret.second==false) {
-		printf("KEY %s already existed\n", keyStr.c_str());
-		EXIT_LOC_IF(1);
+		LibError_SetExtErrorMessage("KEY %s already existed\n", keyStr.c_str());
+		return 1;
 	}
 
 	return 0;
@@ -58,7 +58,7 @@ typedef enum {
 	IPS_FINDING_SECTOR,
 	IPS_EXTRACTING_VAR,
 }INI_PARSE_STATE_t;
-int LibFile_INI::StartParse(void)
+int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */)
 {
 	int retVal;
 
@@ -102,11 +102,23 @@ int LibFile_INI::StartParse(void)
 					str.Split(true);
 
 					if (str.subStrVector.size() < 3) {
-						goto ERROR_HANDLE;
+						if (ingoreInvalidLine)
+							break;
+						else
+							goto ERROR_HANDLE;
 					} else if (0 != str.subStrVector[1].compare("=")) {
-						goto ERROR_HANDLE;
+						if (ingoreInvalidLine)
+							break;
+						else
+							goto ERROR_HANDLE;
 					} else {
-						_AddNewVarMap(str.subStrVector[0], str.subStrVector[2]);
+						retVal = _AddNewVarMap(str.subStrVector[0], str.subStrVector[2]);
+						if (retVal) {
+							if (ingoreInvalidLine)
+								break;
+							else
+								goto ERROR_HANDLE;
+						}
 					}
 				}
 			} break;
@@ -124,6 +136,19 @@ ERROR_HANDLE:
 	printf(">> %s\n", str.CStr());
 	EXIT_LOC_IF(1);
 	return 1;
+}
+
+int LibFile_INI::GetValueString(const char *secName, const char *varName, OUT char *valStr)
+{
+	std::string tempValStr;
+
+	int retVal = GetValueString(secName, varName, tempValStr);
+
+	if (0 == retVal) {
+		strcpy(valStr, tempValStr.c_str());
+	}
+
+	return retVal;
 }
 
 int LibFile_INI::GetValueString(const char *secName, const char *varName, OUT std::string &valStr)

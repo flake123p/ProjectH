@@ -56,6 +56,37 @@ int LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *s
 	return 0;
 }
 
+int LibUartMgr_GetComPortConfigFrom_INI_File(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate /* = NULL */)
+{
+	int retVal;
+	
+	LibFile_INI file_ComPortName(comPortNameFile, "r+b");
+	
+	EXIT_CHK( retVal, file_ComPortName.StartParse() );
+	//file_ComPortName.Dump();
+
+	std::string valStr;
+	retVal = file_ComPortName.GetValueString("[Connect]", "ComPortName", valStr);
+	if (retVal) {
+		printf("ComPortName format error!!\n");
+		return retVal;
+	} else {
+		strcpy(strComPortName, valStr.c_str());
+	}
+
+	if (baudRate != NULL) {
+		retVal = file_ComPortName.GetValueU32("[Connect]", "BaudRate", *baudRate);
+		if (retVal) {
+			printf("BaudRate format error!!\n");
+			return retVal;
+		}
+	}
+
+	file_ComPortName.FileClose();
+
+	return 0;
+}
+
 int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint32_t miliSeconds /* = 10000 */)
 {
 	int retVal;
@@ -114,9 +145,21 @@ int LibUartClass::GetComPortConfigFromFile(const char *comPortNameFile)
 
 	retVal = LibUartMgr_GetComPortConfigFromFile(comPortNameFile, str, &baudRate);
 	RETURN_IF(retVal);
-	
+
 	comPortName = str;
-	
+
+	return 0;
+}
+
+int LibUartClass::GetComPortConfigFrom_INI_File(const char *comPortNameFile)
+{
+	char str[30] = {0};
+	int retVal;
+
+	RETURN_CHK( retVal, LibUartMgr_GetComPortConfigFrom_INI_File(comPortNameFile, str, &baudRate) );
+
+	comPortName = str;
+
 	return 0;
 }
 

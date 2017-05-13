@@ -53,6 +53,7 @@ LibFileIoClass::LibFileIoClass(const char *inFileName /* = NULL */, const char *
 
 LibFileIoClass::~LibFileIoClass(void)
 {
+	LibError_SetExtErrorMessage("");
 	FileClose();
 }
 
@@ -140,8 +141,6 @@ bool LibFileIoClass::IsFileExist(void)
 */
 int LibFileIoClass::GetLine(unsigned char *outputString, int maxLength, OUT NextLineStyle_t *nextLineStyle /* = NULL */)
 {
-	BASIC_ASSERT(lineBuffer.bufSize > 0);
-	
 	int ch;
 	int numberOfChar = 0;
 

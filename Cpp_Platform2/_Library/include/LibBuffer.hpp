@@ -93,7 +93,17 @@ public:
 
 	LibBufferBasic(u32 buf_size = 0);
 	void *Init(u32 buf_size);
-	~LibBufferBasic(void); // Do nothing
+	~LibBufferBasic(void);
+};
+
+class LibBufferQueue : private LibBufferBasic {
+public:
+	u8 *ptr;
+	u32 len;
+	LibBufferQueue(void) : LibBufferBasic(0){};
+	int InitQueue(u32 buf_size);
+	int Push(u8 *inputBuf, u32 inputLen);
+	void Dump(void);
 };
 
 typedef enum {

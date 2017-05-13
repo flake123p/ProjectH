@@ -8,14 +8,14 @@
 #define USE_MY_ASSERT (1)
 #if USE_MY_ASSERT
 #include <stdio.h>
-#define BASIC_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("ExtError:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n",__FUNCTION__,__LINE__);while(1){;}}
-#define CALLER_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("ExtError:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
-#define CALLER_ASSERT2(caller,a) if(a){;}else{LibError_PrintExtErrorMessage("ExtError:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
+#define BASIC_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n",__FUNCTION__,__LINE__);while(1){;}}
+#define CALLER_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
+#define CALLER_ASSERT2(caller,a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
 #else
 #include <assert.h>
 #define BASIC_ASSERT assert
-#define CALLER_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("ExtError:");perror("perror()");printf("Caller: %s()",caller);assert(0);}
-#define CALLER_ASSERT2(caller,a) if(a){;}else{LibError_PrintExtErrorMessage("ExtError:");perror("perror()");printf("Caller: %s()",caller);assert(0);}
+#define CALLER_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf("Caller: %s()",caller);assert(0);}
+#define CALLER_ASSERT2(caller,a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf("Caller: %s()",caller);assert(0);}
 #endif
 
 #define NO_ASSERT (0)
@@ -41,15 +41,15 @@
 #define DUMPP(a) printf(#a " = %p\n", (void *)(a))
 #define DUMPA(a) printf(#a " = 0x%08X\n", POINTER_TO_U32(a))
 
-#define ARRAYDUMPC(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %c\n", xi, a[xi]);}
-#define ARRAYDUMPS(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %s\n", xi, a[xi]);}
-#define ARRAYDUMPD(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %d\n", xi, a[xi]);}
-#define ARRAYDUMPU(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %u\n", xi, a[xi]);}
-#define ARRAYDUMPX(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%X\n", xi, (u32)a[xi]);}
-#define ARRAYDUMPX2(a,length) printf(#a" = ");for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)(a[xi]));}printf("\n");
-#define ARRAYDUMPX3(a,length) printf(#a" =\n");for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)(a[xi]));if(xi%16==15){printf("\n");}}printf("\n");
-#define ARRAYDUMPP(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %p\n", xi, (void *)a[xi]);}
-#define ARRAYDUMPA(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%08X\n", xi, POINTER_TO_U32(a[xi]));}
+#define ARRAYDUMPC(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %c\n", xi, (a)[xi]);}
+#define ARRAYDUMPS(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %s\n", xi, (a)[xi]);}
+#define ARRAYDUMPD(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %d\n", xi, (a)[xi]);}
+#define ARRAYDUMPU(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %u\n", xi, (a)[xi]);}
+#define ARRAYDUMPX(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%X\n", xi, (u32)(a)[xi]);}
+#define ARRAYDUMPX2(a,length) printf(#a" = ");for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)((a)[xi]));}printf("\n");
+#define ARRAYDUMPX3(a,length) printf(#a" =\n");for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf("%02X ", (u32)((a)[xi]));if(xi%16==15){printf("\n");}}printf("\n");
+#define ARRAYDUMPP(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %p\n", xi, (void *)(a)[xi]);}
+#define ARRAYDUMPA(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%08X\n", xi, POINTER_TO_U32((a)[xi]));}
 
 #define PRINT_NEXT_LINE printf("\n");
 #define PRINT_FUNC      printf("%s\n",__func__);

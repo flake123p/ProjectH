@@ -30,6 +30,38 @@ LibBufferBasic::~LibBufferBasic(void)
 	}
 }
 
+int LibBufferQueue::InitQueue(u32 buf_size)
+{
+	BASIC_ASSERT(buf_size != 0);
+	
+	Init(buf_size);
+	ptr = (u8 *)bufPtr;
+	len = 0;
+
+	return 0;
+}
+
+int LibBufferQueue::Push(u8 *inputBuf, u32 inputLen)
+{
+	if (len + inputLen > bufSize) {
+		LibError_SetExtErrorMessage("%s() line:%d, buf overflow. len=%d, inputLen=%d, bufSize=%d\n", __func__, __LINE__, len, inputLen, bufSize);
+		return 1;
+	}
+
+	memcpy(ADDRX(ptr, len), inputBuf, inputLen);
+	len += inputLen;
+	
+	return 0;
+}
+
+void LibBufferQueue::Dump(void)
+{
+	DUMPA(bufPtr);
+	DUMPD(bufSize);
+	DUMPA(ptr);
+	DUMPD(len);
+}
+
 void LibBufPrinter::Init(IN char * start_ptr, IN u32 buf_size, IN u32 in_threshold)
 {
 	startPtr = start_ptr;

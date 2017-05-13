@@ -79,6 +79,7 @@ int LibUtil_Int16ToBytes(u8 *dst, u16 &src, bool isDstBigEndian)
 	return 0;
 }
 
+// Support Macro: DO_ENDIAN_SWAP / NO_ENDIAN_SWAP
 int LibUtil_IntSwapCopy(u8 *dst, u8 *src, u32 len, bool swap)
 {
 	switch(len) {

@@ -34,6 +34,7 @@
 // ============================== Manager ==============================
 int LibUartMgr_DemoTxRx(void);
 int LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate = NULL);
+int LibUartMgr_GetComPortConfigFrom_INI_File(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate = NULL);
 int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint32_t miliSeconds = 10000);
 
 // ============================== Library ==============================
@@ -69,6 +70,7 @@ public:
 	LibUartClass(const char *comPortNameFile = NULL, u32 rx_buf_len = 0);
 	~LibUartClass(void);
 	int GetComPortConfigFromFile(const char *comPortNameFile);
+	int GetComPortConfigFrom_INI_File(const char *comPortNameFile);
 	int InitRxBuffer(u32 rx_buf_len);
 	int InitComPort(int quickReadLevel = 0);
 	int UninitComPort(void);

@@ -5,18 +5,6 @@
 // ============================== Debug ==============================
 
 // ============================== Define ==============================
-#if 0
-typedef enum {
-	INI_VAR_STR,
-	INI_VAR_DEC,
-	INI_VAR_HEX,
-} INI_File_Var_Type_t;
-typedef struct {
-	const char *varStr;
-	INI_File_Var_Type_t varType;
-	void *valPtr;
-} INI_File_Field_t;
-#endif
 #include <map>
 #include <string>
 #include "My_Types.h"
@@ -41,7 +29,8 @@ public:
 	}
 
 	int ClearParameters(void);
-	int StartParse(void);
+	int StartParse(bool ingoreInvalidLine = true);
+	int GetValueString(const char *secName, const char *varName, OUT char *valStr);
 	int GetValueString(const char *secName, const char *varName, OUT std::string &valStr);
 	int GetValueString(std::string &secName, std::string &varName, OUT std::string &valStr);
 

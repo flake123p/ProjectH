@@ -415,7 +415,8 @@ void LibArgParser_OptionSet_Demo(void)
 	
 
 	rc = obj.StartParsing(myArgc-1, &myArgv[1]);
-	LibError_PrintErrorMessage(rc, true);
+	LibError_PrintExtErrorMessage("[EXT ERROR]:");
+	//LibError_PrintErrorMessage(rc, true);
 
 	obj.Dump();
 

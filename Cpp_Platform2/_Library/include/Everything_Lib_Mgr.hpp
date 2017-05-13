@@ -42,6 +42,7 @@
 #include "LibThread.hpp"
 #include "LibBT_HCI.hpp"
 #include "LibArgParser.hpp"
+#include "LibSimpleFS.hpp"
 
 
 

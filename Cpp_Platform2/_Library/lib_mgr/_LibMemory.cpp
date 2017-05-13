@@ -133,6 +133,7 @@ int VirtualMemClass::Read(u8 *dst, u32 srcAddr, u32 len)
 		isLastPage = LibMemory_CalculateCrossPageInfo(srcAddr, len, pageStartAddr, nodeSize, &newLen);
 
 		unless (_NodeExist(pageStartAddr, &currNode)) {
+			LibError_SetExtErrorMessage("MEM_ERROR_PAGE_NOT_EXIST\n");
 			return MEM_ERROR_PAGE_NOT_EXIST;
 		}
 		retVal = _PageRead(currNode, dst, srcAddr, newLen);
@@ -442,9 +443,11 @@ int VirtualMemClass::_PageWrite(VIR_MEM_NODE_t *node, u32 dstAddr, u8 *src, u32 
 	u32 nodeAddr = dstAddr - node->startAddr;
 	u8 *dst = &(node->data[nodeAddr]);
 
-	if (FLG_CHK(node->pageAttr, MEMORY_WRITE_PROTECT_FLAG))
+	if (FLG_CHK(node->pageAttr, MEMORY_WRITE_PROTECT_FLAG)) {
+		LibError_SetExtErrorMessage("%s(): MEM_ERROR_WRITE_PROTECTED\n", __func__);
 		return MEM_ERROR_WRITE_PROTECTED;
-
+	}
+	
 	memcpy(dst, src, len);
 
 	if ((len+nodeAddr) > node->usedLen) {
@@ -463,8 +466,10 @@ int VirtualMemClass::_PageRead(VIR_MEM_NODE_t *node, u8 *dst, u32 srcAddr, u32 l
 	u8 *src = GetRealAddress(srcAddr);
 	BASIC_ASSERT(src != NULL);
 
-	if (FLG_CHK(node->pageAttr, MEMORY_READ_PROTECT_FLAG))
+	if (FLG_CHK(node->pageAttr, MEMORY_READ_PROTECT_FLAG)) {
+		LibError_SetExtErrorMessage("%s(): MEM_ERROR_READ_PROTECTED\n", __func__);
 		return MEM_ERROR_READ_PROTECTED;
+	}
 	
 	memcpy(dst, src, len);
 
@@ -509,8 +514,10 @@ int ProtectedMemClass::Write(u32 dstAddr, u8 *src, u32 len, bool doWriteOnceChec
 	EXIT_CHK(retVal, attrMem.Read(attrSrc, dstAddr, len));
 	
 	for (u32 i = 0; i < len; i++) {
-		if (doWriteOnceCheck && FLG_CHK(attrSrc[i], MEMROY_WAS_WRITTEN_FLAG))
+		if (doWriteOnceCheck && FLG_CHK(attrSrc[i], MEMROY_WAS_WRITTEN_FLAG)) {
+			LibError_SetExtErrorMessage("MEM_ERROR_BYTE_ALREADY_WRITTEN\n");
 			return MEM_ERROR_BYTE_ALREADY_WRITTEN;
+		}
 		attrSrc[i] |= MEMROY_WAS_WRITTEN_FLAG;
 	}
 	

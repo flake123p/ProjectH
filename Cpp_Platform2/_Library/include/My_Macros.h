@@ -51,7 +51,7 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 //  Obtain the number of elements in the given C array
 //
 #define GET_ARRAY_LEN(arrayName)  (sizeof( arrayName ) / sizeof(( arrayName)[ 0 ] ))
-#define SIZE_OF_ARRAY(arrayName)  GET_ARRAY_LEN(arrayName)
+#define LENGTH_OF_ARRAY(arrayName)  GET_ARRAY_LEN(arrayName)
 #define ARRAY_AND_SIZE(arrayName) (arrayName),GET_ARRAY_LEN(arrayName)
 
 
@@ -322,7 +322,7 @@ http://www.codeproject.com/Articles/567335/EssentialplusMacrosplusforplusCplusPr
 #define SHIFT_OR_4(a,b,c,d) (((a)<<24)|((b)<<16)|((c)<<8)|(d))
 
 #define ADDR(a)             (&(a))
-#define ADDRX(array,offset) ADDR(array[(offset)])
+#define ADDRX(array,offset) ADDR((array)[(offset)])
 
 #define U8ADDR(a)            (u8 *)ADDR(a)
 #define U16ADDR(a)           (u16 *)ADDR(a)

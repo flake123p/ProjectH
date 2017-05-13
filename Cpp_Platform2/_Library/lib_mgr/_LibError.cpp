@@ -20,7 +20,7 @@ ERROR_MESSAGE_t gErrorMessage[] = {
 	TO_STR(RC_FILE_CLOSE_ERROR),
 	TO_STR(RC_FILE_SCAN_ERROR),
 };
-u32 gErrorMessageLen = SIZE_OF_ARRAY(gErrorMessage);
+u32 gErrorMessageLen = LENGTH_OF_ARRAY(gErrorMessage);
 
 void LibError_PrintErrorMessage(int retVal, bool verbose /* = false */)
 {
@@ -42,7 +42,7 @@ void LibError_PrintErrorMessage(int retVal, bool verbose /* = false */)
 
 void LibError_Demo(void)
 {
-	LibError_PrintErrorMessage(RC_FILE_REACH_EOF);
+	//LibError_PrintErrorMessage(RC_FILE_REACH_EOF);
 }
 
 std::string gExtErrorMessage = "";

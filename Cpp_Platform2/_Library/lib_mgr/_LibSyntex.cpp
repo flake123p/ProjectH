@@ -11,7 +11,7 @@ static OPCODE_TABLE_t gOpcodetable[] = {
 };
 int OpcodeTableSearch(std::string &s, OUT u32 &val, OUT u32 &operandNum)
 {
-	for (u32 i=0; i<SIZE_OF_ARRAY(gOpcodetable); i++) {
+	for (u32 i=0; i<LENGTH_OF_ARRAY(gOpcodetable); i++) {
 		if (s == gOpcodetable[i].s) {
 			val = gOpcodetable[i].val;
 			operandNum = gOpcodetable[i].operandNum;
