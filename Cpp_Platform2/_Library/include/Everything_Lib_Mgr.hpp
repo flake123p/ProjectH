@@ -43,7 +43,7 @@
 #include "LibBT_HCI.hpp"
 #include "LibArgParser.hpp"
 #include "LibSimpleFS.hpp"
-
+#include "LibEncrypt.hpp"
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_
