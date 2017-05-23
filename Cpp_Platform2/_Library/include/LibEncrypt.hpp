@@ -10,7 +10,8 @@
 // ============================== Define ==============================
 
 // ============================== Manager ==============================
-int LibEncrypt_CalcCRC16(u8 *buf, u32 len, OUT u16 *crc16);
+u16 LibEncrypt_CalculateCRC16(u8 *buf, u32 len);
+u16 LibEncrypt_CalculateCRC16_IBM(u8 *buf, u32 len, u16 polyRep);
 
 // ============================== Demo ==============================
 void LibEncrypt_Demo(void);

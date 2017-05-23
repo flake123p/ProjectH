@@ -180,7 +180,6 @@ void LibThreadMgr_DemoEvent(void)
 
 MUTEX_HANDLE_t gTextMutexHdl;
 
-
 void Test_Mutex_Print(int base)
 {
 // if no mutex, print result is chaos.
@@ -244,4 +243,159 @@ void LibThreadMgr_DemoMutex(void)
 
 	ASSERT_CHK( retVal, LibThread_DestroyHandle(threadHdl_C) );
 	ASSERT_CHK( retVal, LibThread_DestroyHandle(threadHdl_D) );
+}
+
+THREAD_HANDLE_t gThreadHdl_WatchDog;
+MUTEX_HANDLE_t gMutexHdl_WatchDog;
+//EVENT_HANDLE_t gEvent_CountDownTimer;
+typedef enum {
+	WATCH_DOG_NULL,
+	WATCH_DOG_START,
+	WATCH_DOG_TOUCH,
+	WATCH_DOG_FREEZE,
+	WATCH_DOG_UNINIT,
+}WATCH_DOG_t;
+WATCH_DOG_t gCountDownState = WATCH_DOG_NULL;
+u32 gSleepMiliSec = 0;
+WatchDogTimeOutFunc gTimeOutCB = NULL;
+static void _WatchDog_SetState(WATCH_DOG_t state)
+{
+	int retVal;
+	
+	LibIPC_Mutex_Lock(gMutexHdl_WatchDog);
+
+	gCountDownState = state;
+
+	ASSERT_CHK( retVal, LibIPC_Mutex_Unlock(gMutexHdl_WatchDog) );
+}
+
+static WATCH_DOG_t _WatchDog_GetState(void)
+{
+	int retVal;
+	WATCH_DOG_t state;
+	
+	LibIPC_Mutex_Lock(gMutexHdl_WatchDog);
+
+	state = gCountDownState;
+
+	ASSERT_CHK( retVal, LibIPC_Mutex_Unlock(gMutexHdl_WatchDog) );
+
+	return state;
+}
+
+void *WatchDog_Thread(void *arg)
+{
+#define SLEEP_DURATION_MS (100)
+
+	u32 ctrMax = gSleepMiliSec / SLEEP_DURATION_MS;
+	u32 ctr = 0;
+	while (1) {
+		LibOs_SleepMiliSeconds(SLEEP_DURATION_MS);
+		switch (_WatchDog_GetState()) {
+			case WATCH_DOG_START: {
+				ctr++;
+				if (ctr == ctrMax) {
+					if (gTimeOutCB != NULL) {
+						(*gTimeOutCB)();
+					} else {
+						EXIT_LOC_IF(1);
+					}
+				}
+			} break;
+
+			case WATCH_DOG_TOUCH: {
+				ctr = 0;
+				_WatchDog_SetState(WATCH_DOG_START);
+			} break;
+
+			case WATCH_DOG_FREEZE: {
+			} break;
+
+			case WATCH_DOG_UNINIT: {
+				return 0;
+			} break;
+
+			default:
+				BASIC_ASSERT(0);
+				break;
+		}
+	}
+	
+	return 0;
+}
+int LibThreadMgr_Init_WatchDog(u32 sleepMiliSec, WatchDogTimeOutFunc cb /* = NULL */)
+{
+	int retVal;
+
+	gSleepMiliSec = sleepMiliSec;
+	gTimeOutCB = cb;
+
+	ASSERT_CHK( retVal, LibIPC_Mutex_Create(&gMutexHdl_WatchDog) );
+
+	_WatchDog_SetState(WATCH_DOG_START);
+	
+	ASSERT_CHK( retVal, LibThread_NewHandle(&gThreadHdl_WatchDog) );
+	ASSERT_CHK( retVal, LibThread_Create(gThreadHdl_WatchDog, WatchDog_Thread) );
+	
+	return 0;
+}
+
+int LibThreadMgr_Uninit_WatchDog(void)
+{
+	int retVal;
+	
+	//LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
+
+	_WatchDog_SetState(WATCH_DOG_UNINIT);
+	
+	LibThread_WaitThread(gThreadHdl_WatchDog);
+
+	LibIPC_Mutex_Lock(gMutexHdl_WatchDog);
+	LibIPC_Mutex_Unlock(gMutexHdl_WatchDog);
+	ASSERT_CHK( retVal, LibIPC_Mutex_Destroy(gMutexHdl_WatchDog) );
+
+	ASSERT_CHK( retVal, LibThread_DestroyHandle(gThreadHdl_WatchDog) );
+	
+	return 0;
+}
+
+int LibThreadMgr_Touch_WatchDog(void)
+{
+	_WatchDog_SetState(WATCH_DOG_TOUCH);
+	
+	return 0;
+}
+
+int LibThreadMgr_Freeze_WatchDog(void)
+{
+	_WatchDog_SetState(WATCH_DOG_FREEZE);
+	
+	return 0;
+}
+
+int LibThreadMgr_Unfreeze_WatchDog(void)
+{
+	_WatchDog_SetState(WATCH_DOG_TOUCH);
+	
+	return 0;
+}
+
+void LibThreadMgr_Demo_WatchDog_CB(void)
+{
+	printf("Watch Dog Times Out!!\n");
+	EXIT_LOC_IF(1);
+}
+
+void LibThreadMgr_Demo_WatchDog(void)
+{
+	LibTime_StartMicroSecondClock();
+	LibThreadMgr_Init_WatchDog(500, LibThreadMgr_Demo_WatchDog_CB);
+	for (u32 i=0; i<30; i++) {
+		LibOs_SleepMiliSeconds(100);
+		//LibThreadMgr_Touch_WatchDog();
+	}
+	
+	LibThreadMgr_Uninit_WatchDog();
+	LibTime_StopMicroSecondClock_ShowResult();
+	PRINT_NEXT_LINE;
 }

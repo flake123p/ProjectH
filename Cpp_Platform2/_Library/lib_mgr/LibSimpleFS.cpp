@@ -123,26 +123,26 @@ int LibSimpleFS_Dump_MirrorInfo(SFS_MirrorIndex_Info_t *info)
 
 int LibSimpleFS_CreateFD(u8 numOfMirrors, OUT SFS_FileDescriptor_t **fd_ptr)
 {
-	*fd_ptr = (SFS_FileDescriptor_t *)malloc(sizeof(SFS_FileDescriptor_t));
+	*fd_ptr = (SFS_FileDescriptor_t *)malloc(sizeof(SFS_FileDescriptor_t) - sizeof(u32) + (numOfMirrors * sizeof(u32)));
 
 	if (fd_ptr == NULL) {
 		LibError_SetExtErrorMessage("%s(): malloc failed in *fd_ptr.\n", __func__);
 		return 1;
 	}
-
+/*
 	(*fd_ptr)->mirrorAddr = (u32 *)malloc(sizeof(u32) * numOfMirrors);
 	if ((*fd_ptr)->mirrorAddr == NULL) {
 		LibError_SetExtErrorMessage("%s(): malloc failed in (*fd_ptr)->mirrorAddr.\n", __func__);
 		free(*fd_ptr);
 		return 2;
 	}
-	
+*/
 	return 0;
 }
 
 int LibSimpleFS_DestroyFD(SFS_FileDescriptor_t *fd_ptr)
 {
-	free(fd_ptr->mirrorAddr);
+	//free(fd_ptr->mirrorAddr);
 	free(fd_ptr);
 
 	return 0;

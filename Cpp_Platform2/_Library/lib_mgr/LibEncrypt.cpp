@@ -9,7 +9,7 @@ u16 ISDAP_CRC_H5_Table[] =
 	0xc60c, 0xd68d, 0xe70e, 0xf78f
 };
 
-int LibEncrypt_CalcCRC16(u8 *buf, u32 len, OUT u16 *crc16)
+u16 LibEncrypt_CalculateCRC16(u8 *buf, u32 len)
 {
 	u32 j = 0;;
 	u16 crc = 0xFFFF;
@@ -26,16 +26,47 @@ int LibEncrypt_CalcCRC16(u8 *buf, u32 len, OUT u16 *crc16)
 	crc = ((crc & 0xCCCC) >> 2) | ((crc & 0x3333) << 2);
 	crc = ((crc & 0xAAAA) >> 1) | ((crc & 0x5555) << 1);
 	
-	*crc16 = crc;
+	return crc;
+}
+
+/*
+	Uses : Bisync, Modbus, USB, ANSI X3.28, SIA DC-07, many others; also known as CRC-16 and CRC-16-ANSI
+	polyRep = Polynomial representations
+		Normal:   0x8005
+		Reversed: 0xA001
+		Reversed reciprocal: 0xC002
+	Ref:
+		http://mcommit.hatenadiary.com/entry/2015/04/08/224244
+		http://naeilproj.blogspot.tw/2015/07/linux-cmodbus-rtu-crc16.html
+*/
+u16 LibEncrypt_CalculateCRC16_IBM(u8 *buf, u32 len, u16 polyRep)
+{
+	u16 crc = 0xFFFF;
+	u32 i,j;
+	u8 carrayFlag;
 	
-	return 0;
+	for (i = 0; i < len; i++) {
+		crc ^= buf[i];
+		for (j = 0; j < 8; j++) {
+			carrayFlag = crc & 1;
+			crc = crc >> 1;
+			if (carrayFlag) {
+				crc ^= polyRep;
+			}
+		}
+	}
+	
+	return crc;
 }
 
 void LibEncrypt_Demo(void)
 {
-	u8 buf[] = {0xFA, 0x01};
+	u8 buf[] = {0x01, 0x05, 0x01, 0x00, 0x00, 0x00, 0x0A, 0x0B};
 	u16 crc16;
-	LibEncrypt_CalcCRC16((u8 *)buf, 1, &crc16);
+	crc16 = LibEncrypt_CalculateCRC16((u8 *)buf, 8);
 
+	DUMPX(crc16);
+
+	crc16 = LibEncrypt_CalculateCRC16_IBM((u8 *)buf, 8, 0xC002);
 	DUMPX(crc16);
 }

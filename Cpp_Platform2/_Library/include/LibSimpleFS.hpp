@@ -13,16 +13,18 @@ typedef struct {
 	u32 usedSize;
 	u32 maxSize;
 	u8  numOfMirrors;
-	u32 *mirrorAddr;
+	u32 mirrorAddr[1]; //dummy size
 }SFS_FileDescriptor_t;
 
+/*
 typedef struct {
 	u8  activeIndex; // 0xFF is invalid index for no active index
 	u32 usedSize;
 	u32 maxSize;
 	u8  numOfMirrors;
 	u32 mirrorAddr[];
-}SFS_FileDescriptorEx_t;
+}SFS_FileDescriptorEx_t; // struct for IC
+*/
 
 typedef struct {
 	OUT u8 workingIndex;      //range is between 0 ~ (mirrorCount-1)
