@@ -295,10 +295,11 @@ void *WatchDog_Thread(void *arg)
 			case WATCH_DOG_START: {
 				ctr++;
 				if (ctr == ctrMax) {
+					ctr = 0;
 					if (gTimeOutCB != NULL) {
 						(*gTimeOutCB)();
 					} else {
-						EXIT_LOC_IF(1);
+						return 0;
 					}
 				}
 			} break;
