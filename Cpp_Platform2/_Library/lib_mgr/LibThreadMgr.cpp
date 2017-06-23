@@ -393,7 +393,7 @@ void LibThreadMgr_Demo_WatchDog(void)
 	LibThreadMgr_Init_WatchDog(500, LibThreadMgr_Demo_WatchDog_CB);
 	for (u32 i=0; i<30; i++) {
 		LibOs_SleepMiliSeconds(100);
-		//LibThreadMgr_Touch_WatchDog();
+		LibThreadMgr_Touch_WatchDog();
 	}
 	
 	LibThreadMgr_Uninit_WatchDog();
