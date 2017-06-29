@@ -23,8 +23,8 @@ int LibFile_INI::_AddNewSector(std::string &str)
 
 	section_name_index_counter_for_vector++;
 
-	VAR_MAP_TYPE newMap;
-	vecVarMap.push_back(newMap);
+	SECTION_CONTENT_t newBlock;
+	vecVarBlock.push_back(newBlock);
 
 	return 0;
 }
@@ -36,7 +36,7 @@ int LibFile_INI::_AddNewVarMap(std::string &keyStr, std::string &valStr)
 	u32 vecIndex = section_name_index_counter_for_vector - 1;
 	
 	std::pair<std::map<std::string,std::string>::iterator,bool> ret;
-	ret = vecVarMap[vecIndex].insert ( std::pair<std::string,std::string>(keyStr, valStr) );
+	ret = vecVarBlock[vecIndex].varMap.insert ( std::pair<std::string,std::string>(keyStr, valStr) );
 	if (ret.second==false) {
 		LibError_SetExtErrorMessage("KEY %s already existed\n", keyStr.c_str());
 		return 1;
@@ -49,7 +49,9 @@ int LibFile_INI::ClearParameters(void)
 {
 	section_name_index_counter_for_vector = 0;
 	mapSectionName.clear();
-	vecVarMap.clear();
+	//vecVarBlock.varMap.clear();
+	//vecVarBlock.singleVarVector.clear();
+	vecVarBlock.clear();
 
 	return 0;
 }
@@ -174,8 +176,8 @@ int LibFile_INI::GetValueString(std::string &secName, std::string &varName, OUT 
 
 	std::map<std::string,std::string>::iterator varMapIt;
 	
-	varMapIt = vecVarMap[vecIndex].find(varName);
-	if (varMapIt == vecVarMap[vecIndex].end()) {
+	varMapIt = vecVarBlock[vecIndex].varMap.find(varName);
+	if (varMapIt == vecVarBlock[vecIndex].varMap.end()) {
 		LibError_SetExtErrorMessage("Can't find variable %s in section: %s\n", varName.c_str(), secName.c_str());
 		return 2;
 	}
@@ -249,14 +251,14 @@ void LibFile_INI::Dump(void)
 	}
 	PRINT_NEXT_LINE;
 
-	DUMPD(vecVarMap.size());
-	EXIT_LOC_IF(vecVarMap.size() != section_name_index_counter_for_vector);
+	DUMPD(vecVarBlock.size());
+	EXIT_LOC_IF(vecVarBlock.size() != section_name_index_counter_for_vector);
 	for (u32 i = 0; i < section_name_index_counter_for_vector; i++) 
 	{
-		printf("\tvecVarMap[%d].size() = %d\n", i, vecVarMap[i].size());
+		printf("\tvecVarBlock[%d].varMap.size() = %d\n", i, vecVarBlock[i].varMap.size());
 
 		std::map<std::string,std::string>::iterator varMapIt;
-		for (varMapIt=vecVarMap[i].begin(); varMapIt!=vecVarMap[i].end(); varMapIt++) 
+		for (varMapIt=vecVarBlock[i].varMap.begin(); varMapIt!=vecVarBlock[i].varMap.end(); varMapIt++) 
 		{
 			printf("\t\t%-20s = %s\n", varMapIt->first.c_str(), varMapIt->second.c_str());
 		}
