@@ -29,7 +29,7 @@ int LibFile_INI::_AddNewSector(std::string &str)
 	return 0;
 }
 
-int LibFile_INI::_AddNewVarMap(std::string &keyStr, std::string &valStr)
+int LibFile_INI::_AddNewVarToMap(std::string &keyStr, std::string &valStr)
 {
 	BASIC_ASSERT(section_name_index_counter_for_vector>0);
 
@@ -41,6 +41,17 @@ int LibFile_INI::_AddNewVarMap(std::string &keyStr, std::string &valStr)
 		LibError_SetExtErrorMessage("KEY %s already existed\n", keyStr.c_str());
 		return 1;
 	}
+
+	return 0;
+}
+
+int LibFile_INI::_AddNewSingleVarToVector(std::string &valStr)
+{
+	BASIC_ASSERT(section_name_index_counter_for_vector>0);
+
+	u32 vecIndex = section_name_index_counter_for_vector - 1;
+	
+	vecVarBlock[vecIndex].singleVarVector.push_back(valStr);
 
 	return 0;
 }
@@ -103,7 +114,9 @@ int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */)
 				} else {
 					str.Split(true);
 
-					if (str.subStrVector.size() < 3) {
+					if (str.subStrVector.size() == 1) {
+						_AddNewSingleVarToVector(str.subStrVector[0]);
+					} else if (str.subStrVector.size() < 3) {
 						if (ingoreInvalidLine)
 							break;
 						else
@@ -114,7 +127,7 @@ int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */)
 						else
 							goto ERROR_HANDLE;
 					} else {
-						retVal = _AddNewVarMap(str.subStrVector[0], str.subStrVector[2]);
+						retVal = _AddNewVarToMap(str.subStrVector[0], str.subStrVector[2]);
 						if (retVal) {
 							if (ingoreInvalidLine)
 								break;
@@ -183,6 +196,67 @@ int LibFile_INI::GetValueString(std::string &secName, std::string &varName, OUT 
 	}
 
 	valStr = varMapIt->second;
+	return 0;
+}
+
+int LibFile_INI::GetSingleVarString(const char *secName, u32 index, OUT char *valStr)
+{
+	std::string tempValStr;
+
+	int retVal = GetSingleVarString(secName, index, tempValStr);
+
+	if (0 == retVal) {
+		strcpy(valStr, tempValStr.c_str());
+	}
+
+	return retVal;
+}
+
+int LibFile_INI::GetSingleVarString(const char *secName, u32 index, OUT std::string &valStr)
+{
+	std::string s1 = secName;
+	return GetSingleVarString(s1, index, valStr);
+}
+
+int LibFile_INI::GetSingleVarString(std::string &secName, u32 index, OUT std::string &valStr)
+{
+	u32 vecIndex;
+
+	std::map<std::string,u32>::iterator secMapIt;
+
+	secMapIt = mapSectionName.find(secName);
+	if (secMapIt == mapSectionName.end()) {
+		LibError_SetExtErrorMessage("Can't find section: %s\n", secName.c_str());
+		return 1;
+	}
+
+	vecIndex = secMapIt->second;
+
+
+	if (index >= vecVarBlock[vecIndex].singleVarVector.size() ) {
+		return 2; //index too big
+	}
+
+	valStr = vecVarBlock[vecIndex].singleVarVector[index];
+	return 0;
+}
+
+int LibFile_INI::GetSingleVarStringTotalCount(std::string &secName, OUT u32 &totalCount)
+{
+	u32 vecIndex;
+
+	std::map<std::string,u32>::iterator secMapIt;
+
+	secMapIt = mapSectionName.find(secName);
+	if (secMapIt == mapSectionName.end()) {
+		LibError_SetExtErrorMessage("Can't find section: %s\n", secName.c_str());
+		return 1;
+	}
+
+	vecIndex = secMapIt->second;
+
+	totalCount = vecVarBlock[vecIndex].singleVarVector.size();
+	
 	return 0;
 }
 
@@ -262,6 +336,15 @@ void LibFile_INI::Dump(void)
 		{
 			printf("\t\t%-20s = %s\n", varMapIt->first.c_str(), varMapIt->second.c_str());
 		}
+
+		printf("\tvecVarBlock[%d].singleVarVector.size() = %d\n", i, vecVarBlock[i].singleVarVector.size());
+
+		std::vector<std::string>::iterator varMapIt2;
+		for (varMapIt2=vecVarBlock[i].singleVarVector.begin(); varMapIt2!=vecVarBlock[i].singleVarVector.end(); varMapIt2++) 
+		{
+			printf("\t\t%-20s\n", varMapIt2->c_str());
+		}
+		PRINT_NEXT_LINE;
 	}
 	PRINT_NEXT_LINE;
 }

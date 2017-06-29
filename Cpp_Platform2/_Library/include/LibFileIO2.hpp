@@ -23,7 +23,8 @@ private:
 	u32 section_name_index_counter_for_vector;
 	bool _IsSector(std::string &str);
 	int  _AddNewSector(std::string &str);
-	int  _AddNewVarMap(std::string &keyStr, std::string &valStr);
+	int  _AddNewVarToMap(std::string &keyStr, std::string &valStr);
+	int  _AddNewSingleVarToVector(std::string &valStr);
 	
 public:
 	std::map<std::string,u32> mapSectionName;
@@ -45,6 +46,12 @@ public:
 	int GetValueS32(const char *secName, const char *varName, OUT s32 &val);
 	int GetValueS32(std::string &secName, std::string &varName, OUT s32 &val);
 
+	int GetSingleVarString(const char *secName, u32 index, OUT char *valStr);
+	int GetSingleVarString(const char *secName, u32 index, OUT std::string &valStr);
+	int GetSingleVarString(std::string &secName, u32 index, OUT std::string &valStr);
+
+	int GetSingleVarStringTotalCount(std::string &secName, OUT u32 &totalCount);
+	
 	void Dump(void);
 };
 
