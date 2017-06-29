@@ -50,6 +50,7 @@ public:
 	int GetSingleVarString(const char *secName, u32 index, OUT std::string &valStr);
 	int GetSingleVarString(std::string &secName, u32 index, OUT std::string &valStr);
 
+	int GetSingleVarStringTotalCount(const char *secName, OUT u32 &totalCount);
 	int GetSingleVarStringTotalCount(std::string &secName, OUT u32 &totalCount);
 	
 	void Dump(void);

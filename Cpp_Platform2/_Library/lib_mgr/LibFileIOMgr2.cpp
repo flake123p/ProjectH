@@ -241,6 +241,12 @@ int LibFile_INI::GetSingleVarString(std::string &secName, u32 index, OUT std::st
 	return 0;
 }
 
+int LibFile_INI::GetSingleVarStringTotalCount(const char *secName, OUT u32 &totalCount)
+{
+	std::string s1 = secName;
+	return GetSingleVarStringTotalCount(s1, totalCount);
+}
+
 int LibFile_INI::GetSingleVarStringTotalCount(std::string &secName, OUT u32 &totalCount)
 {
 	u32 vecIndex;
