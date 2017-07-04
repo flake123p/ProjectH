@@ -61,6 +61,7 @@ public:
 	int  GetLineEx(unsigned char *outputString, int maxLength, OUT int *readLength, OUT NextLineStyle_t *nextLineStyle = NULL);
 	int  GetCharacter(void);
 	int  FileScan(const char *format, ...);
+	int  FilePrint(const char *format, ...);
 };
 
 void LibFileIoClass_Demo_Output_A_File(void);

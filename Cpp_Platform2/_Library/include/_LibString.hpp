@@ -3,6 +3,7 @@
 #ifndef __LIB_STRING_HPP_INCLUDED_
 #include <vector>
 #include <string>
+#include <locale> //std::locale settings;
 #include "My_Types.h"
 
 // ============================== Debug ==============================
@@ -94,6 +95,8 @@ public:
 	int ReplaceWithRestLength(const char *s);
 	int RemoveExtension(char ch);
 	int ReplaceExtension(char ch, const char *s);
+	int ReplaceSubString(const char *toStr, const char *fromStr);
+	int ToUpperCase(void);
 
 	// For INI file parsing
 	int RemoveRestString(const char *s);

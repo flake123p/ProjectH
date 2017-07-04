@@ -559,6 +559,39 @@ int LibStringClass::ReplaceExtension(char ch, const char *s)
 	return 0;
 }
 
+int LibStringClass::ReplaceSubString(const char *toStr, const char *fromStr)
+{
+	u32 loop = 0;
+	u32 findStartPos = 0;
+	for (size_t findPos = str.find(toStr); findPos != std::string::npos; findPos = str.find(toStr, findStartPos)) {
+		str.replace(findPos, strlen(fromStr), fromStr);
+
+		findStartPos += findPos + strlen(fromStr);
+
+		loop++;
+		if (loop >= 100) {
+			BASIC_ASSERT(0);
+		}
+	}
+	
+	return 0;
+}
+
+int LibStringClass::ToUpperCase(void)
+{
+	std::string newStr;
+
+	std::locale settings;
+	std::string converted;
+
+	for(u32 i = 0; i < str.size(); ++i)
+		newStr += (std::toupper(str[i], settings));
+
+	str = newStr;
+
+	return 0;
+}
+
 /*
 	Turn:
 		"123 456 //789"

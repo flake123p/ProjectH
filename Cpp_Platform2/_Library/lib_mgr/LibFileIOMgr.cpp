@@ -273,6 +273,18 @@ int LibFileIoClass::FileScan(const char *format, ...)
 	}
 }
 
+int LibFileIoClass::FilePrint(const char *format, ...)
+{
+	int retVal;
+
+	va_list vl;
+	va_start(vl, format);
+	retVal = vfprintf(this->fp, format, vl);
+	va_end(vl);
+
+	return retVal;
+}
+
 void LibFileIoClass_Demo_Output_A_File(void)
 {
 	LibFileIoClass outFile("LibFileIoClass_Demo_Output_A_File.txt", "w+b");
