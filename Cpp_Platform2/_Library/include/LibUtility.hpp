@@ -36,5 +36,10 @@ int LibUtil_DemoEndian(void);
 #define INT_TO_ARRAY(dst,src,currOffset,swap) LibUtil_IntSwapCopy(ADDRX(dst,currOffset),(u8 *)&(src),sizeof(src),swap);currOffset+=sizeof(src)
 #define ARRAY_TO_INT(dst,src,currOffset,swap) LibUtil_IntSwapCopy((u8 *)&(dst),ADDRX(src,currOffset),sizeof(dst),swap);currOffset+=sizeof(dst)
 
+int LibUtil_MaxMinMgr_Init(s32 initVal = 0);
+int LibUtil_MaxMinMgr_Input(s32 inVal);
+s32 LibUtil_MaxMinMgr_GetMax(void);
+s32 LibUtil_MaxMinMgr_GetMin(void);
+
 #define _LIB_UTILITY_HPP_INCLUDED_
 #endif//_LIB_UTILITY_HPP_INCLUDED_

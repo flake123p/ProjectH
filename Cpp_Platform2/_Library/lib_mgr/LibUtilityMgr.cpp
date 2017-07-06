@@ -169,3 +169,33 @@ int LibUtil_DemoEndian(void)
 	}
 	return 0;
 }
+
+s32 gLibUtil_Max = 0;
+s32 gLibUtil_Min = 0;
+int LibUtil_MaxMinMgr_Init(s32 initVal /* = 0 */)
+{
+	gLibUtil_Max = initVal;
+	gLibUtil_Min = initVal;
+	return 0;
+}
+
+int LibUtil_MaxMinMgr_Input(s32 inVal)
+{
+	if (inVal > gLibUtil_Max)
+		gLibUtil_Max = inVal;
+
+	if (inVal < gLibUtil_Min)
+		gLibUtil_Min = inVal;
+
+	return 0;
+}
+
+s32 LibUtil_MaxMinMgr_GetMax(void)
+{
+	return gLibUtil_Max;
+}
+
+s32 LibUtil_MaxMinMgr_GetMin(void)
+{
+	return gLibUtil_Min;
+}

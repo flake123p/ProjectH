@@ -1,7 +1,8 @@
 
 #include "Everything_App.hpp"
 
-#define TAB "\t"
+#define HT "\t"
+#define LF "\n"
 
 LibFile_INI gIni_File_Obj;
 
@@ -10,6 +11,7 @@ std::string gOut_File_Source_C;
 
 u32 gStateTotalCount = 0;
 std::vector<std::string> gStateNameVector;
+u32 gStateNameVector_MaxLen = 0;
 std::string gState_Name;
 std::string gState_Name_InTypeDefine;
 std::string gState_Name_GlobalVarName;
@@ -39,15 +41,20 @@ int StateMachineMaker_C_HeaderGen(void)
 
 	outFile.FilePrint("typedef enum {\n");
 	std::string commentStr;
+	std::string stateStr;
 	for (u32 i = 0; i < gStateTotalCount; i++) {
 		if (i == 0) {
-			commentStr = "// INIT STATE";
+			commentStr = "INIT STATE";
 		} else if (i == gStateTotalCount-1) {
-			commentStr = "// EXIT STATE";
+			commentStr = "EXIT STATE";
 		} else {
-			commentStr = "//";
+			commentStr = "";
 		}
-		outFile.FilePrint("\t%s, %s\n", gStateNameVector[i].c_str(), commentStr.c_str());
+		stateStr = gStateNameVector[i];
+		//DUMPD(gStateNameVector_MaxLen - stateStr.length());
+		stateStr.insert(stateStr.length(), gStateNameVector_MaxLen - stateStr.length(), ' ');
+		//DUMPD(stateStr.length());
+		outFile.FilePrint("\t%s = %2d, // 0x%02x, %s\n", stateStr.c_str(), i, i, commentStr.c_str());
 	}
 	outFile.FilePrint("} %s;\n\n", gState_Name_InTypeDefine.c_str());
 
@@ -90,32 +97,32 @@ int StateMachineMaker_C_SourceGen(void)
 	for (u32 i = 0; i < gStateTotalCount; i++) {
 		if (i == 0) {
 			outFile.FilePrint(
-				TAB	TAB	"case %s: { // INIT STATE\n" \
-				TAB	TAB	TAB	"retVal = %s_Function(&%s);\n" \
-				TAB	TAB	TAB	"if (retVal) {\n" \
-				TAB	TAB	TAB	TAB	"return retVal;\n" \
-				TAB	TAB	"} break;\n\n",
+				HT	HT	"case %s: { // INIT STATE" LF \
+				HT	HT	HT	"retVal = %s_Function(&%s);" LF \
+				HT	HT	HT	"if (retVal) {" LF \
+				HT	HT	HT	HT	"return retVal;" LF \
+				HT	HT	"} break;" LF LF,
 				gStateNameVector[i].c_str(),
 				gStateNameVector[i].c_str(),
 				gState_Name_GlobalVarName.c_str());
 		} else if (i == gStateTotalCount-1) {
 			outFile.FilePrint(
-				TAB	TAB	"case %s: { // EXIT STATE\n" \
-				TAB	TAB	TAB	"retVal = %s_Function(&%s);\n" \
-				TAB	TAB	TAB	"if (retVal) {\n" \
-				TAB	TAB	TAB	TAB	"return retVal;\n" \
-				TAB	TAB	TAB	"goto END_OF_WHILE_1;\n" \
-				TAB	TAB	"} break;\n",
+				HT	HT	"case %s: { // EXIT STATE\n" \
+				HT	HT	HT	"retVal = %s_Function(&%s);\n" \
+				HT	HT	HT	"if (retVal) {\n" \
+				HT	HT	HT	HT	"return retVal;\n" \
+				HT	HT	HT	"goto END_OF_WHILE_1;\n" \
+				HT	HT	"} break;\n",
 				gStateNameVector[i].c_str(),
 				gStateNameVector[i].c_str(),
 				gState_Name_GlobalVarName.c_str());
 		} else {
 			outFile.FilePrint(
-				TAB	TAB	"case %s: {\n" \
-				TAB	TAB	TAB	"retVal = %s_Function(&%s);\n" \
-				TAB	TAB	TAB	"if (retVal) {\n" \
-				TAB	TAB	TAB	TAB	"return retVal;\n" \
-				TAB	TAB	"} break;\n\n",
+				HT	HT	"case %s: {\n" \
+				HT	HT	HT	"retVal = %s_Function(&%s);\n" \
+				HT	HT	HT	"if (retVal) {\n" \
+				HT	HT	HT	HT	"return retVal;\n" \
+				HT	HT	"} break;\n\n",
 				gStateNameVector[i].c_str(),
 				gStateNameVector[i].c_str(),
 				gState_Name_GlobalVarName.c_str());
@@ -123,10 +130,10 @@ int StateMachineMaker_C_SourceGen(void)
 	}
 
 	outFile.FilePrint(
-		TAB "}\n" \
+		HT "}\n" \
 		"END_OF_WHILE_1:\n" \
-		TAB ";\n\n" \
-		TAB "return 0;\n}\n");
+		HT ";\n\n" \
+		HT "return 0;\n}\n");
 
 	return 0;
 }
@@ -150,10 +157,9 @@ int StateMachineMaker_C_StateFunctionsGen(void)
 		outFile.FilePrint(
 			"int %s_Function(%s *state)\n" \
 			"{\n" \
-			TAB	"return 0; //%s\n" \
+			HT	"return 0;\n" \
 			"}\n\n",
 			gStateNameVector[i].c_str(),
-			gState_Name_InTypeDefine.c_str(),
 			gState_Name_InTypeDefine.c_str());
 	}
 
@@ -210,6 +216,7 @@ int StateMachineMaker(int argc, char *argv[])
 	EXIT_CHK( rc, gIni_File_Obj.GetValueString("[ATTR]", "State_Prefix", gState_Prefix) );
 	EXIT_CHK( rc, gIni_File_Obj.GetValueU32("[ATTR]", "State_Prefix_Sx", val) );
 	gState_Prefix_Sx_Enable = val;
+	LibUtil_MaxMinMgr_Init();
 	if (gState_Prefix_Sx_Enable) {
 		std::string stateStr;
 		std::string sxStr;
@@ -224,8 +231,11 @@ int StateMachineMaker(int argc, char *argv[])
 			EXIT_CHK( rc, gIni_File_Obj.GetSingleVarString("[STATES]", i, stateStr) );
 			stateStr = gState_Prefix + sxStr + stateStr;
 			gStateNameVector.push_back(stateStr);
+			LibUtil_MaxMinMgr_Input((s32)stateStr.length());
 		}
 	}
+	gStateNameVector_MaxLen = (u32)LibUtil_MaxMinMgr_GetMax();
+	DUMPD(gStateNameVector_MaxLen);
 	EXIT_CHK( rc, gIni_File_Obj.GetValueString("[ATTR]", "Out_File_Header_C", gOut_File_Header_C) );
 	EXIT_CHK( rc, gIni_File_Obj.GetValueString("[ATTR]", "Out_File_Source_C", gOut_File_Source_C) );
 	
