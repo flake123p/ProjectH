@@ -142,7 +142,7 @@ int StateMachineMaker_C_StateFunctionsGen(void)
 {
 	LibStringClass functionsFileStr(gOut_File_Source_C.c_str());
 
-	functionsFileStr.ReplaceSubString(".c", "_Function.c");
+	functionsFileStr.ReplaceSubString(".c", "_Function.cpp");
 
 	LibFileIoClass outFile(functionsFileStr.CStr(), "w+b");
 
