@@ -61,7 +61,7 @@ int StateMachineMaker_C_HeaderGen(void)
 	outFile.FilePrint("int %s(void);\n\n", gState_Name_FuncName.c_str());
 
 	for (u32 i = 0; i < gStateTotalCount; i++) {
-		outFile.FilePrint("int %s_Function(%s *state);\n", gStateNameVector[i].c_str(), gState_Name_InTypeDefine.c_str());
+		outFile.FilePrint("int %s_Function(%s *nextState);\n", gStateNameVector[i].c_str(), gState_Name_InTypeDefine.c_str());
 	}
 
 	outFile.FilePrint(
@@ -97,32 +97,35 @@ int StateMachineMaker_C_SourceGen(void)
 	for (u32 i = 0; i < gStateTotalCount; i++) {
 		if (i == 0) {
 			outFile.FilePrint(
-				HT	HT	"case %s: { // INIT STATE" LF \
-				HT	HT	HT	"retVal = %s_Function(&%s);" LF \
-				HT	HT	HT	"if (retVal) {" LF \
-				HT	HT	HT	HT	"return retVal;" LF \
-				HT	HT	"} break;" LF LF,
+				HT	HT	HT	"case %s: { // INIT STATE" LF \
+				HT	HT	HT	HT	"retVal = %s_Function(&%s);" LF \
+				HT	HT	HT	HT	"if (retVal) {" LF \
+				HT	HT	HT	HT	HT	"return retVal;" LF \
+				HT	HT	HT	HT	"}" LF \
+				HT	HT	HT	"} break;" LF LF,
 				gStateNameVector[i].c_str(),
 				gStateNameVector[i].c_str(),
 				gState_Name_GlobalVarName.c_str());
 		} else if (i == gStateTotalCount-1) {
 			outFile.FilePrint(
-				HT	HT	"case %s: { // EXIT STATE\n" \
-				HT	HT	HT	"retVal = %s_Function(&%s);\n" \
-				HT	HT	HT	"if (retVal) {\n" \
-				HT	HT	HT	HT	"return retVal;\n" \
-				HT	HT	HT	"goto END_OF_WHILE_1;\n" \
-				HT	HT	"} break;\n",
+				HT	HT	HT	"case %s: { // EXIT STATE\n" \
+				HT	HT	HT	HT	"retVal = %s_Function(&%s);\n" \
+				HT	HT	HT	HT	"if (retVal) {\n" \
+				HT	HT	HT	HT	HT	"return retVal;\n" \
+				HT	HT	HT	HT	"}" LF \
+				HT	HT	HT	HT	"goto END_OF_WHILE_1;\n" \
+				HT	HT	HT	"} break;\n",
 				gStateNameVector[i].c_str(),
 				gStateNameVector[i].c_str(),
 				gState_Name_GlobalVarName.c_str());
 		} else {
 			outFile.FilePrint(
-				HT	HT	"case %s: {\n" \
-				HT	HT	HT	"retVal = %s_Function(&%s);\n" \
-				HT	HT	HT	"if (retVal) {\n" \
-				HT	HT	HT	HT	"return retVal;\n" \
-				HT	HT	"} break;\n\n",
+				HT	HT	HT	"case %s: {\n" \
+				HT	HT	HT	HT	"retVal = %s_Function(&%s);\n" \
+				HT	HT	HT	HT	"if (retVal) {\n" \
+				HT	HT	HT	HT	HT	"return retVal;\n" \
+				HT	HT	HT	HT	"}" LF \
+				HT	HT	HT	"} break;\n\n",
 				gStateNameVector[i].c_str(),
 				gStateNameVector[i].c_str(),
 				gState_Name_GlobalVarName.c_str());
@@ -130,6 +133,7 @@ int StateMachineMaker_C_SourceGen(void)
 	}
 
 	outFile.FilePrint(
+		HT HT "}\n" \
 		HT "}\n" \
 		"END_OF_WHILE_1:\n" \
 		HT ";\n\n" \
@@ -155,7 +159,7 @@ int StateMachineMaker_C_StateFunctionsGen(void)
 
 	for (u32 i = 0; i < gStateTotalCount; i++) {
 		outFile.FilePrint(
-			"int %s_Function(%s *state)\n" \
+			"int %s_Function(%s *nextState)\n" \
 			"{\n" \
 			HT	"return 0;\n" \
 			"}\n\n",

@@ -232,6 +232,7 @@ int LibFileIoClass::GetLineEx(unsigned char *outputString, int maxLength, OUT in
 
 	outputString[numberOfChar] = 0; // End of string
 	if (numberOfChar == maxLength-1) {
+		LibError_SetExtErrorMessage("RC_BUFFER_FULL in %s()\n", __func__);
 		return RC_BUFFER_FULL;
 	} else if (numberOfChar > maxLength-1) {
 		BASIC_ASSERT(0);
@@ -240,6 +241,7 @@ int LibFileIoClass::GetLineEx(unsigned char *outputString, int maxLength, OUT in
 	*readLength = numberOfChar;
 	
 	if (ch == EOF && numberOfChar == 0) {
+		LibError_SetExtErrorMessage("RC_FILE_REACH_EOF in %s()\n", __func__);
 		return RC_FILE_REACH_EOF;
 	} else {
 		lineCount++;
