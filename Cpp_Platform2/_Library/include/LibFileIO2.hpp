@@ -17,6 +17,8 @@ typedef struct {
 	std::vector<std::string> singleVarVector;
 }SECTION_CONTENT_t;
 
+typedef int (*ExtProc_CB)(LibStringClass &str);
+
 class LibFile_INI : public LibFileIoClass 
 {
 private:
@@ -36,7 +38,7 @@ public:
 	}
 
 	int ClearParameters(void);
-	int StartParse(bool ingoreInvalidLine = true);
+	int StartParse(bool ingoreInvalidLine = true, ExtProc_CB externalProcess = NULL);
 	int GetValueString(const char *secName, const char *varName, OUT char *valStr);
 	int GetValueString(const char *secName, const char *varName, OUT std::string &valStr);
 	int GetValueString(std::string &secName, std::string &varName, OUT std::string &valStr);

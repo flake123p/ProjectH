@@ -1,6 +1,8 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
+ExtProc_CB gExtProc_CB = NULL;
+
 bool LibFile_INI::_IsSector(std::string &str)
 {
 	if (str[0] == '[' && str[str.size()-1] == ']') {
@@ -71,11 +73,13 @@ typedef enum {
 	IPS_FINDING_SECTOR,
 	IPS_EXTRACTING_VAR,
 }INI_PARSE_STATE_t;
-int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */)
+int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */, ExtProc_CB externalProcess /* = NULL */)
 {
 	int retVal;
 
 	RETURN_CHK( retVal, FileOpenForRead(1024) );
+
+	gExtProc_CB = externalProcess;
 
 	LibStringClass str;
 
@@ -112,6 +116,12 @@ int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */)
 				if (_IsSector(str.str)) {
 					_AddNewSector(str.str);
 				} else {
+					if (gExtProc_CB != NULL) {
+						int retVal = (*gExtProc_CB)(str);
+						if (retVal)
+							break;
+					}
+
 					str.Split(true);
 
 					if (str.subStrVector.size() == 1) {
