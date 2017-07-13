@@ -25,6 +25,16 @@ bool LibUtil_FindInArray(IN T1 val, IN T1 *array, IN u32 len)
 	return false;
 }
 
+template<typename T1_Container, typename T2_Value>
+s32 LibUtil_FindInContainer_ReturnIndex(T1_Container &container, T2_Value &value)
+{
+	for (s32 i=0; i<container.size(); i++) {
+		if (value == container[i])
+			return i;
+	}
+	return -1;
+}
+
 int LibUtil_BytesToInt32(u32 &dst, u8 *src, bool isSrcBigEndian);
 int LibUtil_Int32ToBytes(u8 *dst, u32 &src, bool isDstBigEndian);
 int LibUtil_BytesToInt16(u16 &dst, u8 *src, bool isSrcBigEndian);
