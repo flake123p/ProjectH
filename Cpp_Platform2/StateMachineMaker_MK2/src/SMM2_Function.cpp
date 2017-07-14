@@ -40,6 +40,7 @@ std::vector<std::string> gEventNameVector;
 u32 gEventNameString_MaxLen_ForAlign = 0;
 
 std::vector<std::string> gSE_Table_Vector;
+std::vector<std::string> gIncludes_Vector;
 std::vector<std::string> gStates_Vector;
 std::vector<std::string> gEvents_Vector;
 
@@ -48,6 +49,7 @@ std::string gError_Code_Prefix;
 int SMM2_IniFile_ExtProc_CB(LibStringClass &str)
 {
 	static bool is_SE_TABLE_section = false;
+	static bool is_INCLUDE_section = false;
 
 	if (str.str == "<SE_TABLE>") {
 		is_SE_TABLE_section = true;
@@ -65,6 +67,24 @@ int SMM2_IniFile_ExtProc_CB(LibStringClass &str)
 
 		gSE_Table_Vector.push_back(str.str);
 		//DUMPS(str.str.c_str());
+		return 1;
+	}
+
+	if (str.str == "<INCLUDE>") {
+		is_INCLUDE_section = true;
+		return 1;
+	}
+
+	if (str.str == "</INCLUDE>") {
+		is_INCLUDE_section = false;
+		return 1;
+	}
+
+	if (is_INCLUDE_section) {
+		if (str.str.length() == 0)
+			return 1;
+
+		gIncludes_Vector.push_back(str.str);
 		return 1;
 	}
 
@@ -228,6 +248,15 @@ int SMM2_S3_Make_Header_File_Function(SMM2_t &nextState)
 		"#ifndef %s\n\n",
 		tempStr.CStr());
 
+	// STD Library
+	outFile.FilePrint(
+		"#include <stdlib.h>" LF);
+	// Customized Library
+	for (u32 i = 0; i < gIncludes_Vector.size(); i++) {
+		outFile.FilePrint("%s\n", gIncludes_Vector[i].c_str());
+	}
+	outFile.FilePrint("\n");
+
 	// typedef EVENT
 	outFile.FilePrint("typedef enum {\n");
 	//std::string commentStr;
@@ -292,7 +321,7 @@ int SMM2_S3_Make_Header_File_Function(SMM2_t &nextState)
 	
 	// State change function
 	outFile.FilePrint(
-		"int %s%s(%s nextState, %s *evtPara = NULL);" LF LF,
+		"int %s%s(%s nextState, %s%s *evtPara = NULL);" LF LF,
 		gState_Name.c_str(),
 		STR_STATE_CHANGE,
 		gState_Name_InTypeDefine.c_str(),
@@ -350,7 +379,7 @@ int SMM2_S3_Make_Header_File_Function(SMM2_t &nextState)
 		if (str.subStrVector[i] == "E") {
 			outFile.FilePrint("int %s_Function(%s &state, %s%s *evtPara = NULL);\n",
 				gEventNameVector[i-1].c_str(),
-				gEvent_Name_InTypeDefine.c_str(),
+				gState_Name_InTypeDefine.c_str(),
 				gEvent_Name.c_str(),
 				STR_EVENT_PARA);
 		}
@@ -449,7 +478,7 @@ int SMM2_S4_Make_Function_File_Function(SMM2_t &nextState)
 				"{" LF,
 				gEventNameVector[i-1].c_str(),
 				STR_FUNCTION,
-				gEvent_Name_InTypeDefine.c_str(),
+				gState_Name_InTypeDefine.c_str(),
 				gEvent_Name.c_str(),
 				STR_EVENT_PARA);
 
@@ -489,7 +518,7 @@ int SMM2_S5_Make_Source_File_Start_Function(SMM2_t &nextState)
 
 	// State change function
 	gOutSourceFile.FilePrint(
-		"int %s%s(%s nextState, %s *evtPara /* = NULL */)" LF \
+		"int %s%s(%s nextState, %s%s *evtPara /* = NULL */)" LF \
 		"{" LF \
 		HT "switch (nextState) {" LF,
 		gState_Name.c_str(),
@@ -500,11 +529,10 @@ int SMM2_S5_Make_Source_File_Start_Function(SMM2_t &nextState)
 	for (u32 i = 0; i < gStateNameVector.size(); i++) {
 		gOutSourceFile.FilePrint(
 			HT HT "case %s:" LF \
-			HT HT HT "%s = %s;" LF \
+			HT HT HT "%s = nextState;" LF \
 			HT HT HT "return %s%s(evtPara);" LF LF,
 			gStateNameVector[i].c_str(),
 			gState_Name_GlobalVarName.c_str(),
-			gStateNameVector[i].c_str(),
 			gStateNameVector[i].c_str(),
 			STR_FUNCTION);
 	}
@@ -673,9 +701,8 @@ int SMM2_S8_Make_Source_File_End_Function(SMM2_t &nextState)
 	gOutSourceFile.FilePrint(
 		HT "} while (repeat);" LF \
 		LF \
-		HT "return %s;" LF \
-		"}" LF,
-		gState_Name_GlobalVarName.c_str());
+		HT "return retVal;" LF \
+		"}" LF);
 
 	return 1; // Error Code, true for error.
 }
