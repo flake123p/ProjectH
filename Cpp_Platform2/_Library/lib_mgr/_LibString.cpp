@@ -614,21 +614,18 @@ int LibStringClass::RemoveRestString(const char *s)
 
 int LibStringClass::RemoveEmptyPrefixChar(void)
 {
-	do {
-		if (0 == this->Size())
+	while (1) {
+		if (0 == str.size())
 			break;
 
 		if (str[0] == ' ') {
-			str.erase(0);
-			continue;
+			str.erase(0, 1);
+		} else if (str[0] == '\t') {
+			str.erase(0, 1);
+		} else {
+			break;
 		}
-
-		if (str[0] == '\t') {
-			str.erase(0);
-			continue;
-		}
-
-	} while (false);
+	}
 
 	return 0;
 }

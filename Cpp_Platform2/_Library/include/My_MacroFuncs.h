@@ -57,6 +57,7 @@
 #define PRINT_FUNC      printf("%s\n",__func__);
 #define PRINT_LINE      printf("%d\n",__LINE__);
 #define PRINT_FILE      printf("%s\n",__FILE__);
+#define PRINT_FUNC_LINE printf("%s() line:%d\n",__func__,__LINE__);
 //#define PRINT_FUNC(1) PRINT_FUNC PRINT_NEXT_LINE
 //#define PRINT_LINE(1) PRINT_LINE PRINT_NEXT_LINE
 //#define PRINT_FILEn PRINT_FILE PRINT_NEXT_LINE
