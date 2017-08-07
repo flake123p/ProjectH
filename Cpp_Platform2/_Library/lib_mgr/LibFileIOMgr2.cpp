@@ -2,6 +2,7 @@
 #include "Everything_Lib_Mgr.hpp"
 
 ExtProc_CB gExtProc_CB = NULL;
+ExtProc_CB2 gExtProc_CB2 = NULL;
 
 bool LibFile_INI::_IsSector(std::string &str)
 {
@@ -118,6 +119,98 @@ int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */, ExtProc_CB exte
 				} else {
 					if (gExtProc_CB != NULL) {
 						int retVal = (*gExtProc_CB)(str);
+						if (retVal)
+							break;
+					}
+
+					str.Split(true);
+
+					if (str.subStrVector.size() == 1) {
+						_AddNewSingleVarToVector(str.subStrVector[0]);
+					} else if (str.subStrVector.size() < 3) {
+						if (ingoreInvalidLine)
+							break;
+						else
+							goto ERROR_HANDLE;
+					} else if (0 != str.subStrVector[1].compare("=")) {
+						if (ingoreInvalidLine)
+							break;
+						else
+							goto ERROR_HANDLE;
+					} else {
+						retVal = _AddNewVarToMap(str.subStrVector[0], str.subStrVector[2]);
+						if (retVal) {
+							if (ingoreInvalidLine)
+								break;
+							else
+								goto ERROR_HANDLE;
+						}
+					}
+				}
+			} break;
+
+			default:
+				EXIT_LOC_IF(1);
+				break;
+		}
+	}
+	
+	return 0;
+
+ERROR_HANDLE:
+	printf("Invalid variable string in line:%d\n", this->lineCount);
+	printf(">> %s\n", str.CStr());
+	EXIT_LOC_IF(1);
+	return 1;
+}
+
+int LibFile_INI::StartParse2(bool ingoreInvalidLine /* = true */, ExtProc_CB2 externalProcess2 /* = NULL */)
+{
+	int retVal;
+
+	RETURN_CHK( retVal, FileOpenForRead(1024) );
+
+	gExtProc_CB2 = externalProcess2;
+
+	LibStringClass str;
+	LibStringClass rawStr;
+
+	INI_PARSE_STATE_t state = IPS_FINDING_SECTOR;
+	while ( 0 == this->GetLine() ) 
+	{
+		// 1. clearify whole line.
+		rawStr.Init(this->lineStr);
+		str.Init(this->lineStr);
+		str.RemoveRestString("//");
+		str.RemoveRestString(";");
+		str.RemoveEmptyPrefixChar();
+		str.RemoveEmptyPostfixChar();
+
+		// 2. skip empty line
+		if (0 == str.Size()) {
+			continue;
+		}
+
+		// 3. handle symbol of equal
+		str.InsertBefore("=", " ");
+		str.InsertAfter("=", " ");
+
+		switch (state) {
+			case IPS_FINDING_SECTOR: {
+				if (_IsSector(str.str)) {
+					_AddNewSector(str.str);
+					state = IPS_EXTRACTING_VAR;
+				} else {
+					// drop it
+				}
+			} break;
+
+			case IPS_EXTRACTING_VAR: {
+				if (_IsSector(str.str)) {
+					_AddNewSector(str.str);
+				} else {
+					if (gExtProc_CB2 != NULL) {
+						int retVal = (*gExtProc_CB2)(str, rawStr, this->lineCount);
 						if (retVal)
 							break;
 					}

@@ -420,6 +420,12 @@ void LibStringClass::Init(const char *cString)
 	subStrVector.clear();
 }
 
+void LibStringClass::Init(std::string inStr)
+{
+	this->str = inStr;
+	subStrVector.clear();
+}
+
 size_t LibStringClass::Length(void) //Same result as Size()
 {
 	return str.length();

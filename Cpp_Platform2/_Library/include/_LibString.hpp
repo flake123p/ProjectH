@@ -87,6 +87,7 @@ public:
 	~LibStringClass(void){}; // Do nothing.
 	void Init(char *cString);
 	void Init(const char *cString);
+	void Init(std::string inStr);
 	size_t Length(void); //Same result as Size()
 	size_t Size(void); //Same result as Length()
 	bool FindChar(const char ch, size_t pos = 0, OUT u32 *result_position = NULL);

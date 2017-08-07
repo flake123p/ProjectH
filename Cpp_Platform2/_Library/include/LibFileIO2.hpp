@@ -18,6 +18,7 @@ typedef struct {
 }SECTION_CONTENT_t;
 
 typedef int (*ExtProc_CB)(LibStringClass &str);
+typedef int (*ExtProc_CB2)(LibStringClass &str, LibStringClass &rawStr, u32 lineNumber);
 
 class LibFile_INI : public LibFileIoClass 
 {
@@ -39,6 +40,7 @@ public:
 
 	int ClearParameters(void);
 	int StartParse(bool ingoreInvalidLine = true, ExtProc_CB externalProcess = NULL);
+	int StartParse2(bool ingoreInvalidLine = true, ExtProc_CB2 externalProcess2 = NULL);
 	int GetValueString(const char *secName, const char *varName, OUT char *valStr);
 	int GetValueString(const char *secName, const char *varName, OUT std::string &valStr);
 	int GetValueString(std::string &secName, std::string &varName, OUT std::string &valStr);
