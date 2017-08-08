@@ -1195,8 +1195,8 @@ static void _SMM3_S9_Print_StateChangeFunction(LibFileIoClass &outFile)
 		"%s %s(%s nextState, %s *evtPara /* = NULL */)" LF \
 		"{" LF \
 		HT "int retVal = 0;" LF \
-		HT "State_CB entryCB = gState_CB_Table[%s].leave;" LF \
-		HT "State_CB leaveCB = gState_CB_Table[nextState].leave;" LF LF,
+		HT "State_CB leaveCB = gState_CB_Table[%s].leave;" LF \
+		HT "State_CB entryCB = gState_CB_Table[nextState].entry;" LF LF,
 		_STR_StateTypedefName(),
 		_STR_StateChangeFuncName(),
 		_STR_StateTypedefName(),
@@ -1236,6 +1236,7 @@ static void _SMM3_S9_Print_StateChangeFunction(LibFileIoClass &outFile)
 						for (u32 k = 0; k < gS5_InterState_Table[j].childState.size(); k++) {
 							outFile.FilePrint(
 								HT HT HT HT "case %s:" LF\
+								HT HT HT HT HT "gLrm = nextState;" LF\
 								HT HT HT HT HT "return %s(%s, evtPara);" LF LF ,
 								gS5_InterState_Table[j].childStateExtEnumName[k].c_str(),
 								_STR_StateChangeFuncName(),
