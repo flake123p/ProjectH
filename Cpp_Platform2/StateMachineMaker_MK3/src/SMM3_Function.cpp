@@ -23,7 +23,9 @@ std::vector<RawStr_Para_t> gCB_INTER_STATE_RawVector;
 std::vector<RawStr_Para_t> gCB_STATE_FUNC_RawVector;
 std::vector<RawStr_Para_t> gCB_GLOBAL_EVENT_RawVector;
 std::vector<RawStr_Para_t> gCB_TEST_CASE_RawVector;
-std::vector<RawStr_Para_t> gCB_INCLUDE_RawVector;
+std::vector<RawStr_Para_t> gCB_INCLUDE_FRONT_RawVector;
+std::vector<RawStr_Para_t> gCB_INCLUDE_BACK_RawVector;
+std::vector<RawStr_Para_t> gCB_EVENT_PARA_RawVector;
 std::vector<RawStr_Para_t> gCB_ASSERT_RawVector;
 std::string gS0_Out_File_Header_C;
 std::string gS0_Out_File_Source_C;
@@ -131,7 +133,9 @@ int SMM3_IniFile_ExtProc_CB(LibStringClass &str, LibStringClass &rawStr, u32 lin
 	static bool is_STATE_FUNC_section = false;
 	static bool is_GLOBAL_EVENT_section = false;
 	static bool is_TEST_CASE_section = false;
-	static bool is_INCLUDE_section = false;
+	static bool is_INCLUDE_FRONT_section = false;
+	static bool is_INCLUDE_BACK_section = false;
+	static bool is_EVENT_PARA_section = false;
 	static bool is_ASSERT_section = false;
 
 	RawStr_Para_t rawStrPara;
@@ -220,19 +224,51 @@ int SMM3_IniFile_ExtProc_CB(LibStringClass &str, LibStringClass &rawStr, u32 lin
 		return 1;
 	}
 
-	if (str.str == "<INCLUDE>") {
-		is_INCLUDE_section = true;
+	if (str.str == "<INCLUDE_FRONT>") {
+		is_INCLUDE_FRONT_section = true;
 		return 1;
 	}
-	if (str.str == "</INCLUDE>") {
-		is_INCLUDE_section = false;
+	if (str.str == "</INCLUDE_FRONT>") {
+		is_INCLUDE_FRONT_section = false;
 		return 1;
 	}
-	if (is_INCLUDE_section) {
+	if (is_INCLUDE_FRONT_section) {
 		if (str.str.length() == 0)
 			return 1;
 
-		gCB_INCLUDE_RawVector.push_back(rawStrPara);
+		gCB_INCLUDE_FRONT_RawVector.push_back(rawStrPara);
+		return 1;
+	}
+
+	if (str.str == "<INCLUDE_BACK>") {
+		is_INCLUDE_BACK_section = true;
+		return 1;
+	}
+	if (str.str == "</INCLUDE_BACK>") {
+		is_INCLUDE_BACK_section = false;
+		return 1;
+	}
+	if (is_INCLUDE_BACK_section) {
+		if (str.str.length() == 0)
+			return 1;
+
+		gCB_INCLUDE_BACK_RawVector.push_back(rawStrPara);
+		return 1;
+	}
+
+	if (str.str == "<EVENT_PARA>") {
+		is_EVENT_PARA_section = true;
+		return 1;
+	}
+	if (str.str == "</EVENT_PARA>") {
+		is_EVENT_PARA_section = false;
+		return 1;
+	}
+	if (is_EVENT_PARA_section) {
+		if (str.str.length() == 0)
+			return 1;
+
+		gCB_EVENT_PARA_RawVector.push_back(rawStrPara);
 		return 1;
 	}
 
@@ -752,14 +788,15 @@ int SMM3_S7_Make_TestCase_Table_Function(SMM3_t &nextState)
 	return 0; // Error Code, true for error.
 }
 
-static void _SMM3_S8_Print_IncludeLibrary(LibFileIoClass &outFile)
+static void _SMM3_S8_Print_IncludeLibrary_Front(LibFileIoClass &outFile)
 {
 	// STD Library
 	outFile.FilePrint(
-		"#include <stdlib.h>" LF);
+		"#include <stdlib.h>" LF LF);
+
 	// Customized Library
-	for (u32 i = 0; i < gCB_INCLUDE_RawVector.size(); i++) {
-		outFile.FilePrint("%s\n", gCB_INCLUDE_RawVector[i].rawStr.c_str());
+	for (u32 i = 0; i < gCB_INCLUDE_FRONT_RawVector.size(); i++) {
+		outFile.FilePrint("%s\n", gCB_INCLUDE_FRONT_RawVector[i].rawStr.c_str());
 	}
 	outFile.FilePrint("\n");
 }
@@ -791,17 +828,31 @@ static void _SMM3_S8_Print_StateTypedef(LibFileIoClass &outFile)
 			gS1_StateVector[i].alignStr.c_str(),
 			i, i);
 	}
+	outFile.FilePrint(
+		LF\
+		HT "%sDUMMY," LF,
+		gS0_State_Prefix.c_str());
 	outFile.FilePrint("} %s;\n\n", _STR_StateTypedefName());
 }
 
 static void _SMM3_S8_Print_EventParaTypedef(LibFileIoClass &outFile)
 {
-	// typedef EVENT_PARA
-	outFile.FilePrint(
-		"typedef struct {" LF \
-		HT "int dummy;" LF \
-		"} %s;" LF LF,
-		_STR_EventParaType());
+	if (0 == gCB_EVENT_PARA_RawVector.size()) {
+		outFile.FilePrint(
+			"typedef struct {" LF \
+			HT "int dummy;" LF \
+			"} %s;" LF LF,
+			_STR_EventParaType());
+	} else {
+		outFile.FilePrint(
+			"typedef struct {" LF);
+		for (u32 i = 0; i < gCB_EVENT_PARA_RawVector.size(); i++) {
+			outFile.FilePrint("%s\n", gCB_EVENT_PARA_RawVector[i].rawStr.c_str());
+		}
+		outFile.FilePrint(
+			"} %s;" LF LF,
+			_STR_EventParaType());
+	}
 }
 
 static void _SMM3_S8_Print_StateChangeFunc(LibFileIoClass &outFile)
@@ -874,6 +925,17 @@ static void _SMM3_S8_Print_StateFunc(LibFileIoClass &outFile)
 				_STR_StateTypedefName(),
 				_STR_EventParaType());
 		}
+		#if 0
+		else if (0 == strcmp(gS6_StateFunc_Table[i].entryFunc.c_str(), "PURE")) {
+			outFile.FilePrint(
+				"int %s%s(%s oldState, %s *evtPara = NULL);" LF,
+				gS1_StateVector[i].prefixStr.c_str(),
+				gS1_StateVector[i].stateStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+		#endif
+
 		if (0 == strcmp(gS6_StateFunc_Table[i].leaveFunc.c_str(), "DEFAULT")) {
 			outFile.FilePrint(
 				"int %s%s_Leave(%s newState, %s *evtPara = NULL);" LF,
@@ -882,6 +944,16 @@ static void _SMM3_S8_Print_StateFunc(LibFileIoClass &outFile)
 				_STR_StateTypedefName(),
 				_STR_EventParaType());
 		}
+		#if 0
+		else if (0 == strcmp(gS6_StateFunc_Table[i].leaveFunc.c_str(), "PURE")) {
+			outFile.FilePrint(
+				"int %s%s(%s oldState, %s *evtPara = NULL);" LF,
+				gS1_StateVector[i].prefixStr.c_str(),
+				gS1_StateVector[i].stateStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+		#endif
 	}
 	
 	outFile.FilePrint(
@@ -902,7 +974,8 @@ static void _SMM3_S8_Print_GlobalEventFunc(LibFileIoClass &outFile)
 			if (0 == strcmp("NULL", gS2_EventVector[i].globalEventFunc.c_str())) {
 				; // do nothing
 			} else if (0 == strcmp("DEFAULT", gS2_EventVector[i].globalEventFunc.c_str())) {
-				outFile.FilePrint("int %s%s_Function(%s &state, %s *evtPara = NULL);\n",
+				outFile.FilePrint("%s %s%s_Function(%s &state, %s *evtPara = NULL);\n",
+					_STR_StateTypedefName(),
 					gS2_EventVector[i].prefixStr.c_str(),
 					gS2_EventVector[i].eventStr.c_str(),
 					_STR_StateTypedefName(),
@@ -914,9 +987,19 @@ static void _SMM3_S8_Print_GlobalEventFunc(LibFileIoClass &outFile)
 	}
 
 	outFile.FilePrint(
-		"typedef int (*Event_CB)(%s &state, %s *evtPara);" LF,
+		"typedef %s (*Event_CB)(%s &state, %s *evtPara);" LF LF,
+		_STR_StateTypedefName(),
 		_STR_StateTypedefName(),
 		_STR_EventParaType());
+}
+
+static void _SMM3_S8_Print_IncludeLibrary_Back(LibFileIoClass &outFile)
+{
+	// Customized Library
+	for (u32 i = 0; i < gCB_INCLUDE_BACK_RawVector.size(); i++) {
+		outFile.FilePrint("%s\n", gCB_INCLUDE_BACK_RawVector[i].rawStr.c_str());
+	}
+	outFile.FilePrint("\n");
 }
 
 int SMM3_S8_Create_Header_File_Function(SMM3_t &nextState)
@@ -959,7 +1042,7 @@ int SMM3_S8_Create_Header_File_Function(SMM3_t &nextState)
 			redefineStr.CStr());
 	}
 
-	_SMM3_S8_Print_IncludeLibrary(outFile);
+	_SMM3_S8_Print_IncludeLibrary_Front(outFile);
 	_SMM3_S8_Print_EventTypedef(outFile);
 	_SMM3_S8_Print_StateTypedef(outFile);
 	_SMM3_S8_Print_EventParaTypedef(outFile);
@@ -967,6 +1050,7 @@ int SMM3_S8_Create_Header_File_Function(SMM3_t &nextState)
 	_SMM3_S8_Print_StateMachineFunc(outFile);
 	_SMM3_S8_Print_StateFunc(outFile);
 	_SMM3_S8_Print_GlobalEventFunc(outFile);
+	_SMM3_S8_Print_IncludeLibrary_Back(outFile);
 
 	// Avoid redefinition
 	if (isRedefineTypeBefore) {
@@ -1001,13 +1085,13 @@ static void _SMM3_S9_Print_Include_n_StateGlobalVariable(LibFileIoClass &outFile
 static void _SMM3_S9_Print_SE_Table(LibFileIoClass &outFile)
 {
 	gTempStr = "";
-	gTempStr.insert(0, _StateStringLen_WithPrefix_WithAlign(), ' ');
+	gTempStr.insert(0, _StateStringLen_WithPrefix_WithAlign() + 14 + 2, ' ');
 	
 	outFile.FilePrint(
 		"State_Row_t gSE_Table[] = {" LF\
 		"// %s      ",
 		gTempStr.c_str());
-	u32 columnWidth = _StateStringLen_WithPrefix_WithAlign() + 11 + 4 + 11 + 2;
+	u32 columnWidth = _StateStringLen_WithPrefix_WithAlign() + 11 + 4;
 	for (u32 i = 0; i < gS2_SimpleEventTotalCount; i++) {
 		std::string colStr = gS2_EventVector[i].prefixStr + gS2_EventVector[i].eventStr;
 		u32 alignLen = columnWidth - colStr.length();
@@ -1030,7 +1114,7 @@ static void _SMM3_S9_Print_SE_Table(LibFileIoClass &outFile)
 		}
 			
 		outFile.FilePrint(
-			"/* %s%s%s */ { %-11s, ",
+			"/* %s%s%s */ { %-11s, { ",
 			gS1_StateVector[i].prefixStr.c_str(),
 			gS1_StateVector[i].stateStr.c_str(),
 			gS1_StateVector[i].alignStr.c_str(),
@@ -1051,9 +1135,10 @@ static void _SMM3_S9_Print_SE_Table(LibFileIoClass &outFile)
 					break;
 			}
 			u32 nextState = gS4_SE_Table[i].row[j].nextState;
-			outFile.FilePrint("{%-11s %s}, ", gTempStr.c_str(), _StateIndexToString_WithPrefix_WithAlign(nextState, "0"));
+			std::string dummyStr = gS0_State_Prefix + "DUMMY";
+			outFile.FilePrint("{%-11s %s}, ", gTempStr.c_str(), _StateIndexToString_WithPrefix_WithAlign(nextState, dummyStr.c_str()));
 		}
-		outFile.FilePrint("}," LF);
+		outFile.FilePrint("}, }," LF);
 	}
 
 	outFile.FilePrint("};" LF LF);
@@ -1070,6 +1155,10 @@ static void _SMM3_S9_Print_State_CB_Table(LibFileIoClass &outFile)
 			entryStr = "NULL";
 		} else if (0 == strcmp("DEFAULT", gS6_StateFunc_Table[i].entryFunc.c_str())) {
 			entryStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "_Entry";
+		#if 0
+		} else if (0 == strcmp("PURE", gS6_StateFunc_Table[i].entryFunc.c_str())) {
+			entryStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "";
+		#endif
 		} else {
 			entryStr = gS6_StateFunc_Table[i].entryFunc;
 		}
@@ -1079,6 +1168,10 @@ static void _SMM3_S9_Print_State_CB_Table(LibFileIoClass &outFile)
 			leaveStr = "NULL";
 		} else if (0 == strcmp("DEFAULT", gS6_StateFunc_Table[i].leaveFunc.c_str())) {
 			leaveStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "_Leave";
+		#if 0
+		} else if (0 == strcmp("PURE", gS6_StateFunc_Table[i].leaveFunc.c_str())) {
+			leaveStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "";
+		#endif
 		} else {
 			leaveStr = gS6_StateFunc_Table[i].leaveFunc;
 		}
@@ -1164,13 +1257,15 @@ static void _SMM3_S9_Print_StateChangeFunction(LibFileIoClass &outFile)
 	}
 
 	outFile.FilePrint(
+		HT HT "default:" LF\
+		HT HT HT "break;" LF\
 		HT "}" LF\
 		LF\
-		HT "return nextState" LF\
+		HT "return nextState;" LF\
 		"}" LF LF);
 }
 
-static void _SMM3_S9_Print_EventList(LibFileIoClass &outFile)
+static void _SMM3_S9_Print_GlobalEventCB_Array(LibFileIoClass &outFile)
 {
 	outFile.FilePrint("Event_CB gGlobalEvent_CB_List[] = {" LF);
 
@@ -1258,13 +1353,11 @@ int SMM3_S9_Create_Core_File_Function(SMM3_t &nextState)
 	_SMM3_S9_Print_SE_Table(outFile);
 	_SMM3_S9_Print_State_CB_Table(outFile);
 	_SMM3_S9_Print_StateChangeFunction(outFile);
-	_SMM3_S9_Print_EventList(outFile);
+	_SMM3_S9_Print_GlobalEventCB_Array(outFile);
 
 	outFile.FilePrint(
 		"%s %s(%s event, %s *evtPara /* = NULL */)" LF \
-		"{" LF \
-		HT "int retVal;" LF \
-		LF,
+		"{" LF,
 		_STR_StateTypedefName(),
 		_STR_StateMachineFuncName(),
 		_STR_EventTypedefName(),
@@ -1304,6 +1397,20 @@ int SMM3_S10_Create_Function_File_Function(SMM3_t &nextState)
 				_STR_StateTypedefName(),
 				_STR_EventParaType());
 		}
+		#if 0
+		else if (0 == strcmp(gS6_StateFunc_Table[i].entryFunc.c_str(), "PURE")) {
+			outFile.FilePrint(
+				"int %s%s(%s oldState, %s *evtPara /* = NULL */)" LF\
+				"{" LF\
+				HT "return 0;" LF\
+				"}" LF LF,
+				gS1_StateVector[i].prefixStr.c_str(),
+				gS1_StateVector[i].stateStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+		#endif
+
 		if (0 == strcmp(gS6_StateFunc_Table[i].leaveFunc.c_str(), "DEFAULT")) {
 			outFile.FilePrint(
 				"int %s%s_Leave(%s newState, %s *evtPara /* = NULL */)" LF\
@@ -1315,14 +1422,260 @@ int SMM3_S10_Create_Function_File_Function(SMM3_t &nextState)
 				_STR_StateTypedefName(),
 				_STR_EventParaType());
 		}
+		#if 0
+		else if (0 == strcmp(gS6_StateFunc_Table[i].leaveFunc.c_str(), "PURE")) {
+			outFile.FilePrint(
+				"int %s%s(%s newState, %s *evtPara /* = NULL */)" LF\
+				"{" LF\
+				HT "return 0;" LF\
+				"}" LF LF,
+				gS1_StateVector[i].prefixStr.c_str(),
+				gS1_StateVector[i].stateStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+		#endif
 	}
 
+	for (u32 i = 0; i < gS2_EventVector.size(); i++) {
+		if (gS2_EventVector[i].eventType == GlobalEvent) {
+			if (0 == strcmp("NULL", gS2_EventVector[i].globalEventFunc.c_str())) {
+				; // do nothing
+			} else if (0 == strcmp("DEFAULT", gS2_EventVector[i].globalEventFunc.c_str())) {
+				outFile.FilePrint(
+					"%s %s%s_Function(%s &state, %s *evtPara /* = NULL */)" LF\
+					"{" LF\
+					HT "return state;" LF\
+					"}" LF LF,
+					_STR_StateTypedefName(),
+					gS2_EventVector[i].prefixStr.c_str(),
+					gS2_EventVector[i].eventStr.c_str(),
+					_STR_StateTypedefName(),
+					_STR_EventParaType());
+			} else {
+				; // do nothing
+			}
+		}
+	}
+	
 	nextState = SMM3_S11_Exit;
 	return 0; // Error Code, true for error.
 }
 
+std::string gExt_File_Name;
+
+static void _Print_Ext_Header_Enum(LibFileIoClass &outFile)
+{
+	outFile.FilePrint("typedef enum {" LF);
+
+	for (u32 i = 0; i < gS5_InterState_Table.size(); i++) {
+		for (u32 j = 0; j < gS5_InterState_Table[i].childStateExtEnumName.size(); j++) {
+			outFile.FilePrint(
+				HT "%s," LF,
+				gS5_InterState_Table[i].childStateExtEnumName[j].c_str());
+		}
+	}
+
+	outFile.FilePrint("} %s_Return_Code_t;" LF LF, gExt_File_Name.c_str());
+}
+
+static void _Print_Ext_Header_FuncDeclare(LibFileIoClass &outFile)
+{
+	for (u32 i = 0; i < gS6_StateFunc_Table.size(); i++) {
+		std::string entryStr;
+		if (0 == strcmp("NULL", gS6_StateFunc_Table[i].entryFunc.c_str())) {
+			//entryStr = "NULL";
+		} else if (0 == strcmp("DEFAULT", gS6_StateFunc_Table[i].entryFunc.c_str())) {
+			//entryStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "_Entry";
+		} else {
+			entryStr = gS6_StateFunc_Table[i].entryFunc;
+			outFile.FilePrint(
+				"int %s(%s state, %s *evtPara = NULL);" LF,
+				entryStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+
+		std::string leaveStr;
+		if (0 == strcmp("NULL", gS6_StateFunc_Table[i].leaveFunc.c_str())) {
+			//leaveStr = "NULL";
+		} else if (0 == strcmp("DEFAULT", gS6_StateFunc_Table[i].leaveFunc.c_str())) {
+			//leaveStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "_Leave";
+		} else {
+			leaveStr = gS6_StateFunc_Table[i].leaveFunc;
+			outFile.FilePrint(
+				"int %s(%s state, %s *evtPara = NULL);" LF,
+				leaveStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+	}
+
+	// Global Event Function
+	for (u32 i = 0; i < gS2_EventVector.size(); i++) {
+		if (gS2_EventVector[i].eventType == GlobalEvent) {
+			if (0 == strcmp("NULL", gS2_EventVector[i].globalEventFunc.c_str())) {
+				//outFile.FilePrint(HT "NULL," LF);
+			} else if (0 == strcmp("DEFAULT", gS2_EventVector[i].globalEventFunc.c_str())) {
+				//outFile.FilePrint(HT "%s%s_Function," LF,
+				//	gS2_EventVector[i].prefixStr.c_str(),
+				//	gS2_EventVector[i].eventStr.c_str());
+			} else {
+				outFile.FilePrint(
+					"%s %s(%s &state, %s *evtPara = NULL);" LF,
+					_STR_StateTypedefName(),
+					gS2_EventVector[i].globalEventFunc.c_str(),
+					_STR_StateTypedefName(),
+					_STR_EventParaType());
+			}
+		}
+	}
+}
+
+static void _Print_Ext_Header(void)
+{
+	EXIT_CHK( rc, gS0_Ini_File_Obj.GetValueString("[ATTR]", "Ext_File_Name", gExt_File_Name) );
+
+	std::string ext_File_Header_C;
+	ext_File_Header_C = gExt_File_Name + ".hpp";
+
+	LibFileIoClass outFile(ext_File_Header_C.c_str(), "w+b");
+
+	outFile.FileOpen();
+
+	// 1. avoid re-define
+	LibStringClass redefineStr;
+	redefineStr.Init(ext_File_Header_C.c_str());
+	redefineStr.ReplaceSubString(".", "_");
+	redefineStr.ToUpperCase();
+	redefineStr.str = redefineStr.str.insert(0, "_");
+	redefineStr.str = redefineStr.str.insert(redefineStr.str.length(), "_");
+
+	// Avoid redefinition
+	bool isRedefineTypeBefore;
+	EXIT_CHK( rc, gS0_Ini_File_Obj.GetValueString("[ATTR]", "AVOID_REDEFINE_TYPE", gTempStr) );
+	if (0 == strcmp(gTempStr.c_str(), "BEFORE")) {
+		isRedefineTypeBefore = true;
+	} else if (0 == strcmp(gTempStr.c_str(), "AFTER")) {
+		isRedefineTypeBefore = false;
+	} else {
+		printf("AVOID_REDEFINE_TYPE must be \"BEFORE\" or \"AFTER\".\n");
+		EXIT_LOC_IF(1);
+	}
+	// Avoid redefinition
+	if (isRedefineTypeBefore) {
+		outFile.FilePrint(
+			"\n" \
+			"#ifndef %s" LF \
+			"#define %s" LF LF,
+			redefineStr.CStr(),
+			redefineStr.CStr());
+	} else {
+		outFile.FilePrint(
+			"\n" \
+			"#ifndef %s\n\n",
+			redefineStr.CStr());
+	}
+
+	_Print_Ext_Header_Enum(outFile);
+	_Print_Ext_Header_FuncDeclare(outFile);
+	
+	// Avoid redefinition
+	if (isRedefineTypeBefore) {
+		outFile.FilePrint(
+			LF \
+			"#endif //%s" LF LF,
+			redefineStr.CStr());
+	} else {
+		outFile.FilePrint(
+			LF \
+			"#define %s" LF \
+			"#endif //%s" LF LF,
+			redefineStr.CStr(),
+			redefineStr.CStr());
+	}
+}
+
+static void _Print_Ext_Function(void)
+{
+	std::string ext_File_Function_C;
+	ext_File_Function_C = gExt_File_Name + ".cpp";
+
+	LibFileIoClass outFile(ext_File_Function_C.c_str(), "w+b");
+
+	outFile.FileOpen();
+
+	gTempStr = gExt_File_Name + ".hpp";
+	outFile.FilePrint(
+		"\n" \
+		"#include \"%s\"" LF LF,
+		gTempStr.c_str());
+
+	for (u32 i = 0; i < gS6_StateFunc_Table.size(); i++) {
+		std::string entryStr;
+		if (0 == strcmp("NULL", gS6_StateFunc_Table[i].entryFunc.c_str())) {
+			//entryStr = "NULL";
+		} else if (0 == strcmp("DEFAULT", gS6_StateFunc_Table[i].entryFunc.c_str())) {
+			//entryStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "_Entry";
+		} else {
+			entryStr = gS6_StateFunc_Table[i].entryFunc;
+			outFile.FilePrint(
+				"int %s(%s state, %s *evtPara /* = NULL */)" LF\
+				"{" LF\
+				HT "return 0;" LF\
+				"}" LF LF,
+				entryStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+
+		std::string leaveStr;
+		if (0 == strcmp("NULL", gS6_StateFunc_Table[i].leaveFunc.c_str())) {
+			//leaveStr = "NULL";
+		} else if (0 == strcmp("DEFAULT", gS6_StateFunc_Table[i].leaveFunc.c_str())) {
+			//leaveStr = gS1_StateVector[i].prefixStr + gS1_StateVector[i].stateStr + "_Leave";
+		} else {
+			leaveStr = gS6_StateFunc_Table[i].leaveFunc;
+			outFile.FilePrint(
+				"int %s(%s state, %s *evtPara /* = NULL */)" LF\
+				"{" LF\
+				HT "return 0;" LF\
+				"}" LF LF,
+				leaveStr.c_str(),
+				_STR_StateTypedefName(),
+				_STR_EventParaType());
+		}
+	}
+
+	// Global Event Function
+	for (u32 i = 0; i < gS2_EventVector.size(); i++) {
+		if (gS2_EventVector[i].eventType == GlobalEvent) {
+			if (0 == strcmp("NULL", gS2_EventVector[i].globalEventFunc.c_str())) {
+				//outFile.FilePrint(HT "NULL," LF);
+			} else if (0 == strcmp("DEFAULT", gS2_EventVector[i].globalEventFunc.c_str())) {
+				//outFile.FilePrint(HT "%s%s_Function," LF,
+				//	gS2_EventVector[i].prefixStr.c_str(),
+				//	gS2_EventVector[i].eventStr.c_str());
+			} else {
+				outFile.FilePrint(
+					"%s %s(%s &state, %s *evtPara /* = NULL */)" LF\
+					"{" LF\
+					HT "return state;" LF\
+					"}" LF LF,
+					_STR_StateTypedefName(),
+					gS2_EventVector[i].globalEventFunc.c_str(),
+					_STR_StateTypedefName(),
+					_STR_EventParaType());
+			}
+		}
+	}
+}
+
 int SMM3_S11_Exit_Function(SMM3_t &nextState)
 {
+	_Print_Ext_Header();
+	_Print_Ext_Function();
+	
 	return 0; // Error Code, true for error.
 }
 
