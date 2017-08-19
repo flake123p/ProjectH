@@ -10,9 +10,11 @@
 // ============================== Define ==============================
 typedef void * THREAD_HANDLE_t;
 typedef enum {
-	TPRI_L,
-	TPRI_M,
+	TPRI_HH,
 	TPRI_H,
+	TPRI_M,
+	TPRI_L,
+	TPRI_LL,
 
 	TPRI_DEFAULT,
 } THREAD_PRIORITY_t;
@@ -29,7 +31,10 @@ int LibThreadMgr_Unfreeze_WatchDog(void);
 
 void LibThreadMgr_Demo(void);
 void LibThreadMgr_DemoLite(void);
+
 void LibThreadMgr_DemoEvent(void);
+void LibThreadMgr_DemoPriority(void);
+
 void LibThreadMgr_DemoMutex(void);
 void LibThreadMgr_Demo_WatchDog(void);
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================

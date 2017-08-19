@@ -178,6 +178,74 @@ void LibThreadMgr_DemoEvent(void)
 	ASSERT_IF(retVal);
 }
 
+void *Test_Thread_A_Priority(void *arg)
+{
+	LibIPC_Event_Wait(gEvent_A);
+
+	LibIPC_Event_Set(gEvent_B);
+
+	for (u32 i=0; i<1000000000; i++) {
+		;
+	}
+	printf("A\n");
+
+	return 0;
+}
+
+void *Test_Thread_B_Priority(void *arg)
+{
+	LibIPC_Event_Wait(gEvent_B);
+	
+	for (u32 i=0; i<1000000000; i++) {
+		;
+	}
+	printf("B\n");
+
+	return 0;
+}
+
+void LibThreadMgr_DemoPriority(void)
+{
+	THREAD_HANDLE_t threadHdl_A;
+	THREAD_HANDLE_t threadHdl_B;
+
+	int retVal;
+
+	retVal = LibThread_NewHandle(&threadHdl_A, TPRI_HH);
+	ASSERT_IF(retVal);
+	retVal = LibThread_NewHandle(&threadHdl_B, TPRI_LL);
+	ASSERT_IF(retVal);
+
+	retVal = LibIPC_Event_Create(&gEvent_A);
+	ASSERT_IF(retVal);
+	retVal = LibIPC_Event_Create(&gEvent_B);
+	ASSERT_IF(retVal);
+
+	retVal = LibThread_Create(threadHdl_A, Test_Thread_A_Priority);
+	ASSERT_IF(retVal);
+	retVal = LibThread_Create(threadHdl_B, Test_Thread_B_Priority);
+	ASSERT_IF(retVal);
+
+	LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
+	LibIPC_Event_Set(gEvent_A);
+	
+	LibTime_StartMicroSecondClock();
+	LibThread_WaitThread(threadHdl_A);
+	LibThread_WaitThread(threadHdl_B);
+	LibTime_StopMicroSecondClock_ShowResult();
+	PRINT_NEXT_LINE;
+
+	retVal = LibIPC_Event_Destroy(gEvent_A);
+	ASSERT_IF(retVal);
+	retVal = LibIPC_Event_Destroy(gEvent_B);
+	ASSERT_IF(retVal);
+
+	retVal = LibThread_DestroyHandle(threadHdl_A);
+	ASSERT_IF(retVal);
+	retVal = LibThread_DestroyHandle(threadHdl_B);
+	ASSERT_IF(retVal);
+}
+
 MUTEX_HANDLE_t gTextMutexHdl;
 
 void Test_Mutex_Print(int base)

@@ -25,6 +25,36 @@ int LibThread_Create(THREAD_HANDLE_t threadHdl, ThreadEntryFunc entry, void *arg
 	THREAD_HANDLE_WIN_t *tHdl = (THREAD_HANDLE_WIN_t *)threadHdl;
 	
 	tHdl->winHdl = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)entry, arg, 0, NULL);
+
+	bool isSetThreadSuccess = false;
+	switch (tHdl->priority) {
+		case TPRI_HH: {
+			isSetThreadSuccess = SetThreadPriority(tHdl->winHdl, THREAD_PRIORITY_HIGHEST);
+		} break;
+
+		case TPRI_H: {
+			isSetThreadSuccess = SetThreadPriority(tHdl->winHdl, THREAD_PRIORITY_ABOVE_NORMAL);
+		} break;
+
+		case TPRI_DEFAULT:
+		case TPRI_M: {
+			isSetThreadSuccess = SetThreadPriority(tHdl->winHdl, THREAD_PRIORITY_NORMAL);
+		} break;
+
+		case TPRI_L: {
+			isSetThreadSuccess = SetThreadPriority(tHdl->winHdl, THREAD_PRIORITY_BELOW_NORMAL);
+		} break;
+
+		case TPRI_LL: {
+			isSetThreadSuccess = SetThreadPriority(tHdl->winHdl, THREAD_PRIORITY_LOWEST);
+		} break;
+
+		default:
+			return 3;
+	}
+
+	if (isSetThreadSuccess == false)
+		return 2;
 	
 	if ( tHdl->winHdl == NULL)
 		return 1;
