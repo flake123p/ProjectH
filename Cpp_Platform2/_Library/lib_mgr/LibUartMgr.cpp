@@ -16,12 +16,16 @@ int LibUartMgr_DemoTxRx(void)
 	uint32_t receivedLegnth = 0;
 	LibUart_InitComPort(COM_PORT_NAME, BAUD_RATE);
 
+	LibThreadMgr_Touch_WatchDog();
 	LibUart_Send(lpBuffer, sizeof(lpBuffer));
 	LibUart_Receive(gRxBuffer, &receivedLegnth);
+	LibThreadMgr_Freeze_WatchDog();
 	UART_LOG_MSG(">>> receivedLegnth = %d\n", receivedLegnth);
-	
+
+	LibThreadMgr_Touch_WatchDog();
 	LibUart_Send(lpBuffer, sizeof(lpBuffer));
 	LibUart_Receive(gRxBuffer, &receivedLegnth);
+	LibThreadMgr_Freeze_WatchDog();
 	UART_LOG_MSG(">>> receivedLegnth = %d\n", receivedLegnth);
 	
 	LibUart_UninitComPort();

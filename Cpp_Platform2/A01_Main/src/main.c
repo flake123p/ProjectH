@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
 	//LibArgParser_OptionSet_Demo();
-	LibThreadMgr_DemoPriority();
+	LibEncrypt_Demo();
 	return 0;
 }
 

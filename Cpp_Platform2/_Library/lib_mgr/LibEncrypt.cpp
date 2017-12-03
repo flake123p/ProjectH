@@ -61,12 +61,14 @@ u16 LibEncrypt_CalculateCRC16_IBM(u8 *buf, u32 len, u16 polyRep)
 
 void LibEncrypt_Demo(void)
 {
-	u8 buf[] = {0x01, 0x05, 0x01, 0x00, 0x00, 0x00, 0x0A, 0x0B};
+	//u8 buf[] = {0x44, 0x80, 0x04, 0x00};
+	//u8 buf[] = {0x02, 0x20, 0x02, 0x82};
+	u8 buf[] = {0x02, 0x20, 0x01, 0x72};
+	
 	u16 crc16;
-	crc16 = LibEncrypt_CalculateCRC16((u8 *)buf, 8);
-
+	crc16 = LibEncrypt_CalculateCRC16((u8 *)buf, GET_ARRAY_LEN(buf));
 	DUMPX(crc16);
 
-	crc16 = LibEncrypt_CalculateCRC16_IBM((u8 *)buf, 8, 0xC002);
+	crc16 = LibEncrypt_CalculateCRC16_IBM((u8 *)buf, GET_ARRAY_LEN(buf), 0xC002);
 	DUMPX(crc16);
 }

@@ -1236,9 +1236,10 @@ static void _SMM3_S9_Print_StateChangeFunction(LibFileIoClass &outFile)
 						for (u32 k = 0; k < gS5_InterState_Table[j].childState.size(); k++) {
 							outFile.FilePrint(
 								HT HT HT HT "case %s:" LF\
-								HT HT HT HT HT "gLrm = nextState;" LF\
+								HT HT HT HT HT "%s = nextState;" LF\
 								HT HT HT HT HT "return %s(%s, evtPara);" LF LF ,
 								gS5_InterState_Table[j].childStateExtEnumName[k].c_str(),
+								_STR_StateGlobalVarName(),
 								_STR_StateChangeFuncName(),
 								_StateIndexToString_WithPrefix(gS5_InterState_Table[j].childState[k], "ERROR")
 							);
