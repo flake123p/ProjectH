@@ -33,48 +33,102 @@ void LibUtil_Print_RAND_MAX(void)
 
 int LibUtil_BytesToInt32(u32 &dst, u8 *src, bool isSrcBigEndian)
 {
-	if (isSrcBigEndian) {
-		dst = SHIFT_OR_4(src[0], src[1], src[2], src[3]);
+	if (IS_LITTLE_ENDIAN()) {
+		if (isSrcBigEndian) {
+			//SWAP
+			dst = SHIFT_OR_4(src[0], src[1], src[2], src[3]);
+		} else {
+			//NO SWAP
+			dst = SHIFT_OR_4(src[3], src[2], src[1], src[0]);
+		}
 	} else {
-		dst = SHIFT_OR_4(src[3], src[2], src[1], src[0]);
+		// BIG ENDIAN
+		if (isSrcBigEndian) {
+			//NO SWAP
+			dst = SHIFT_OR_4(src[3], src[2], src[1], src[0]);
+		} else {
+			//SWAP
+			dst = SHIFT_OR_4(src[0], src[1], src[2], src[3]);
+		}
 	}
+
 	return 0;
 }
 
 int LibUtil_Int32ToBytes(u8 *dst, u32 &src, bool isDstBigEndian)
 {
-	if (isDstBigEndian) {
-		dst[0] = src>>24;
-		dst[1] = src>>16;
-		dst[2] = src>>8;
-		dst[3] = src;
+	if (IS_LITTLE_ENDIAN()) {
+		if (isDstBigEndian) {
+			dst[0] = src>>24;
+			dst[1] = src>>16;
+			dst[2] = src>>8;
+			dst[3] = src;
+		} else {
+			dst[3] = src>>24;
+			dst[2] = src>>16;
+			dst[1] = src>>8;
+			dst[0] = src;
+		}
 	} else {
-		dst[3] = src>>24;
-		dst[2] = src>>16;
-		dst[1] = src>>8;
-		dst[0] = src;
+		// BIG ENDIAN
+		if (isDstBigEndian) {
+			dst[3] = src>>24;
+			dst[2] = src>>16;
+			dst[1] = src>>8;
+			dst[0] = src;
+		} else {
+			dst[0] = src>>24;
+			dst[1] = src>>16;
+			dst[2] = src>>8;
+			dst[3] = src;
+		}
 	}
 	return 0;
 }
 
 int LibUtil_BytesToInt16(u16 &dst, u8 *src, bool isSrcBigEndian)
 {
-	if (isSrcBigEndian) {
-		dst = SHIFT_OR_2(src[0], src[1]);
+	if (IS_LITTLE_ENDIAN()) {
+		if (isSrcBigEndian) {
+			//SWAP
+			dst = SHIFT_OR_2(src[0], src[1]);
+		} else {
+			//NO SWAP
+			dst = SHIFT_OR_2(src[1], src[0]);
+		}
 	} else {
-		dst = SHIFT_OR_2(src[1], src[0]);
+		// BIG ENDIAN
+		if (isSrcBigEndian) {
+			//NO SWAP
+			dst = SHIFT_OR_2(src[1], src[0]);
+		} else {
+			//SWAP
+			dst = SHIFT_OR_2(src[0], src[1]);
+		}
 	}
+
 	return 0;
 }
 
 int LibUtil_Int16ToBytes(u8 *dst, u16 &src, bool isDstBigEndian)
 {
-	if (isDstBigEndian) {
-		dst[0] = src>>8;
-		dst[1] = src;
+	if (IS_LITTLE_ENDIAN()) {
+		if (isDstBigEndian) {
+			dst[0] = src>>8;
+			dst[1] = src;
+		} else {
+			dst[1] = src>>8;
+			dst[0] = src;
+		}
 	} else {
-		dst[1] = src>>8;
-		dst[0] = src;
+		// BIG ENDIAN
+		if (isDstBigEndian) {
+			dst[1] = src>>8;
+			dst[0] = src;
+		} else {
+			dst[0] = src>>8;
+			dst[1] = src;
+		}
 	}
 	return 0;
 }

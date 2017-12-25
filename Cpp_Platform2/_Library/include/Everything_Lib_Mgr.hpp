@@ -44,6 +44,7 @@
 #include "LibArgParser.hpp"
 #include "LibSimpleFS.hpp"
 #include "LibEncrypt.hpp"
+#include "LibPacket.hpp"
 
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_
