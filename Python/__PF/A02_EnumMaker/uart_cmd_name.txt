@@ -1,13 +1,13 @@
 Make Call
-MMI Action
 Make Extension Call
+MMI Action
 Event Filter Setting
 Music Control
 Change Device Name
 Change PIN Code
 BTM Parameter Setting
 Read BTM Version
-xxx
+NULL
 Vendor AT Cmd
 AVC Vendor Dependent Cmd
 AVC Group Navigation
@@ -15,7 +15,7 @@ Read Link Status
 Read Paired Device Record
 Read Local BD Address
 Read Local Device Name
-xxx
+NULL
 Send SPP iAP Or LE Data
 BTM Utility Function
 Event Ack
@@ -23,7 +23,7 @@ Additional Profile Link Setup
 Read Linked Device Information
 Profile Link Back
 Disconnect
-xxx
+NULL
 User Confirm SSP Req Reply
 Set HF Speaker Gain Level
 EQ Mode Setting
@@ -31,8 +31,8 @@ DSP NR CTRL
 GPIO CTRL
 MCU UART Rx Buffer Size
 Voice Prompt Cmd
-xxx
-xxx
+NULL
+NULL
 Set Overall Gain
 Read BTM Setting
 Read BTM Battery Charger Status
@@ -44,7 +44,7 @@ nSPK Vendor Cmd
 Read nSPK Link Status
 nSPK Sync Audio Effect
 LE GATT CMD
-xxx
+NULL
 LE App Cmd
 DSP Runtime Program
 Read Vendor Eeprom Data
@@ -52,7 +52,7 @@ Read IC Version Info
 Voice Prompt Ind Cmd
 Read BTM Link Mode
 Configure Vendor Parameter
-xxx
+NULL
 nSPK Exchange Link Info Cmd
 nSPK Set GIAC
 READ FEATURE LIST
