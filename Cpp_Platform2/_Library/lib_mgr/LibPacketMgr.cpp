@@ -54,6 +54,7 @@ int LibPacket_Decode32(u8 *srcAryU8, u32 srcAryLen, PACKET_PARA_t *paraAry, u32 
 
 void LibPacket_Demo(void)
 {
+#if 0
 PACKET_PARA_t hciCmdPacketParaTbl[] = {
 	{PACKET_IS_LITTLE_ENDIAN, 0, 2,  0, 10}, //HCI command: OCF
 	{PACKET_IS_LITTLE_ENDIAN, 0, 2, 10,  6}, //HCI command: OGF
@@ -80,4 +81,11 @@ typedef struct {
 	DUMPX(hciCmd.paraLen);
 	DUMPX(hciCmd.palyoad[0]);
 	DUMPX(hciCmd.palyoad[1]);
+#else
+	PACKET_FIELD_t hciCmdPacketFieldTbl[] = {
+		{PACKET_IS_LITTLE_ENDIAN, OFFSET_0, SIZE_2, BIT_POSITION_0,  SIZE_10, FIELD_TYPE_U16, "HCI command: OCF"},
+		{PACKET_IS_LITTLE_ENDIAN, OFFSET_0, SIZE_2, BIT_POSITION_10, SIZE_6,  FIELD_TYPE_U8,  "HCI command: OGF"},
+		{PACKET_IS_LITTLE_ENDIAN, OFFSET_2, SIZE_2, BIT_POSITION_0,  SIZE_8,  FIELD_TYPE_U16, "HCI command: Para Len"},
+	};
+#endif
 }
