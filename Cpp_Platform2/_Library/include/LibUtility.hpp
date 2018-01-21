@@ -40,6 +40,7 @@ int LibUtil_Int32ToBytes(u8 *dst, u32 &src, bool isDstBigEndian);
 int LibUtil_BytesToInt16(u16 &dst, u8 *src, bool isSrcBigEndian);
 int LibUtil_Int16ToBytes(u8 *dst, u16 &src, bool isDstBigEndian);
 int LibUtil_IntSwapCopy(u8 *dst, u8 *src, u32 len, bool swap);
+int LibUtil_BytesAssembleU32(u32 &dst, u8 *src, u32 bytesNum, bool isSrcBigEndian);
 int LibUtil_DemoEndian(void);
 
 #include "My_Macros.h"

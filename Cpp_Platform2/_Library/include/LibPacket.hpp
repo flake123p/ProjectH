@@ -12,6 +12,7 @@ typedef enum {
 	PACKET_IS_LITTLE_ENDIAN,
 	PACKET_IS_BIG_ENDIAN,
 } PACKET_ENDIAN_t;
+#if 0
 typedef struct {
 	PACKET_ENDIAN_t endian;
 	u32 startPositionInByte; // start position in byte
@@ -19,6 +20,7 @@ typedef struct {
 	u32 bitOffset;
 	u32 bitLen;
 } PACKET_PARA_t;
+#endif
 
 typedef enum {
 	FIELD_TYPE_U8,
@@ -26,6 +28,7 @@ typedef enum {
 	FIELD_TYPE_U32,
 	FIELD_TYPE_U8_ARRAY,
 } PACKET_FIELD_TYPE_t;
+#define DONT_CARE (0)
 typedef struct {
 	PACKET_ENDIAN_t endian;
 	u32 startPositionInByte; // OFFSET_0
@@ -34,21 +37,18 @@ typedef struct {
 	u32 bitLen;             //  SIZE_1
 	PACKET_FIELD_TYPE_t fieldType;
 	const char *description;
-} PACKET_FIELD_t;
-typedef void ** PACKET_FIELD_VAR_TBL_t;
+} PACKET_DEC_PARA_t;
+typedef void * PACKET_DEC_INSTANCE_t;
 
 typedef struct {
 	u8 *rawAry;
 	u32 rawAryLen;
-	u8 *payloadAry;
-	u32 payloadAryLen;
-	u8 *tailerAry;
-	u32 tailerAryLen;
-} PACKET_RAW_DATA_t;
+	u32 rawAryMaxLen;
+} PACKET_ENC_ARY_t;
 
 // ============================== Manager ==============================
-int LibPacket_Decode32(u8 *srcAryU8, u32 srcAryLen, PACKET_PARA_t *paraAry, u32 paraAryLen, OUT u32 *dstAryU32, OUT u8 **payloadInSrcAry);
-int LibPacket_Decode(PACKET_RAW_DATA_t *rawPara, PACKET_FIELD_t *fieldAry, u32 fieldNumber, PACKET_FIELD_VAR_TBL_t dstVarTbl);
+//int LibPacket_Decode32(u8 *srcAryU8, u32 srcAryLen, PACKET_PARA_t *paraAry, u32 paraAryLen, OUT u32 *dstAryU32, OUT u8 **payloadInSrcAry);
+int LibPacket_Decode(PACKET_ENC_ARY_t *rawAryData, PACKET_DEC_PARA_t *decParaAry, u32 decParaAryNumber, PACKET_DEC_INSTANCE_t *decInstance);
 // ============================== Demo ==============================
 void LibPacket_Demo(void);
 

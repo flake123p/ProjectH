@@ -1,6 +1,7 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
+#if 0
 int LibPacket_Decode32(u8 *srcAryU8, u32 srcAryLen, PACKET_PARA_t *paraAry, u32 paraAryLen, OUT u32 *dstAryU32, OUT u8 **payloadInSrcAry)
 {
 	u16 tempU16;
@@ -51,6 +52,62 @@ int LibPacket_Decode32(u8 *srcAryU8, u32 srcAryLen, PACKET_PARA_t *paraAry, u32 
 
 	return 0;
 }
+#endif
+
+int LibPacket_Decode(PACKET_ENC_ARY_t *rawAryData, PACKET_DEC_PARA_t *decParaAry, u32 decParaAryNumber, PACKET_DEC_INSTANCE_t *decInstance)
+{
+	u32 endianDecBufferU32;
+
+	bool isSrcBigEndian;
+
+	for (u32 i = 0; i < decParaAryNumber; i++) {
+		if (decParaAry[i].endian == PACKET_IS_BIG_ENDIAN)
+			isSrcBigEndian = true;
+		else
+			isSrcBigEndian = false;
+
+		if (decParaAry[i].lengthInByte == 0) {
+			if (decParaAry[i].fieldType != FIELD_TYPE_U8_ARRAY) {
+				BASIC_ASSERT(0);
+			}
+		} else {
+			BASIC_ASSERT(decParaAry[i].lengthInByte >= SIZE_1 && decParaAry[i].lengthInByte <= SIZE_4);
+
+			LibUtil_BytesAssembleU32(
+				endianDecBufferU32,
+				&(rawAryData->rawAry[decParaAry[i].startPositionInByte]),
+				decParaAry[i].lengthInByte,
+				isSrcBigEndian);
+		}
+
+		switch (decParaAry[i].fieldType) {
+			case FIELD_TYPE_U8: {
+				endianDecBufferU32 = GET_BIT_FIELD_2(endianDecBufferU32, decParaAry[i].bitLen, decParaAry[i].bitOffset);
+				*((u8 *)decInstance[i]) = (u8)endianDecBufferU32;
+			} break;
+
+			case FIELD_TYPE_U16: {
+				endianDecBufferU32 = GET_BIT_FIELD_2(endianDecBufferU32, decParaAry[i].bitLen, decParaAry[i].bitOffset);
+				*((u16 *)decInstance[i]) = (u16)endianDecBufferU32;
+			} break;
+
+			case FIELD_TYPE_U32: {
+				endianDecBufferU32 = GET_BIT_FIELD_2(endianDecBufferU32, decParaAry[i].bitLen, decParaAry[i].bitOffset);
+				*((u32 *)decInstance[i]) = (u32)endianDecBufferU32;
+			} break;
+
+			case FIELD_TYPE_U8_ARRAY: {
+				*((u8 **)decInstance[i]) = &(rawAryData->rawAry[decParaAry[i].startPositionInByte]);
+			} break;
+
+			default:
+				BASIC_ASSERT(0);
+				break;
+		}
+	}
+
+	return 0;
+}
 
 void LibPacket_Demo(void)
 {
@@ -82,10 +139,38 @@ typedef struct {
 	DUMPX(hciCmd.palyoad[0]);
 	DUMPX(hciCmd.palyoad[1]);
 #else
-	PACKET_FIELD_t hciCmdPacketFieldTbl[] = {
+	PACKET_DEC_PARA_t hciCmdPacketFieldTbl[] = {
 		{PACKET_IS_LITTLE_ENDIAN, OFFSET_0, SIZE_2, BIT_POSITION_0,  SIZE_10, FIELD_TYPE_U16, "HCI command: OCF"},
 		{PACKET_IS_LITTLE_ENDIAN, OFFSET_0, SIZE_2, BIT_POSITION_10, SIZE_6,  FIELD_TYPE_U8,  "HCI command: OGF"},
 		{PACKET_IS_LITTLE_ENDIAN, OFFSET_2, SIZE_2, BIT_POSITION_0,  SIZE_8,  FIELD_TYPE_U16, "HCI command: Para Len"},
+		{PACKET_IS_LITTLE_ENDIAN, OFFSET_3, DONT_CARE, DONT_CARE, DONT_CARE,  FIELD_TYPE_U8_ARRAY, "HCI command: Para Ary"},
 	};
+	u16 ocf;
+	u8 ogf;
+	u16 paraLen;
+	u8 *paraAry;
+
+	PACKET_DEC_INSTANCE_t decInstance[] = {
+		(void *)&ocf,
+		(void *)&ogf,
+		(void *)&paraLen,
+		(void *)&paraAry,
+	};
+
+	u8 inputAry[] = {0x7e, 0xfc, 0x08, 0xAC, 0x54, 0x02, 0x80, 0x03, 0x00, 0x00, 0x20};
+	PACKET_ENC_ARY_t rawAry = {
+		(u8 *)inputAry,
+		sizeof(inputAry),
+		sizeof(inputAry),
+	};
+
+	LibPacket_Decode(&rawAry, hciCmdPacketFieldTbl, LENGTH_OF_ARRAY(hciCmdPacketFieldTbl), decInstance);
+	DUMPX(ocf);
+	DUMPX(ogf);
+	DUMPX(paraLen);
+	DUMPX(paraAry[0]);
+	DUMPX(paraAry[1]);
+
+	//TODO: 1.self test 2.encode 3.high level API(future)
 #endif
 }

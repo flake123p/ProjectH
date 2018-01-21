@@ -172,6 +172,47 @@ int LibUtil_IntSwapCopy(u8 *dst, u8 *src, u32 len, bool swap)
 	return 0;
 }
 
+int LibUtil_BytesAssembleU32(u32 &dst, u8 *src, u32 bytesNum, bool isSrcBigEndian)
+{
+	bool doSwap;
+
+	BASIC_ASSERT(bytesNum >= 1 && bytesNum <= 4);
+
+	if (IS_LITTLE_ENDIAN()) {
+		if (isSrcBigEndian) {
+			doSwap = true;
+		} else {
+			doSwap = false;
+		}
+	} else {
+		// BIG ENDIAN
+		if (isSrcBigEndian) {
+			doSwap = false;
+		} else {
+			doSwap = true;
+		}
+	}
+
+	if (doSwap) {
+		switch (bytesNum) {
+			case 1: dst = src[0]; break;
+			case 2: dst = SHIFT_OR_2(src[0], src[1]); break;
+			case 3: dst = SHIFT_OR_3(src[0], src[1], src[2]); break;
+			case 4: dst = SHIFT_OR_4(src[0], src[1], src[2], src[3]); break;
+		}
+	} else {
+		// no swap
+		switch (bytesNum) {
+			case 1: dst = src[0]; break;
+			case 2: dst = SHIFT_OR_2(src[1], src[0]); break;
+			case 3: dst = SHIFT_OR_3(src[2], src[1], src[0]); break;
+			case 4: dst = SHIFT_OR_4(src[3], src[2], src[1], src[0]); break;
+		}
+	}
+
+	return 0;
+}
+
 int LibUtil_DemoEndian(void)
 {
 	{
