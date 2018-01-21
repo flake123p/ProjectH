@@ -33,7 +33,7 @@ typedef struct {
 	u32 bitOffset;           // BIT_POSITION_0
 	u32 bitLen;             //  SIZE_1
 	PACKET_FIELD_TYPE_t fieldType;
-	char *description;
+	const char *description;
 } PACKET_FIELD_t;
 typedef void ** PACKET_FIELD_VAR_TBL_t;
 

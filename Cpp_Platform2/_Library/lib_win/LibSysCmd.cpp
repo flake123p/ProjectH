@@ -1,6 +1,11 @@
 
 #include <Windows.h>
 
+void LibSysCmd_SimpleCmd(const char *cmdStr)
+{
+	system(cmdStr);
+}
+
 void LibSysCmd_ClearScreen(void)
 {
 	system("CLS");

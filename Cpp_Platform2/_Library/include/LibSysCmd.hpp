@@ -9,6 +9,7 @@
 // ============================== Library: Cross-Platform (Manager) ==============================
 
 // ============================== Library: Platform Dependant (Depend on Windows or Linux)==============================
+void LibSysCmd_SimpleCmd(const char *cmdStr);
 void LibSysCmd_ClearScreen(void);
 void LibSysCmd_Pause(void);
 
