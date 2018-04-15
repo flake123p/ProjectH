@@ -270,7 +270,7 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 
 			char buf[100];
 			u32 maxLen;
-			if (dumpAllData) {
+			if (dumpAllData && i != info.count -1 /*not dump all in last page*/) {
 				maxLen = nodeSize;
 			} else {
 				maxLen = currVirMemNode->usedLen;
@@ -315,8 +315,13 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 
 			char buf[100];
 			u32 maxLen = currVirMemNode->usedLen;
-			if (maxLen % 16 != 0) {
-				maxLen = ((maxLen / 16) + 1) * 16;
+			if (dumpAllData && i != info.count -1 /*not dump all in last page*/) {
+				maxLen = nodeSize;
+			} else {
+				maxLen = currVirMemNode->usedLen;
+				if (maxLen % 16 != 0) {
+					maxLen = ((maxLen / 16) + 1) * 16;
+				}
 			}
 			for (u32 j = 0; j < maxLen; j+=16) {
 				#define FOR_PRINT(a) (LibString_IsCharPrintable(a)?a:' ')
@@ -478,7 +483,7 @@ int VirtualMemClass::_PageRead(VIR_MEM_NODE_t *node, u8 *dst, u32 srcAddr, u32 l
 
 ProtectedMemClass::ProtectedMemClass(void)
 {
-	virMem.SetParameters(0x4000, 0x100);
+	virMem.SetParameters(0x4000, 0x100 /*not init with value, because bigger than 0xFF*/);
 	attrMem.SetParameters(0x4000, 0);
 }
 

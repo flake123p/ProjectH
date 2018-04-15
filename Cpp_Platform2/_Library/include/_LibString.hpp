@@ -94,6 +94,7 @@ public:
 	bool FindString(const char *s, size_t pos = 0, OUT u32 *result_position = NULL);
 	int Split(bool checkDoubleQuote = false);
 	int ReplaceWithRestLength(const char *s);
+	int ReplaceWithRestLengthEx(const char *s);
 	int RemoveExtension(char ch);
 	int ReplaceExtension(char ch, const char *s);
 	int ReplaceSubString(const char *toStr, const char *fromStr);

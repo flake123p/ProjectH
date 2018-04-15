@@ -215,13 +215,13 @@ int LibUartClass::ReceiveEx(u32 singleReadlength, u32 bufOffset /* = 0 */)
 	return LibUart_ReceiveEx(ADDRX(rxBuf, bufOffset), &receivedLen, singleReadlength);
 }
 
-int LibUartClass::ReceiveWithLength(u32 maxRxLen)
+int LibUartClass::ReceiveWithLength(u32 maxRxLen, u32 singleReadlength /* = 80 */)
 {
 	int retVal;
 	u32 totalReceivedLen = 0;
 
 	while (totalReceivedLen < maxRxLen) {
-		RETURN_CHK( retVal, this->ReceiveEx(80, totalReceivedLen) );
+		RETURN_CHK( retVal, this->ReceiveEx(singleReadlength, totalReceivedLen) );
 		
 		totalReceivedLen += this->receivedLen;
 	}

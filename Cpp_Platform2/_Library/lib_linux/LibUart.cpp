@@ -13,6 +13,11 @@
 // ====== Platform Library ======
 #include "LibUart.hpp"
 
+int LibUart_SniffSetting(int initVal)
+{
+	return 0;
+}
+
 int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel, uint8_t byteSize, STOP_BITS stopBits, PARITY parity)
 {
 	return 0;

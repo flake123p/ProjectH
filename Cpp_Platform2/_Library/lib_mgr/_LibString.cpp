@@ -510,9 +510,9 @@ int LibStringClass::Split(bool checkDoubleQuote /* = false */)
 
 /*
 	Turn:
-		"01 7d fc [??] xx [00 20 02 00] 80"
+		"01 7d fc [??] [00 20 02 00] 80"
 	Into:
-		"01 7d fc [??] 05 [00 20 02 00] 80"
+		"01 7d fc [05] [00 20 02 00] 80"
 	By:
 		ReplaceWithRestLength("??");
 */
@@ -543,6 +543,63 @@ int LibStringClass::ReplaceWithRestLength(const char *s)
 	
 	return 0;
 }
+
+/*
+	Turn:
+		"01 7d fc [??-1] [00 20 02 00] 80"
+	Into:
+		"01 7d fc [04]   [00 20 02 00] 80"
+	By:
+		ReplaceWithRestLength("??-1");
+*/
+int LibStringClass::ReplaceWithRestLengthEx(const char *s)
+{
+	if (FindString(s)) {
+		//PRINT_LINE(1);
+		Split();
+
+		std::string tempString;
+		for (u32 i = 0; i < subStrVector.size(); i++) {
+			if (subStrVector[i].find(s) != std::string::npos) {
+				s32 offset = 0;
+				LibStringClass inStr = LibStringClass(subStrVector[i].c_str());
+				inStr.InsertBefore("+", " ");
+				inStr.InsertAfter("+", " ");
+				inStr.InsertBefore("-", " ");
+				inStr.InsertAfter("-", " ");
+				inStr.Split();
+				if (inStr.subStrVector.size() == 3) {
+					sscanf(inStr.subStrVector[2].c_str(), "%d", &offset);
+					if (0 == inStr.subStrVector[1].compare("+")) {
+						//do nothing
+					} else if (0 == inStr.subStrVector[1].compare("-")) {
+						offset = 0 - offset;
+					} else {
+						BASIC_ASSERT(0);
+					}
+				}
+
+				{
+					char temp[10];
+					sprintf(temp, "%02X  ", (u32)(subStrVector.size()-i-1+offset));
+					tempString += temp;
+				}
+			} else {
+				tempString += subStrVector[i];
+				tempString += "  ";
+			}
+		}
+		//DUMPS(tempString.c_str());
+		str = tempString;
+	} else {
+		//PRINT_LINE(1);
+	}
+
+	//Dump();
+	
+	return 0;
+}
+
 
 int LibStringClass::RemoveExtension(char ch)
 {

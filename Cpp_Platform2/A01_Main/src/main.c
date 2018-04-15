@@ -5,7 +5,8 @@
 int main(int argc, char *argv[])
 {
 	//LibArgParser_OptionSet_Demo();
-	LibPacket_Demo();
+	//LibPacket_Demo();
+	LibEncrypt_Demo();
 	//LibSysCmd_SimpleCmd("start /B entry.bat 1233");
 	//LibOs_SleepSeconds(2);
 	//LibSysCmd_SimpleCmd("start /B entry.bat 1235");

@@ -170,6 +170,7 @@ void ArgOptionSet::Init(Option_Set_Big_t *big_set, u32 big_set_len, Option_Set_S
 
 void ArgOptionSet::Dump(void)
 {
+	printf("=============== ARG DUMP START ============= \\\\\\\\\\\\\n");
 	printf("Dump big set:\n");
 	for (u32 i = 0; i < bigSetLen; i++) {
 		printf(
@@ -199,7 +200,7 @@ void ArgOptionSet::Dump(void)
 		printf("%s\n", standAloneArgs[i].c_str());
 	}
 
-	printf("Dump complete. ============\n");
+	printf("=============== ARG DUMP END =============== //////\n\n");
 }
 
 int ArgOptionSet::StartParsing(int argc, char *argv[])
@@ -209,17 +210,21 @@ int ArgOptionSet::StartParsing(int argc, char *argv[])
 	char *nextArgv;
 	bool passNextRound;
 	
-	for (int i=0; i<argc; i++) {
-		currArgv = argv[i];
-		if (i+1 < argc)
-			nextArgv = argv[i+1];
+	for (int argcCtr=0; argcCtr<argc; argcCtr++) {
+		currArgv = argv[argcCtr];
+		if (argcCtr+1 < argc)
+			nextArgv = argv[argcCtr+1];
 		else
 			nextArgv = NULL;
 
-		RETURN_CHK( retVal, _ExtractToMap(currArgv, nextArgv, &passNextRound) );
+		retVal = _ExtractToMap(currArgv, nextArgv, &passNextRound);
+		if (retVal) {
+			printf("argcCtr=%d\n", argcCtr+1);
+			return retVal;
+		}
 
 		if(passNextRound)
-			i++;
+			argcCtr++;
 	}
 	return 0;
 }

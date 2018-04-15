@@ -4,6 +4,13 @@
 HANDLE g_hComm;                     // Handle to the Serial port
 char   g_ComPortName[30] = {0};     // Name of the Serial port(May Change) to be opened,
 BOOL   g_Status;
+int g_SniffEnable = 0;
+
+int LibUart_SniffSetting(int initVal)
+{
+	g_SniffEnable = initVal;
+	return g_SniffEnable;
+}
 
 int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel /* = 0 */, uint8_t byteSize /* = 8 */, STOP_BITS stopBits /* = STOP_BITS_1 */, PARITY parity /* = PARITY__NONE */)
 {
@@ -41,7 +48,20 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 		return -1;
 	}
 
+#ifndef CBR_460800
+#define CBR_460800 460800
+#endif
+#ifndef CBR_512000
+#define CBR_512000 512000
+#endif
+#ifndef CBR_921600
+#define CBR_921600 921600
+#endif
+
 	switch (baudRate) {
+		case 921600: dcbSerialParams.BaudRate = CBR_921600; break;
+		case 512000: dcbSerialParams.BaudRate = CBR_512000; break;
+		case 460800: dcbSerialParams.BaudRate = CBR_460800; break;
 		case 256000: dcbSerialParams.BaudRate = CBR_256000; break;
 		case 128000: dcbSerialParams.BaudRate = CBR_128000; break;
 		case 115200: dcbSerialParams.BaudRate = CBR_115200; break;
@@ -157,6 +177,14 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 
 int LibUart_Send(uint8_t *buffer, uint32_t length)
 {
+	if (g_SniffEnable || UART_LOG) {
+		printf("\n\n    [ %s() - SNIFF ] ", __func__);
+		for (uint32_t i = 0; i < length; i++) {
+			printf("%02X ", buffer[i]);
+		}
+		printf("- Written to COM Port\n");
+	}
+
 	/*----------------------------- Writing a Character to Serial Port----------------------------------------*/
 	DWORD  dNoOfBytesWritten = 0;          // No of bytes written to the port
 
@@ -168,13 +196,7 @@ int LibUart_Send(uint8_t *buffer, uint32_t length)
 	
 	if (g_Status == TRUE)
 	{
-		#if UART_LOG
-		UART_LOG_MSG("\n\n    [HEX] ");
-		for (uint32_t i = 0; i < length; i++) {
-			UART_LOG_MSG("%02X ", buffer[i]);
-		}
-		UART_LOG_MSG("- Written to COM Port");
-		#endif
+		;
 	}
 	else
 	{
@@ -220,14 +242,15 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 #endif
 		/*------------Printing the RXed String to Console----------------------*/
 
-		#if UART_LOG
-		UART_LOG_MSG("\n\n    [HEX] ");
-		int j =0;
-		for (j = 0; j < i-1; j++)		// j < i-1 to remove the dupliated last character
-		{
-			UART_LOG_MSG("%02X ", buffer[j]);
+		if (g_SniffEnable || UART_LOG) {
+			printf("\n\n    [ %s() - SNIFF ] ", __func__);
+			int j =0;
+			for (j = 0; j < i-1; j++)		// j < i-1 to remove the dupliated last character
+			{
+				printf("%02X ", buffer[j]);
+			}
+			printf("- Read from COM Port\n");
 		}
-		#endif
 	}	
 
 	UART_LOG_MSG("\n%s() Success.\n", __func__);
@@ -248,7 +271,7 @@ int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t single
 	
 	/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
 	/*-------------------------- Program will Wait here till a Character is received ------------------------*/				
-	//printf("\n\n    Waiting for Data Reception");
+	UART_LOG_MSG("\n\n    Waiting for Data Reception");
 	g_Status = WaitCommEvent(g_hComm, &dwEventMask, NULL); //Wait for the character to be received
 	
 	if (g_Status == FALSE)
@@ -271,18 +294,23 @@ int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t single
 		while (NoBytesRead > 0);
 		*receivedLength = i - 1; // Set output variable
 #else
+		#if UART_LOG
+		UART_LOG_MSG("ReadFile START. singleReadlength=%d\n", singleReadlength);
+		#endif
+
 		g_Status = ReadFile(g_hComm, buffer, singleReadlength, (DWORD *)receivedLength, NULL);
 #endif
 		/*------------Printing the RXed String to Console----------------------*/
 
-		#if UART_LOG
-		UART_LOG_MSG("\n\n    [HEX] ");
-		int j =0;
-		for (j = 0; j < i-1; j++)		// j < i-1 to remove the dupliated last character
-		{
-			UART_LOG_MSG("%02X ", buffer[j]);
+		if (g_SniffEnable || UART_LOG) {
+			printf("\n\n    [ %s() - SNIFF ] ", __func__);
+			uint32_t j =0;
+			for (j = 0; j < *receivedLength; j++)		// j < i-1 to remove the dupliated last character
+			{
+				printf("%02X ", buffer[j]);
+			}
+			printf("- Read from COM Port. receivedLength=%d\n", *receivedLength);
 		}
-		#endif
 	}	
 	
 	UART_LOG_MSG("\n%s() Success.\n", __func__);
