@@ -43,6 +43,7 @@ typedef struct {
 	const char *keyStr2;
 	const char *keyStr3;
 	const char *keyStr4;
+	const char *description;
 } Option_Set_Big_t;
 typedef struct {
 	u32 keyValue;

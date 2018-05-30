@@ -174,13 +174,14 @@ void ArgOptionSet::Dump(void)
 	printf("Dump big set:\n");
 	for (u32 i = 0; i < bigSetLen; i++) {
 		printf(
-			"%2d %2d %s %s %s %s\n", 
+			"%2d %2d %-12s %-12s %-12s %-12s => %s\n", 
 			bigSet[i].keyValue,
 			bigSet[i].followingArgType,
 			(bigSet[i].keyStr1==NULL?"":bigSet[i].keyStr1),
 			(bigSet[i].keyStr2==NULL?"":bigSet[i].keyStr2),
 			(bigSet[i].keyStr3==NULL?"":bigSet[i].keyStr3),
-			(bigSet[i].keyStr4==NULL?"":bigSet[i].keyStr4));
+			(bigSet[i].keyStr4==NULL?"":bigSet[i].keyStr4),
+			(bigSet[i].description==NULL?"":bigSet[i].description));
 	}
 
 	printf("Dump small set:\n");
@@ -390,9 +391,9 @@ static char argv6[] = "-abc";
 static char argv7[] = "-g3";
 static char argv8[] = "-xy";
 Option_Set_Big_t gDemo_BigOptionSet[] = {
-	{1, ARG_BY_SPACE, "-i", "--input", NULL, NULL},
-	{2, ARG_BY_SPACE, "-o", "--output", NULL, NULL},
-	{3, ARG_CONCAT,   "-g", NULL, NULL, NULL},
+	{1, ARG_BY_SPACE, "-i", "--input", NULL, NULL, NULL},
+	{2, ARG_BY_SPACE, "-o", "--output", NULL, NULL, NULL},
+	{3, ARG_CONCAT,   "-g", NULL, NULL, NULL, NULL},
 };
 Option_Set_Small_t gDemo_SmallOptionSet[] = {
 	{5, 'a'},

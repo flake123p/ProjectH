@@ -386,6 +386,93 @@ int  VirtualMemClass::DumpVirMemContent_ToFile(const char *fileName, bool verbos
 	return 0;
 }
 
+int  VirtualMemClass::ExportVirMemContent(const char *outFileName)
+{
+	u32 minAddr = 0;
+	VIR_MEM_NODE_t *currVirMemNode;
+	
+	LibFileIoClass outFile(outFileName, "w+b");
+
+	outFile.FileOpen();
+
+	if (outFile.fp == NULL) {
+		return 1;
+	}
+
+	fprintf(outFile.fp, "nodeSize = 0x%x\n\n", nodeSize);
+
+	LinkedListNode *currNode = info.head;
+	for (u32 i = 0; i < info.count; i++) {
+		currVirMemNode = (VIR_MEM_NODE_t *)currNode;
+
+		// for dumping total size
+		if (i == 0)minAddr = currVirMemNode->startAddr;
+
+		if (currVirMemNode->usedLen) {
+			fprintf(outFile.fp, "startAddr = 0x%x\n", currVirMemNode->startAddr);
+			fprintf(outFile.fp, "usedLen   = 0x%x\n", currVirMemNode->usedLen);
+			fprintf(outFile.fp, "pageAttr  = 0x%x\n", currVirMemNode->pageAttr);
+		}
+
+		char buf[100];
+		u32 maxLen;
+		{
+			maxLen = currVirMemNode->usedLen;
+			if (maxLen % 16 != 0) {
+				maxLen = ((maxLen / 16) + 1) * 16;
+			}
+		}
+		for (u32 j = 0; j < maxLen; j+=16) {
+			sprintf(
+				buf,
+				"[%08X]  %02X %02X %02X %02X  %02X %02X %02X %02X  %02X %02X %02X %02X  %02X %02X %02X %02X\n",
+				currVirMemNode->startAddr + j,
+				currVirMemNode->data[j+0],
+				currVirMemNode->data[j+1],
+				currVirMemNode->data[j+2],
+				currVirMemNode->data[j+3],
+				currVirMemNode->data[j+4],
+				currVirMemNode->data[j+5],
+				currVirMemNode->data[j+6],
+				currVirMemNode->data[j+7],
+				currVirMemNode->data[j+8],
+				currVirMemNode->data[j+9],
+				currVirMemNode->data[j+10],
+				currVirMemNode->data[j+11],
+				currVirMemNode->data[j+12],
+				currVirMemNode->data[j+13],
+				currVirMemNode->data[j+14],
+				currVirMemNode->data[j+15]);
+			fprintf(outFile.fp, "%s", buf);
+		}
+
+		if (currVirMemNode->usedLen) {
+			fprintf(outFile.fp, "\n");
+		}
+		currNode = currNode->next;
+	}
+	BASIC_ASSERT(currNode == NULL);
+
+	u32 maxAddr = currVirMemNode->startAddr + currVirMemNode->usedLen;
+	u32 totalSize = maxAddr - minAddr;
+	
+	printf("[ %s ] Dump Result:\n", outFileName);
+	printf("\tTotal Size = 0x%X\n", totalSize);
+	printf("\tTotal Size = %d KB\n", (totalSize) / 1024 + 1);
+
+	fprintf(outFile.fp, "\nEOF:\n");
+	fprintf(outFile.fp, "\nDump Result:\n");
+	fprintf(outFile.fp, "\tTotal Size = 0x%X\n", totalSize);
+	fprintf(outFile.fp, "\tTotal Size = %d KB\n", (totalSize) / 1024 + 1);
+	
+	return 0;
+}
+
+int  VirtualMemClass::ImportVirMemContent(const char *inFileName)
+{
+	return 0;
+}
+
 bool VirtualMemClass::_NodeExist(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode /* = NULL */)
 {
 	if (info.count == 0) {
@@ -612,6 +699,18 @@ int ProtectedMemClass::DumpProtectedMemContent_ToFile(const char *fileName1, con
 {
 	virMem.DumpVirMemContent_ToFile(fileName1, memDumpMode, dumpAllData);
 	attrMem.DumpVirMemContent_ToFile(fileName2, memDumpMode, dumpAllData);
+	return 0;
+}
+
+int ProtectedMemClass::ExportProtectedMemContent(const char *outFileName)
+{
+	virMem.ExportVirMemContent(outFileName);
+	return 0;
+}
+
+int ProtectedMemClass::ImportProtectedMemContent(const char *inFileName)
+{
+	virMem.ImportVirMemContent(inFileName);
 	return 0;
 }
 

@@ -57,6 +57,8 @@ public:
 	bool GetPage(u32 start_addr, OUT VIR_MEM_NODE_t **matchNode);
 	void DumpVirMemInfo(void);
 	int  DumpVirMemContent_ToFile(const char *fileName, bool verbose = false, bool memDumpMode = false, bool dumpAllData = false);
+	int  ExportVirMemContent(const char *outFileName);
+	int  ImportVirMemContent(const char *inFileName);
 };
 
 
@@ -83,6 +85,9 @@ public:
 	int  RemovePageAttributes(u32 addr, u32 flags, OUT u32 *attr = NULL);
 	int  ClearByteWrittenFlag(u32 startAddr, u32 len);
 	int  DumpProtectedMemContent_ToFile(const char *fileName1, const char *fileName2, bool memDumpMode = false, bool dumpAllData = false);
+	int  ExportProtectedMemContent(const char *outFileName);
+	int  ImportProtectedMemContent(const char *inFileName);
+
 };
 
 void LibMemory_Demo(void);
