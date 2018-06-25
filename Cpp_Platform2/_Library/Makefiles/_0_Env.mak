@@ -80,6 +80,7 @@ mfile_lib     = $(mfile_lib_cpp) $(mfile_lib_c)
 mfile_dir = Makefiles
 # .o檔的放置資料夾
 build_dir = build
+archive_dir = archive
 # 把所有的 .o檔 加上 build output資料夾的路徑
 #OBJS = $(patsubst %,$(build_dir)/%,$(obj_all))
 OBJS = $(patsubst %,$(build_dir)/%,$(obj_lib_mgr))
@@ -88,4 +89,4 @@ OBJS += $(patsubst %,$(build_dir)/%,$(obj_lib))
 # 為這些中間檔加入 Make 的"依賴目標"描掃路徑 才不會每次都重新產生
 vpath %.d $(mfile_dir)
 vpath %.o $(build_dir)
-
+vpath %.a $(archive_dir)
