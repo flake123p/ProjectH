@@ -1,4 +1,9 @@
 
+lib_make_file = _0_Env_LibPara.mak
+mod_make_file = _0_Env_ModPara_ForApp.mak
+include $(lib_make_file)
+include $(mod_make_file)
+
 #
 # Use CXX, $(CXX) to build all files. Default CXX is g++
 #

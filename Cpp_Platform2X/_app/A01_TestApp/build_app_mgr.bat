@@ -13,6 +13,14 @@ IF %build_1_ext_lib_rc% EQU 0 (
 	goto END_OF_BUILD
 )
 
+CALL build_2_ext_mods.bat
+IF %build_2_ext_mods_rc% EQU 0 (
+	echo ====== Start [2] Create Ext Mods Batchs ... continue ======
+) ELSE (
+	echo ====== Start [2] Create Ext Mods Batchs ... failed ======
+	goto END_OF_BUILD
+)
+
 :END_OF_BUILD
 
 if "%2" NEQ "--DisablePause" (
