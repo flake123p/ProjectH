@@ -38,3 +38,7 @@ if 'amy' > 'Bob':
 	print('amy > Bob')
 else:
 	print('amy < Bob')
+
+#string compair
+if 'amy' == 'amy':
+	print('amy == amy')
