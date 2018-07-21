@@ -1,0 +1,47 @@
+(* for dupilcated looping node, ** for the nodes of looping)
+
+mod1
+
+mod2
+	mod1
+
+mod3
+	mod1
+
+mod4*
+	mod3
+		mod1
+	mod5
+		mod1
+		mod4*
+			mod3**
+			mod5**
+
+mod5*
+	mod1
+	mod4
+		mod3
+			mod1
+		mod5*
+			mod1**
+			mod4**
+
+mod6
+	mod2
+		mod1
+	mod4*
+		mod3
+			mod1
+		mod5
+			mod1
+			mod4*
+				mod3**
+				mod5**
+	mod5*
+		mod1
+		mod4
+			mod3
+				mod1
+			mod5*
+				mod1**
+				mod4**
