@@ -56,3 +56,14 @@ myList6 = myStr.split('-') #delimiter '-'
 print('myList6 = myStr.split(\'-\') = ', myList6)
 myDelimiter = '@'
 print('myDelimiter.join(myList6)  = ', myDelimiter.join(myList6))
+
+# exist
+testList = ['aa', 'bb', 'cc']
+if 'aa' in testList:
+	print('aa exist in list')
+if 'dd' not in testList:
+	print('dd not exist in list')
+
+# find & index
+print('index of aa in testList is:', testList.index('aa'))
+#print('index of dd in testList is:', testList.index('dd')) # ==> run error, because dd is not in list

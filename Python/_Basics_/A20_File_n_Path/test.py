@@ -33,3 +33,20 @@ def walk(dirname):
 
 print('call walk()')
 walk( os.getcwd() )
+
+# previous folder
+print('curr  folder = ', os.getcwd()) # current
+print('prev  folder = ', os.path.dirname(os.getcwd()))
+print('prev2 folder = ', os.path.dirname(os.path.dirname(os.getcwd())))
+print('prev3 folder = ', os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd()))))
+# split for find out indivisual folder name
+split1 = os.path.split(os.getcwd())
+split2 = os.path.split(split1[0])
+print('split1       = ', split1)
+print('split1[1]    = ', split1[1])
+print('split2       = ', split2)
+print('split2[1]    = ', split2[1])
+newPath = split2[0] + '\\\\MOD'
+print('newPath      = ', newPath)
+split3 = os.path.split(newPath)
+print('split3       = ', split3)

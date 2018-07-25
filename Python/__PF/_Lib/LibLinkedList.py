@@ -45,6 +45,22 @@ class LLNode(object):
 			level = level - 1
 		if curr.next != None:
 			self.dump(level, curr.next)
+	
+	def dumpToFile(self, fp, level=0, curr=None):
+		if curr == None:
+			curr = self
+		if curr.parent == None:
+			parentStr = 'None'
+		else:
+			parentStr = curr.parent.str
+		tempStr = level * '	' + str(curr.var) + ' ' + curr.str + '\n'
+		fp.write(tempStr)
+		if curr.child != None:
+			level = level + 1
+			self.dumpToFile(fp, level, curr.child)
+			level = level - 1
+		if curr.next != None:
+			self.dumpToFile(fp, level, curr.next)
 
 class LLT1Mgr(object):
 	def __init__(self):
@@ -82,7 +98,7 @@ class LLT1Mgr(object):
 					dumpList = []
 					for m in range(len(history)):
 						dumpList.append(history[m].str)
-					print(dumpList)
+					##print(dumpList)
 					self.completePathList.append(list(history))
 					#
 					if curr.next == None:
@@ -142,6 +158,14 @@ def Demo():
 	print(t1Mgr.completePathList)
 	t1Mgr.printCompletePathList()
 
+	for m in range(len(t1Mgr.completePathList)):
+		dumpList = []
+		for n in range(len(t1Mgr.completePathList[m])):
+			dumpList.append(t1Mgr.completePathList[m][n].str)
+		if 'no1' in dumpList:
+			print('m = ', m, ', no1 exist')
+		else:
+			print('m = ', m, ', no1 not exist')
 #
 # main()
 #
