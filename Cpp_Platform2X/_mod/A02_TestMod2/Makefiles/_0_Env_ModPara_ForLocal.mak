@@ -1,8 +1,8 @@
 
 local_mod = $(notdir $(CURDIR))
 
-ext_mod_list = \
-A01_TestMod1
+# for ext_mod_list
+include _00_Ext_Mods.mak
 
 base_mod_dir = ../../_mod
 mod_include_dir = include
