@@ -1,3 +1,6 @@
+rem
+rem This file is for test use.
+rem
 @echo off
 
 if "%2" NEQ "DisablePathSetting" (

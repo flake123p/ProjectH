@@ -113,7 +113,7 @@ while depth != 0:
 		RecursiveCheck(t1Mgr.t1Head)
 
 		# add children if there is no recursive
-		if currNode.var == 0:
+		if currNode.var == 0 and len(currNode.str) != 0:
 			#import child
 			targetFile = prevPath + '\\\\' + currNode.str + '\\\\' + modListFile
 
