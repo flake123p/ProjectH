@@ -94,9 +94,12 @@ t1Mgr = LibLinkedList.LLT1Mgr()
 currPath = os.getcwd()
 splitPath = os.path.split(currPath)
 #print(splitPath)
-prevPath = splitPath[0]
+prevPath = splitPath[0]  #D:\WS\workspace\ProjectH\Cpp_Platform2X\_app
 currFolder = splitPath[1]
 t1Mgr.addT1NextNode(0, currFolder)
+
+temp = os.path.split(prevPath)
+prevPrevPath = temp[0]  #D:\WS\workspace\ProjectH\Cpp_Platform2X
 
 #
 # read to tree and recursive check
@@ -104,6 +107,7 @@ t1Mgr.addT1NextNode(0, currFolder)
 currNode = t1Mgr.t1Head;
 depth = 1
 reverting = 0
+appModListRead = 0
 while depth != 0:
 	if reverting == 0:
 		#print('debug, depth=', depth, 'currNode.str=', currNode.str)
@@ -114,8 +118,12 @@ while depth != 0:
 
 		# add children if there is no recursive
 		if currNode.var == 0 and len(currNode.str) != 0:
-			#import child
-			targetFile = prevPath + '\\\\' + currNode.str + '\\\\' + modListFile
+			if appModListRead == 0:
+				appModListRead = 1
+				targetFile = prevPrevPath + '\\_app\\' + currNode.str + '\\' + modListFile
+			else:
+				#import child
+				targetFile = prevPrevPath + '\\_mod\\' + currNode.str + '\\' + modListFile
 
 			modList = OpendFileAndGetList(targetFile, 'r')
 			workNode = currNode

@@ -36,7 +36,7 @@ endif
 #
 # For g++/gcc
 #
-INC_FOR_COMPILE = -Iinclude -I$(LIB_PATH)/include
+INC_FOR_COMPILE = -Iinclude -I$(LIB_PATH)/include $(all_mod_includes)
 
 
 #
