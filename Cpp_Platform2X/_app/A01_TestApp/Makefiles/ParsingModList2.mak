@@ -31,9 +31,9 @@ check_mod_all_by_MODs :  mod/mod_all.txt  $(mod_build_file)
 # (4) - prerequisites changed
 # (5) - no chang, just re-check
 mod/mod_all.txt : $(mod_all_list)
-	ECHO "update mod_all.txt/mak by MOD's..."
-	python  ../../_toolchain/mod_list_parser.py  mod_list.txt  mod//mod_tree.txt  mod//mod_all.txt
-	python  ../../_toolchain/list_to_make_var.py  mod//mod_all.txt  mod/mod_all.mak  mod_all
+	echo "update mod_all.txt/mak by MOD's..."
+	python  ../../_toolchain/mod_list_parser.py  mod_list.txt  mod/mod_tree.txt  mod/mod_all.txt
+	python  ../../_toolchain/list_to_make_var.py  mod/mod_all.txt  mod/mod_all.mak  mod_all
 
 $(mod_build_file) : mod//mod_all.txt
-	python  ../../_toolchain/list_to_build_script.py  mod//mod_all.txt  $(mod_build_file)  $(mod_clean_file)  $(curr_os)
+	python  ../../_toolchain/list_to_build_script.py  mod/mod_all.txt  $(mod_build_file)  $(mod_clean_file)  $(curr_os)

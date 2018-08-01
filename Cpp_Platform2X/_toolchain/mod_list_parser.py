@@ -120,10 +120,10 @@ while depth != 0:
 		if currNode.var == 0 and len(currNode.str) != 0:
 			if appModListRead == 0:
 				appModListRead = 1
-				targetFile = prevPrevPath + '\\_app\\' + currNode.str + '\\' + modListFile
+				targetFile = prevPrevPath + '/_app/' + currNode.str + '/' + modListFile
 			else:
 				#import child
-				targetFile = prevPrevPath + '\\_mod\\' + currNode.str + '\\' + modListFile
+				targetFile = prevPrevPath + '/_mod/' + currNode.str + '/' + modListFile
 
 			modList = OpendFileAndGetList(targetFile, 'r')
 			workNode = currNode

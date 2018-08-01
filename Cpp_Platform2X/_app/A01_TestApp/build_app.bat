@@ -32,7 +32,7 @@ SET RET=%lib_result2%
 IF %RET% NEQ 0 ( goto ERROR )
 
 rem
-rem Build mods
+rem Build all mods
 rem
 CALL build_all_mod.bat
 rem

@@ -43,20 +43,37 @@ finList      = OpenFile(str(sys.argv[1]))
 foutBuildfile = OpenFile(str(sys.argv[2]), 'w')
 foutCleanfile = OpenFile(str(sys.argv[3]), 'w')
 
-foutBuildfile.write('@ECHO OFF\n')
-foutCleanfile.write('@ECHO OFF\n')
-foutBuildfile.write('SET CURR_CD=%CD%\n')
-foutCleanfile.write('SET CURR_CD=%CD%\n')
-for each_line in finList:
-	each_mod = each_line.strip()
-	# build files
-	str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_build_file + '\n'
-	foutBuildfile.write(str)
-	foutBuildfile.write('CD %CURR_CD%\n')
-	# clean files
-	str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_clean_file + '\n'
-	foutCleanfile.write(str)
-	foutCleanfile.write('CD %CURR_CD%\n')
+if curr_os == 'WIN':
+	foutBuildfile.write('@ECHO OFF\n')
+	foutCleanfile.write('@ECHO OFF\n')
+	foutBuildfile.write('SET CURR_CD=%CD%\n')
+	foutCleanfile.write('SET CURR_CD=%CD%\n')
+	for each_line in finList:
+		each_mod = each_line.strip()
+		# build files
+		str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_build_file + '\n'
+		foutBuildfile.write(str)
+		foutBuildfile.write('CD %CURR_CD%\n')
+		# clean files
+		str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_clean_file + ' --DisablePause\n'
+		foutCleanfile.write(str)
+		foutCleanfile.write('CD %CURR_CD%\n')
+	foutCleanfile.write('if "%1" NEQ "--DisablePause" (\n')
+	foutCleanfile.write('	pause\n')
+	foutCleanfile.write(')\n')
+else:
+	foutBuildfile.write('temp_local_path=$PWD\n')
+	foutCleanfile.write('temp_local_path=$PWD\n')
+	for each_line in finList:
+		each_mod = each_line.strip()
+		# build files
+		str = 'cd ' + mod_base_path + each_mod + '\n' + './' + mod_build_file + '\n'
+		foutBuildfile.write(str)
+		foutBuildfile.write('cd $temp_local_path\n')
+		# clean files
+		str = 'cd ' + mod_base_path + each_mod + '\n' + './' + mod_clean_file + '\n'
+		foutCleanfile.write(str)
+		foutCleanfile.write('cd $temp_local_path\n')
 
 finList.close()
 foutBuildfile.close()
