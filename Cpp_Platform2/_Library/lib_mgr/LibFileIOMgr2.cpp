@@ -438,7 +438,7 @@ void LibFile_INI::Dump(void)
 	EXIT_LOC_IF(vecVarBlock.size() != section_name_index_counter_for_vector);
 	for (u32 i = 0; i < section_name_index_counter_for_vector; i++) 
 	{
-		printf("\tvecVarBlock[%d].varMap.size() = %d\n", i, vecVarBlock[i].varMap.size());
+		printf("\tvecVarBlock[%u].varMap.size() = %d\n", i, vecVarBlock[i].varMap.size());
 
 		std::map<std::string,std::string>::iterator varMapIt;
 		for (varMapIt=vecVarBlock[i].varMap.begin(); varMapIt!=vecVarBlock[i].varMap.end(); varMapIt++) 
@@ -446,7 +446,7 @@ void LibFile_INI::Dump(void)
 			printf("\t\t%-20s = %s\n", varMapIt->first.c_str(), varMapIt->second.c_str());
 		}
 
-		printf("\tvecVarBlock[%d].singleVarVector.size() = %d\n", i, vecVarBlock[i].singleVarVector.size());
+		printf("\tvecVarBlock[%u].singleVarVector.size() = %d\n", i, vecVarBlock[i].singleVarVector.size());
 
 		std::vector<std::string>::iterator varMapIt2;
 		for (varMapIt2=vecVarBlock[i].singleVarVector.begin(); varMapIt2!=vecVarBlock[i].singleVarVector.end(); varMapIt2++) 

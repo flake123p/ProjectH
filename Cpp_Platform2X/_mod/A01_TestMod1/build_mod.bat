@@ -13,19 +13,14 @@ set build_mod_rc3=%ERRORLEVEL%
 echo ====== End: Build Local Module. Errorlevel = %build_mod_rc1%, %build_mod_rc2% , %build_mod_rc3% ====== 
 
 IF %build_mod_rc1% NEQ 0 (
-	echo ====== Error: Build Local Library ======
-	set build_mod_rc=1
-	goto END_OF_FILE
+	echo ====== Error: Build Local Module ======
+	exit /b %build_mod_rc1%
 )
 IF %build_mod_rc2% NEQ 0 (
-	echo ====== Error: Build Local Library ======
-	set build_mod_rc=1
-	goto END_OF_FILE
+	echo ====== Error: Build Local Module ======
+	exit /b %build_mod_rc2%
 )
 IF %build_mod_rc3% NEQ 0 (
-	echo ====== Error: Build Local Library ======
-	set build_mod_rc=1
-	goto END_OF_FILE
+	echo ====== Error: Build Local Module ======
+	exit /b %build_mod_rc3%
 )
-set build_1_local_mod_rc=0
-:END_OF_FILE

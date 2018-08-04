@@ -53,7 +53,9 @@ if curr_os == 'WIN':
 		# build files
 		str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_build_file + '\n'
 		foutBuildfile.write(str)
+		foutBuildfile.write('set rc=%ERRORLEVEL%\n')
 		foutBuildfile.write('CD %CURR_CD%\n')
+		foutBuildfile.write('IF %rc% NEQ 0 ( exit /b %rc% )\n\n')
 		# clean files
 		str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_clean_file + ' --DisablePause\n'
 		foutCleanfile.write(str)
