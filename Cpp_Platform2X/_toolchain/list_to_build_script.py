@@ -63,7 +63,7 @@ if curr_os == 'WIN':
 	foutCleanfile.write('if "%1" NEQ "--DisablePause" (\n')
 	foutCleanfile.write('	pause\n')
 	foutCleanfile.write(')\n')
-else:
+else: #LINUX
 	foutBuildfile.write('temp_local_path=$PWD\n')
 	foutCleanfile.write('temp_local_path=$PWD\n')
 	for each_line in finList:
@@ -71,7 +71,11 @@ else:
 		# build files
 		str = 'cd ' + mod_base_path + each_mod + '\n' + './' + mod_build_file + '\n'
 		foutBuildfile.write(str)
+		foutBuildfile.write('rc=$?\n')
 		foutBuildfile.write('cd $temp_local_path\n')
+		foutBuildfile.write('if [ $rc != 0 ]; then\n')
+		foutBuildfile.write('	exit $rc\n')
+		foutBuildfile.write('fi\n\n')
 		# clean files
 		str = 'cd ' + mod_base_path + each_mod + '\n' + './' + mod_clean_file + '\n'
 		foutCleanfile.write(str)
