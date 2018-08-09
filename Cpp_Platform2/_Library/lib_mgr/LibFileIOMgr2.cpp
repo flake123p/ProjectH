@@ -37,7 +37,7 @@ int LibFile_INI::_AddNewVarToMap(std::string &keyStr, std::string &valStr)
 	BASIC_ASSERT(section_name_index_counter_for_vector>0);
 
 	u32 vecIndex = section_name_index_counter_for_vector - 1;
-	
+
 	std::pair<std::map<std::string,std::string>::iterator,bool> ret;
 	ret = vecVarBlock[vecIndex].varMap.insert ( std::pair<std::string,std::string>(keyStr, valStr) );
 	if (ret.second==false) {
@@ -53,7 +53,7 @@ int LibFile_INI::_AddNewSingleVarToVector(std::string &valStr)
 	BASIC_ASSERT(section_name_index_counter_for_vector>0);
 
 	u32 vecIndex = section_name_index_counter_for_vector - 1;
-	
+
 	vecVarBlock[vecIndex].singleVarVector.push_back(valStr);
 
 	return 0;
@@ -85,7 +85,7 @@ int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */, ExtProc_CB exte
 	LibStringClass str;
 
 	INI_PARSE_STATE_t state = IPS_FINDING_SECTOR;
-	while ( 0 == this->GetLine() ) 
+	while ( 0 == this->GetLine() )
 	{
 		// 1. clearify whole line
 		str.Init(this->lineStr);
@@ -154,7 +154,7 @@ int LibFile_INI::StartParse(bool ingoreInvalidLine /* = true */, ExtProc_CB exte
 				break;
 		}
 	}
-	
+
 	return 0;
 
 ERROR_HANDLE:
@@ -176,7 +176,7 @@ int LibFile_INI::StartParse2(bool ingoreInvalidLine /* = true */, ExtProc_CB2 ex
 	LibStringClass rawStr;
 
 	INI_PARSE_STATE_t state = IPS_FINDING_SECTOR;
-	while ( 0 == this->GetLine() ) 
+	while ( 0 == this->GetLine() )
 	{
 		// 1. clearify whole line.
 		rawStr.Init(this->lineStr);
@@ -246,7 +246,7 @@ int LibFile_INI::StartParse2(bool ingoreInvalidLine /* = true */, ExtProc_CB2 ex
 				break;
 		}
 	}
-	
+
 	return 0;
 
 ERROR_HANDLE:
@@ -291,7 +291,7 @@ int LibFile_INI::GetValueString(std::string &secName, std::string &varName, OUT 
 	vecIndex = secMapIt->second;
 
 	std::map<std::string,std::string>::iterator varMapIt;
-	
+
 	varMapIt = vecVarBlock[vecIndex].varMap.find(varName);
 	if (varMapIt == vecVarBlock[vecIndex].varMap.end()) {
 		LibError_SetExtErrorMessage("Can't find variable %s in section: %s\n", varName.c_str(), secName.c_str());
@@ -365,7 +365,7 @@ int LibFile_INI::GetSingleVarStringTotalCount(std::string &secName, OUT u32 &tot
 	vecIndex = secMapIt->second;
 
 	totalCount = vecVarBlock[vecIndex].singleVarVector.size();
-	
+
 	return 0;
 }
 
@@ -427,7 +427,7 @@ void LibFile_INI::Dump(void)
 
 	DUMPD(section_name_index_counter_for_vector);
 	PRINT_NEXT_LINE;
-	
+
 	printf("mapSectionName:\n");
 	for (it=mapSectionName.begin(); it!=mapSectionName.end(); it++) {
 		printf("\t(%d) %s\n", it->second, it->first.c_str());
@@ -436,20 +436,20 @@ void LibFile_INI::Dump(void)
 
 	DUMPD(vecVarBlock.size());
 	EXIT_LOC_IF(vecVarBlock.size() != section_name_index_counter_for_vector);
-	for (u32 i = 0; i < section_name_index_counter_for_vector; i++) 
+	for (u32 i = 0; i < section_name_index_counter_for_vector; i++)
 	{
-		printf("\tvecVarBlock[%u].varMap.size() = %u\n", i, vecVarBlock[i].varMap.size());
+		printf("\tvecVarBlock[%u].varMap.size() = %u\n", i, (unsigned int)vecVarBlock[i].varMap.size());
 
 		std::map<std::string,std::string>::iterator varMapIt;
-		for (varMapIt=vecVarBlock[i].varMap.begin(); varMapIt!=vecVarBlock[i].varMap.end(); varMapIt++) 
+		for (varMapIt=vecVarBlock[i].varMap.begin(); varMapIt!=vecVarBlock[i].varMap.end(); varMapIt++)
 		{
 			printf("\t\t%-20s = %s\n", varMapIt->first.c_str(), varMapIt->second.c_str());
 		}
 
-		printf("\tvecVarBlock[%u].singleVarVector.size() = %u\n", i, vecVarBlock[i].singleVarVector.size());
+		printf("\tvecVarBlock[%u].singleVarVector.size() = %u\n", i, (unsigned int)vecVarBlock[i].singleVarVector.size());
 
 		std::vector<std::string>::iterator varMapIt2;
-		for (varMapIt2=vecVarBlock[i].singleVarVector.begin(); varMapIt2!=vecVarBlock[i].singleVarVector.end(); varMapIt2++) 
+		for (varMapIt2=vecVarBlock[i].singleVarVector.begin(); varMapIt2!=vecVarBlock[i].singleVarVector.end(); varMapIt2++)
 		{
 			printf("\t\t%-20s\n", varMapIt2->c_str());
 		}
@@ -461,13 +461,13 @@ void LibFile_INI::Dump(void)
 void LibFileIO2_Demo_INI_File(void)
 {
 	LibFile_INI ini_file("test.ini", "r+b");
-	
+
 	EXIT_CHK( rc, ini_file.StartParse() );
 
 	ini_file.Dump();
 
 	u32 val;
-	
+
 	EXIT_CHK( rc, ini_file.GetValueU32("[FW FilePointer]", "Mirror_Addr_2", val) );
 
 	DUMPD(val);
