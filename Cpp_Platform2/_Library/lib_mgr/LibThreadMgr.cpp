@@ -468,3 +468,72 @@ void LibThreadMgr_Demo_WatchDog(void)
 	LibTime_StopMicroSecondClock_ShowResult();
 	PRINT_NEXT_LINE;
 }
+
+//
+//
+//
+int LibThreadMgr_BatchCreate(THREAD_HANDLE_t *hdlAry, ThreadEntryFunc *funcAry, u32 len)
+{
+    int retVal;
+    u32 i = 0;
+    for (i = 0; i < len; i++) {
+        retVal = LibThread_NewHandle(&hdlAry[i]);
+        RETURN_IF(retVal);
+    }
+
+    for (i = 0; i < len; i++) {
+        retVal = LibThread_Create(hdlAry[i], funcAry[i]);
+        RETURN_IF(retVal);
+    }
+
+    return 0;
+}
+
+int LibThreadMgr_BatchWait(THREAD_HANDLE_t *hdlAry, u32 len)
+{
+    int retVal;
+    u32 i = 0;
+    for (i = 0; i < len; i++) {
+        retVal = LibThread_WaitThread(hdlAry[i]);
+        RETURN_IF(retVal);
+    }
+
+    return 0;
+}
+
+int LibThreadMgr_BatchDestroy(THREAD_HANDLE_t *hdlAry, u32 len)
+{
+    int retVal;
+    u32 i = 0;
+    for (i = 0; i < len; i++) {
+        retVal = LibThread_DestroyHandle(hdlAry[i]);
+        RETURN_IF(retVal);
+    }
+
+    return 0;
+}
+
+int LibIPC_Event_BatchCreate(EVENT_HANDLE_t *eventHdlAry, u32 len)
+{
+    int retVal;
+    u32 i = 0;
+    for (i = 0; i < len; i++) {
+        retVal = LibIPC_Event_Create(&eventHdlAry[i]);
+        RETURN_IF(retVal);
+    }
+
+    return 0;
+}
+
+int LibIPC_Event_BatchDestroy(EVENT_HANDLE_t *eventHdlAry, u32 len)
+{
+    int retVal;
+    u32 i = 0;
+    for (i = 0; i < len; i++) {
+        retVal = LibIPC_Event_Destroy(eventHdlAry[i]);
+        RETURN_IF(retVal);
+    }
+
+    return 0;
+}
+

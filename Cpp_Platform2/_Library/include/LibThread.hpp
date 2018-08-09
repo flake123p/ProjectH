@@ -28,6 +28,11 @@ int LibThreadMgr_Touch_WatchDog(void);
 int LibThreadMgr_Freeze_WatchDog(void);
 int LibThreadMgr_Unfreeze_WatchDog(void);
 
+int LibThreadMgr_BatchCreate(THREAD_HANDLE_t *hdlAry, ThreadEntryFunc *funcAry, u32 len);
+int LibThreadMgr_BatchWait(THREAD_HANDLE_t *hdlAry, u32 len);
+int LibThreadMgr_BatchDestroy(THREAD_HANDLE_t *hdlAry, u32 len);
+
+
 
 void LibThreadMgr_Demo(void);
 void LibThreadMgr_DemoLite(void);
@@ -49,6 +54,8 @@ int LibIPC_Event_Create(OUT EVENT_HANDLE_t *eventHdlPtr); // AUTO RESET EVENT !!
 int LibIPC_Event_Destroy(EVENT_HANDLE_t eventHdl);
 int LibIPC_Event_Set(EVENT_HANDLE_t eventHdl);
 int LibIPC_Event_Wait(EVENT_HANDLE_t eventHdl);
+int LibIPC_Event_BatchCreate(EVENT_HANDLE_t *eventHdlAry, u32 len);
+int LibIPC_Event_BatchDestroy(EVENT_HANDLE_t *eventHdlAry, u32 len);
 
 typedef void * MUTEX_HANDLE_t;
 int LibIPC_Mutex_Create(OUT MUTEX_HANDLE_t *mutexHdlPtr);
