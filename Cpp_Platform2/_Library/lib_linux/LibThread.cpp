@@ -2,7 +2,7 @@
 #include "Everything_Lib_Linux.hpp"
 
 /*
-	Reference: 
+	Reference:
 		http://timmurphy.org/2010/05/04/pthreads-in-c-a-minimal-working-example/
 		https://linux.die.net/man/3/pthread_create
 */
@@ -37,7 +37,7 @@ int LibThread_WaitThread(THREAD_HANDLE_t threadHdl)
 
 	/* wait for the thread to finish */
 	int retVal = pthread_join(linuxThreadHdl->thread, NULL);
-	
+
 	return retVal;
 }
 
@@ -68,7 +68,7 @@ int LibIPC_Event_Create(OUT EVENT_HANDLE_t *eventHdlPtr)
 	RETURN_IF(retVal);
 	retVal = pthread_mutex_init(&eHdl->mutex, NULL);
 	RETURN_IF(retVal);
-	
+
 	*eventHdlPtr = eHdl;
 	return 0;
 }
@@ -79,10 +79,10 @@ int LibIPC_Event_Destroy(EVENT_HANDLE_t eventHdl)
 
 	int retVal = pthread_mutex_destroy(&eHdl->mutex);
 	RETURN_IF(retVal);
-	
+
 	retVal = pthread_cond_destroy(&eHdl->cond);
 	RETURN_IF(retVal);
-	
+
 	free(eventHdl);
 	return 0;
 }
@@ -105,7 +105,7 @@ int LibIPC_Event_Wait(EVENT_HANDLE_t eventHdl)
 	pthread_mutex_lock(&eHdl->mutex);
 	pthread_cond_wait(&eHdl->cond, &eHdl->mutex);
 	pthread_mutex_unlock(&eHdl->mutex);
-	
+
 	return 0;
 }
 
@@ -143,4 +143,3 @@ int LibIPC_Mutex_Unlock(MUTEX_HANDLE_t mutexHdl)
 
 	return pthread_mutex_unlock(&linuxMutexHdl->mutex);
 }
-
