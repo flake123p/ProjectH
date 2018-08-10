@@ -27,7 +27,7 @@ while : ; do
   #Source the 2nd script, i.e. . test2.sh and it will run in the same shell.
   . ./lib_build.sh
   cd $local_app_path
-  errorlevel=$((result1 + result2))
+  errorlevel=$((lib_result1 + lib_result2))
   if [ $errorlevel != 0 ]; then
     echo ====== Library Error, Abort Building!! ======
     break
@@ -58,7 +58,6 @@ while : ; do
   result1=$?
   make Build_All -f ./Makefiles/_2_Build.mak -I Makefiles -I mod MY_OS=LINUX
   result2=$?
-  echo ====== APP Build Done!! Errorlevel = $result1, $result2 ====== 
+  echo ====== APP Build Done!! Errorlevel = $result1, $result2 ======
   break
 done
-
