@@ -4,7 +4,7 @@ local_mod = $(notdir $(CURDIR))
 # for ext_mod_list
 include _00_Ext_Mods.mak
 
-base_mod_dir = ../../_mod
+base_mod_dir = ../../mod
 mod_include_dir = include
 mod_archive_dir = archive
 

@@ -22,7 +22,7 @@ def OpenFile(fileName, mode = 'r'): # mode : 'r', 'w', ...
 
 
 
-mod_base_path = '../../_mod/'
+mod_base_path = '../../mod/'
 curr_os = str(sys.argv[4])
 if curr_os == 'WIN':
 	mod_build_file = 'build_mod.bat'

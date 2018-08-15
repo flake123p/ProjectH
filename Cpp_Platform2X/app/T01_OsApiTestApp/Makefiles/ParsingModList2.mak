@@ -11,7 +11,7 @@
 # (5)mod_all.mke : created by (4)
 
 include mod/mod_all.mak
-mod_base_path = ../../_mod/
+mod_base_path = ../../mod/
 mod_base_file = mod_list.txt
 temp = $(patsubst %,$(mod_base_path)%,$(mod_all))
 mod_all_list = $(patsubst %,%/$(mod_base_file),$(temp))

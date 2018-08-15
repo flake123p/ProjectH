@@ -94,7 +94,7 @@ t1Mgr = LibLinkedList.LLT1Mgr()
 currPath = os.getcwd()
 splitPath = os.path.split(currPath)
 #print(splitPath)
-prevPath = splitPath[0]  #D:\WS\workspace\ProjectH\Cpp_Platform2X\_app
+prevPath = splitPath[0]  #D:\WS\workspace\ProjectH\Cpp_Platform2X\app
 currFolder = splitPath[1]
 t1Mgr.addT1NextNode(0, currFolder)
 
@@ -120,10 +120,10 @@ while depth != 0:
 		if currNode.var == 0 and len(currNode.str) != 0:
 			if appModListRead == 0:
 				appModListRead = 1
-				targetFile = prevPrevPath + '/_app/' + currNode.str + '/' + modListFile
+				targetFile = prevPrevPath + '/app/' + currNode.str + '/' + modListFile
 			else:
 				#import child
-				targetFile = prevPrevPath + '/_mod/' + currNode.str + '/' + modListFile
+				targetFile = prevPrevPath + '/mod/' + currNode.str + '/' + modListFile
 
 			modList = OpendFileAndGetList(targetFile, 'r')
 			workNode = currNode
