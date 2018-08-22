@@ -1,2 +1,3 @@
-2018xxxx:
+20180822:
 	Add "OFS_XXXX" compile capability. OFS for "Options From Shell". (Windows)
+	Add "OFS_XXXX" compile capability. OFS for "Options From Shell". (Linux)

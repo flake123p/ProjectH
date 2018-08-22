@@ -99,7 +99,7 @@ else: #LINUX
 	for each_line in finList:
 		each_mod = each_line.strip()
 		# build files
-		str = 'cd ' + mod_base_path + each_mod + '\n' + './' + mod_build_file + '\n'
+		str = 'cd ' + mod_base_path + each_mod + '\n' + './' + mod_build_file + ' ' + OFS_String + '\n'
 		foutBuildfile.write(str)
 		foutBuildfile.write('rc=$?\n')
 		foutBuildfile.write('cd $temp_local_path\n')

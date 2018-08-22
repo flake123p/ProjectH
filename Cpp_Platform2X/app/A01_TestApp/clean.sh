@@ -8,6 +8,6 @@ rm ./mod/*.mak                  --force --verbose
 rm ./build/*.o                  --force --verbose
 rm ./aout.exe                   --force --verbose
 rm ./build_all_mod.bat          --force --verbose
-rm ./build_all_mod.sh           --force --verbose
+#rm ./build_all_mod.sh           --force --verbose
 rm ./clean_all_mod.bat          --force --verbose
-rm ./clean_all_mod.sh           --force --verbose
+#rm ./clean_all_mod.sh           --force --verbose
