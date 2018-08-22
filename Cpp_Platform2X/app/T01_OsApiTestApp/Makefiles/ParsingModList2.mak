@@ -36,4 +36,4 @@ mod/mod_all.txt : $(mod_all_list)
 	python  ../../_toolchain/list_to_make_var.py  mod/mod_all.txt  mod/mod_all.mak  mod_all
 
 $(mod_build_file) : mod//mod_all.txt
-	python  ../../_toolchain/list_to_build_script.py  mod/mod_all.txt  $(mod_build_file)  $(mod_clean_file)  $(curr_os)
+	python  ../../_toolchain/list_to_build_script.py  mod/mod_all.txt  Makefiles/OFS_From_App.mak $(mod_build_file)  $(mod_clean_file)  $(curr_os)

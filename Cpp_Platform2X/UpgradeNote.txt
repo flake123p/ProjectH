@@ -1,0 +1,2 @@
+2018xxxx:
+	Add "OFS_XXXX" compile capability. OFS for "Options From Shell". (Windows)

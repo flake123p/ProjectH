@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-# Usage: list_to_make_var.py  <input file (mod list)>  <output file 1(build script)>  <output file 2(clean script)>  <OS>
-# argv:  argv[0]              argv[1]                  argv[2]                        argv[3]                        argv[4]
+# Usage: list_to_make_var.py  <in-file1:mod list>  <in-file2:OFS>  <out-file1:build script>  <out-file2:clean script>  <OS>
+# argv:  argv[0]              argv[1]              argv[2]         argv[3]                   argv[4]                   argv[5]
 
 #
 # Include library
@@ -23,7 +23,7 @@ def OpenFile(fileName, mode = 'r'): # mode : 'r', 'w', ...
 
 
 mod_base_path = '../../mod/'
-curr_os = str(sys.argv[4])
+curr_os = str(sys.argv[5])
 if curr_os == 'WIN':
 	mod_build_file = 'build_mod.bat'
 	mod_clean_file = 'clean_mod.bat'
@@ -34,14 +34,44 @@ else:
 #
 # main
 #
-if len(sys.argv) != 5:
-	print("Arguments Number Error. It should be 5.")
+if len(sys.argv) != 6:
+	print("Arguments Number Error. It should be 6.")
 	sys.exit(1)
 
 
 finList      = OpenFile(str(sys.argv[1]))
-foutBuildfile = OpenFile(str(sys.argv[2]), 'w')
-foutCleanfile = OpenFile(str(sys.argv[3]), 'w')
+finOFS       = OpenFile(str(sys.argv[2]))
+foutBuildfile = OpenFile(str(sys.argv[3]), 'w')
+foutCleanfile = OpenFile(str(sys.argv[4]), 'w')
+
+#
+# Extract OFS
+#
+state = 0
+OFS_String = ""
+OFS_Exist = 0
+for each_line in finOFS:
+	each_word_list = each_line.split()
+	#print(each_word_list)
+	for each_word in each_word_list:
+		# Find OFS
+		if state == 0:
+			if each_word != "OFS":
+				print("Error. Miss \"OFS\" symbol in OFS file.")
+				sys.exit(1)
+			state = 1
+		# Find equal sign
+		elif state == 1:
+			if each_word != "=":
+				print("Error. Miss \"=\" symbol in OFS file.")
+				sys.exit(1)
+			state = 2
+		# Make OFS string
+		else:
+			OFS_Exist = 1
+			OFS_String = OFS_String + " " + each_word
+if OFS_Exist == 1:
+	OFS_String = "\"" + OFS_String + "\""
 
 if curr_os == 'WIN':
 	foutBuildfile.write('@ECHO OFF\n')
@@ -51,7 +81,7 @@ if curr_os == 'WIN':
 	for each_line in finList:
 		each_mod = each_line.strip()
 		# build files
-		str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_build_file + '\n'
+		str = 'CD ' + mod_base_path + each_mod + '\n' + 'CALL ' + mod_build_file + ' ' + OFS_String + '\n'
 		foutBuildfile.write(str)
 		foutBuildfile.write('set rc=%ERRORLEVEL%\n')
 		foutBuildfile.write('CD %CURR_CD%\n')

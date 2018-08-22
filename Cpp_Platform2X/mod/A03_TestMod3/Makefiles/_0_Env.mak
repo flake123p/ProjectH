@@ -5,7 +5,7 @@ include _0_Env_ModPara_ForLocal.mak
 #
 # Use CXX, $(CXX) to build all files. Default CXX is g++
 #
-CXXFLAGS = -g -Wall -std=c++11
+CXXFLAGS = -g -Wall -std=c++11 $(OFS)
 
 # Define paths
 src_dir = src
