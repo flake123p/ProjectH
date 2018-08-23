@@ -4,8 +4,7 @@ echo ====== Build Mod [${PWD##*/}]  ======
 make -f ./Makefiles/_00_Ext_Mods_Gen.mak
 result1=$?
 
-OFS_for_make="OFS=\"$@\""
-make -f ./Makefiles/_1_UpdateMFiles.mak -I Makefiles MY_OS=LINUX "$OFS_for_make"
+make -f ./Makefiles/_1_UpdateMFiles.mak -I Makefiles MY_OS=LINUX "$@"
 result2=$?
 
 make Build_All -f ./Makefiles/_2_BuildMod.mak -I Makefiles MY_OS=LINUX

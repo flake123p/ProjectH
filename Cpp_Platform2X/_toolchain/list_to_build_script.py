@@ -70,8 +70,12 @@ for each_line in finOFS:
 		else:
 			OFS_Exist = 1
 			OFS_String = OFS_String + " " + each_word
-if OFS_Exist == 1:
-	OFS_String = "\"" + OFS_String + "\""
+if curr_os == 'WIN':
+	if OFS_Exist == 1:
+		OFS_String = "\"" + OFS_String + "\""
+else:
+	if OFS_Exist == 1:
+		OFS_String = "OFS=\"" + OFS_String + "\""
 
 if curr_os == 'WIN':
 	foutBuildfile.write('@ECHO OFF\n')

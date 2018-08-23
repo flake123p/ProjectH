@@ -6,7 +6,7 @@ EVENT_HANDLE_t  gEventAry[4];
 THREAD_HANDLE_t gThreadAry[4];
 
 u32 gGlobalTicks = 0;
-//#define LINUX_SET_EVENT_WORKAROUND LibOs_SleepMiliSeconds(10)
+//#define LINUX_SET_EVENT_WORKAROUND LibOs_SleepMiliSeconds(1)
 #define LINUX_SET_EVENT_WORKAROUND
 
 int gT01_01_Stop = 0;
@@ -91,7 +91,7 @@ void T01_01_LinuxEventTest(void)
 
 	LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
 	LibIPC_Event_Set(gEventAry[0]);
-	
+
 	LibTime_StartMicroSecondClock();
 	retVal = LibThreadMgr_BatchWait(gThreadAry, GET_ARRAY_LEN(gThreadAry));
 	ASSERT_IF(retVal);
@@ -115,4 +115,3 @@ int T01_OsApiTest(void)
 
 	return 0;
 }
-
