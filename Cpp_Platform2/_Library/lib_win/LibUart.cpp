@@ -57,7 +57,10 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 #ifndef CBR_921600
 #define CBR_921600 921600
 #endif
-
+//dcbSerialParams.fOutxCtsFlow = 1;
+//dcbSerialParams.fRtsControl = 1; //Seems like this line can disable flow controll
+//printf("aaaa======0x%x\n",dcbSerialParams.fOutxCtsFlow);
+//printf("bbbb======0x%x\n",dcbSerialParams.fRtsControl);
 	switch (baudRate) {
 		case 921600: dcbSerialParams.BaudRate = CBR_921600; break;
 		case 512000: dcbSerialParams.BaudRate = CBR_512000; break;

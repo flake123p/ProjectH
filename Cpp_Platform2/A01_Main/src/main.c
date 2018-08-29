@@ -1,6 +1,7 @@
 
 #include "Everything_App.hpp"
 
+#if 0
 void UartRx(void)
 {
 	LibUart_SniffSetting(1);
@@ -17,18 +18,19 @@ void UartRx(void)
 	uart.ReceiveWithLength(2, 2000);
 	uart.UninitComPort();
 }
+#endif
 
 int main(int argc, char *argv[])
 {
 	//LibArgParser_OptionSet_Demo();
 	//LibPacket_Demo();
-	//LibEncrypt_Demo();
+	LibEncrypt_Demo();
 	//LibSysCmd_SimpleCmd("start /B entry.bat 1233");
 	//LibOs_SleepSeconds(2);
 	//LibSysCmd_SimpleCmd("start /B entry.bat 1235");
 	//LibSysCmd_Simple("python test.py");
 
-	UartRx();
+	//UartRx();
 
 	return 0;
 }

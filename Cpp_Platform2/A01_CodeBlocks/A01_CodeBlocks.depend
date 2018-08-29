@@ -38,7 +38,7 @@
 1486113537 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_basics.hpp
 	"My_Basics.h"
 
-1477301354 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_basics.h
+1529905056 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_basics.h
 	"My_Macros.h"
 	"My_MacroFuncs.h"
 	"My_Types.h"
@@ -55,7 +55,7 @@
 1493630937 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_types.h
 	<stdint.h>
 
-1490343689 d:\ws\workspace\projecth\cpp_platform2\_library\include\_liblinkedlist.hpp
+1531384255 d:\ws\workspace\projecth\cpp_platform2\_library\include\_liblinkedlist.hpp
 	"My_Types.h"
 
 1490426582 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libmenu.hpp
@@ -63,16 +63,16 @@
 	<string>
 	"My_Types.h"
 
-1501411434 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libstring.hpp
+1521548291 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libstring.hpp
 	<vector>
 	<string>
 	<locale>
 	"My_Types.h"
 
-1491460971 d:\ws\workspace\projecth\cpp_platform2\_library\include\_lib51hex.hpp
+1529996984 d:\ws\workspace\projecth\cpp_platform2\_library\include\_lib51hex.hpp
 	"_LibLinkedList.hpp"
 
-1494244739 d:\ws\workspace\projecth\cpp_platform2\_library\include\libuart.hpp
+1523352071 d:\ws\workspace\projecth\cpp_platform2\_library\include\libuart.hpp
 	<stdint.h>
 	<stddef.h>
 	"My_Types.h"
@@ -87,7 +87,7 @@
 	"LibBuffer.hpp"
 	<string.h>
 
-1499913165 d:\ws\workspace\projecth\cpp_platform2\_library\include\libutility.hpp
+1516675007 d:\ws\workspace\projecth\cpp_platform2\_library\include\libutility.hpp
 	"My_Types.h"
 	"My_Macros.h"
 
@@ -95,7 +95,7 @@
 
 1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libtui.hpp
 
-1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libsyscmd.hpp
+1516675007 d:\ws\workspace\projecth\cpp_platform2\_library\include\libsyscmd.hpp
 
 1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libscreenlogic.hpp
 	"My_Basics.hpp"
@@ -111,7 +111,7 @@
 	"stdarg.h"
 	"My_Basics.hpp"
 
-1502531029 d:\ws\workspace\projecth\cpp_platform2\_library\include\libthread.hpp
+1533795718 d:\ws\workspace\projecth\cpp_platform2\_library\include\libthread.hpp
 	<stdarg.h>
 	"My_Types.h"
 
@@ -131,7 +131,7 @@
 1494558043 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libargparsermgr.cpp
 	"Everything_Lib_Mgr.hpp"
 
-1493900218 d:\ws\workspace\projecth\cpp_platform2\_library\include\libargparser.hpp
+1523879394 d:\ws\workspace\projecth\cpp_platform2\_library\include\libargparser.hpp
 	"My_Types.h"
 	<string.h>
 	<map>
@@ -271,7 +271,7 @@
 1490339698 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libalgomem.cpp
 	"Everything_Lib_Mgr.hpp"
 
-1492250418 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libmemory.hpp
+1523968094 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libmemory.hpp
 	"My_Types.h"
 	"_LibLinkedList.hpp"
 
@@ -295,7 +295,7 @@
 1495076055 d:\ws\workspace\projecth\cpp_platform2\_library\include\libencrypt.hpp
 	"My_Types.h"
 
-1512313545 d:\ws\workspace\projecth\cpp_platform2\_library\include\libpacket.hpp
+1516675007 d:\ws\workspace\projecth\cpp_platform2\_library\include\libpacket.hpp
 	"My_Types.h"
 
 1490770336 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libtest.cpp
@@ -305,5 +305,11 @@
 	"Everything_Lib_Mgr.hpp"
 
 1494557605 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libmemory.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1494575304 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libsyntex.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1495275420 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libsimplefs.cpp
 	"Everything_Lib_Mgr.hpp"
 
