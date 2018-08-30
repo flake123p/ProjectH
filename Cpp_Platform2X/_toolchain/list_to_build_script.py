@@ -72,7 +72,7 @@ for each_line in finOFS:
 			OFS_String = OFS_String + " " + each_word
 if curr_os == 'WIN':
 	if OFS_Exist == 1:
-		OFS_String = "\"" + OFS_String + "\""
+		OFS_String = "OFS=\"" + OFS_String + "\""
 else:
 	if OFS_Exist == 1:
 		OFS_String = "OFS=\"" + OFS_String + "\""

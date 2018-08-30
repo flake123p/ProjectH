@@ -4,7 +4,7 @@ echo ====== Start: Build Local Module [%CurrDirName%] ======
 CALL make -f ./Makefiles/_00_Ext_Mods_Gen.mak
 set build_mod_rc1=%ERRORLEVEL%
 
-CALL make -f ./Makefiles/_1_UpdateMFiles.mak -I Makefiles MY_OS=WIN OFS=%*
+CALL make -f ./Makefiles/_1_UpdateMFiles.mak -I Makefiles MY_OS=WIN %*
 set build_mod_rc2=%ERRORLEVEL%
 
 CALL make Build_All -f ./Makefiles/_2_BuildMod.mak -I Makefiles MY_OS=WIN
