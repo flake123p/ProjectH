@@ -109,7 +109,7 @@ int SimChannel_RxStart(u8 *buf, u32 *receivedLength)
     return SimChan_CbTable[gSimChanType].rxFunc(buf, receivedLength);
 }
 
-int Demo_TxSink(u8 *txBuf, u32 txBufLen)
+static int _Demo_TxSink(u8 *txBuf, u32 txBufLen)
 {
     ARRAYDUMPX2(txBuf, txBufLen);
 
@@ -122,7 +122,7 @@ int Demo_TxSink(u8 *txBuf, u32 txBufLen)
     return 0;
 }
 
-int HCI_Event_RxStart(u8 *buf, u32 *receivedLength)
+static int _Demo_HCI_Event_RxStart(u8 *buf, u32 *receivedLength)
 {
     u32 tempRxLen;
     u8 *currBufPtr = buf;
@@ -152,10 +152,10 @@ int SimChannel_Demo(void)
     printf("This is %s()\n", __func__);
 
     SimChanPara_t *para = SimChannel_PreConfigPara();
-    para->sim_chan_ram_rx_call_max_len = 300;
+    para->sim_chan_ram_rx_call_max_len = 1;
     para->uart_com_port_name = "COM26";
     para->uart_baud_rate = 115200;
-    SimChannel_Init(1000, Demo_TxSink);
+    SimChannel_Init(1000, _Demo_TxSink);
     SimChannel_TypeSet(SIM_CHAN_RAM);
     //SimChannel_TypeSet(SIM_CHAN_UART);
 
@@ -173,7 +173,7 @@ int SimChannel_Demo(void)
 
     // Rewrite correct procedure.
     SimChannel_TxStart(testData, sizeof(testData));
-    HCI_Event_RxStart(rxBuf, &rxLen);
+    _Demo_HCI_Event_RxStart(rxBuf, &rxLen);
     ARRAYDUMPX2(rxBuf, rxLen); // Not receive enough bytes. Need keep receiving!!
 
     SimChannel_Uninit();

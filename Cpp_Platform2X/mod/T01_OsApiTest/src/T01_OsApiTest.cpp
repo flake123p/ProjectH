@@ -57,6 +57,8 @@ void *T01_01_TestThread03(void *arg)
 	while (1) {
 		LibIPC_Event_Wait(gEventAry[3]);
 		PRINT_FUNC;
+		if (gT01_01_Stop)
+			break;
 		{
 		    static int ctr = 0;
 		    ctr++;
@@ -65,8 +67,6 @@ void *T01_01_TestThread03(void *arg)
 		}
 		LINUX_SET_EVENT_WORKAROUND;
 		LibIPC_Event_Set(gEventAry[0]);
-		if (gT01_01_Stop)
-			break;
 	}
 
 	return 0;
