@@ -1,6 +1,6 @@
 
 
-#ifndef _TIME_SLICE_SIM_INCLUDED_
+#ifndef _SIM_TIME_SLICE_INCLUDED_
 
 #include "Everything_Lib_Mgr.hpp"
 
@@ -43,8 +43,8 @@ int TimeSliceSim_Init2(Time_Slice_Descriptor2 *descriptor_list);
 int TimeSliceSim_Mgr_Init2(Time_Slice_CB in_pre_cb, Time_Slice_CB in_post_cb);
 int TimeSliceSim_Start2(void);
 
-#define _TIME_SLICE_SIM_INCLUDED_
-#endif//_TIME_SLICE_SIM_INCLUDED_
+#define _SIM_TIME_SLICE_INCLUDED_
+#endif//_SIM_TIME_SLICE_INCLUDED_
 
 
 

@@ -1,6 +1,6 @@
 
-#include "Everything_TimeSliceSim.hpp"
-#include "TimeSliceSim.hpp"
+#include "Everything_SimTimeSlice.hpp"
+#include "SimTimeSlice.hpp"
 
 EVENT_HANDLE_t  gSimAirEventAry[4];
 THREAD_HANDLE_t gSimAirThreadAry[4];

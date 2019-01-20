@@ -1,6 +1,7 @@
 
 #include "Everything_App.hpp"
 #include "SimChannel.hpp"
+#include "SimTimeSlice.hpp"
 
 int main(int argc, char *argv[])
 {
