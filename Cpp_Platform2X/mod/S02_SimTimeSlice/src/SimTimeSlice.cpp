@@ -337,10 +337,21 @@ int SimTimeSlice1_Demo(void)
 }
 
 static std::vector<Time_Slice_Descriptor2 *> gDescriptor2_vector;
+static Time_Slice_Descriptor2 gLastStandaloneDes = {
+    .remain_time = 0,
+    .state = TIME_SLICE_CB_DONE,
+    .times_up_cb = NULL,
+    .hdl_to_cb = NULL,
+};
 static Time_Slice_Descriptor2_Ext g_descriptor2_ext = {
     .pre_cb = NULL,
     .post_cb = NULL
 };
+
+Time_Slice_Descriptor2 *SimTimeSlice2_GetLastStandaloneDes(void)
+{
+    return &gLastStandaloneDes;
+}
 
 int SimTimeSlice2_Init_AddDescriptor(Time_Slice_Descriptor2 *p_descriptor)
 {
@@ -399,6 +410,29 @@ int SimTimeSlice2_Start(void)
                 }
             }
         }
+        //New feature start: last standalone descriptor for application
+        if (gLastStandaloneDes.remain_time == 0 && gLastStandaloneDes.state == TIME_SLICE_CB_WAITING)
+        {
+            if (gLastStandaloneDes.times_up_cb != NULL)
+            {
+                if (is_pre_cb_executed == 0) {
+                    is_pre_cb_executed = 1;
+                    if (g_descriptor2_ext.pre_cb != NULL) {
+                        ret = (*(g_descriptor2_ext.pre_cb))();
+                    }
+                }
+                need_post_cb = 1;
+                do {
+                    gLastStandaloneDes.state = TIME_SLICE_CB_DONE;
+                    ret = (*(gLastStandaloneDes.times_up_cb))(gLastStandaloneDes.hdl_to_cb);
+                } while (gLastStandaloneDes.remain_time == 0 && gLastStandaloneDes.state == TIME_SLICE_CB_WAITING); //if "zero remain time" been setting & setting
+            }
+            else
+            {
+                BASIC_ASSERT(0);
+            }
+        }
+        //New feature end
         if (need_post_cb) {
             need_post_cb = 0;
             if (g_descriptor2_ext.post_cb != NULL) {
@@ -421,6 +455,17 @@ int SimTimeSlice2_Start(void)
                 }
             }
         }
+        //New feature start: last standalone descriptor for application
+        if (gLastStandaloneDes.state == TIME_SLICE_CB_WAITING)
+        {
+            is_there_remain_waitings = 1;
+            if (gLastStandaloneDes.remain_time < min_remain_time)
+            {
+                min_remain_time = gLastStandaloneDes.remain_time;
+            }
+            gLastStandaloneDes.remain_time -= min_remain_time;
+        }
+        //New feature end
 
         if (is_there_remain_waitings) //update all remain time in vector
         {
@@ -444,7 +489,14 @@ int SimTimeSlice2_Start(void)
 int SimTimeSlice2_Uninit(void)
 {
     SimTimeSlice_TimeStampSet(0, 0);
+
     SimTimeSlice2_Init_PrePostCB(NULL, NULL);
+
+    gLastStandaloneDes.remain_time = 0;
+    gLastStandaloneDes.state = TIME_SLICE_CB_DONE;
+    gLastStandaloneDes.times_up_cb = NULL;
+    gLastStandaloneDes.hdl_to_cb = NULL;
+
     gDescriptor2_vector.clear();
     return 0;
 }
@@ -453,11 +505,9 @@ int SimTimeSlice2_Uninit(void)
 #define ___DEMO__________________________
 #define ___DEMO_________________________
 
-static int TimeSlice_TestCB_A(Handle_t hdl);
-static int TimeSlice_TestCB_B(Handle_t hdl);
 static u32 gCounter[3] = {0};//0 for A, 1 for B, 2 for all
-static Time_Slice_Descriptor2 gDescriptor2_A = {0, TIME_SLICE_CB_INVALID, TimeSlice_TestCB_A, gCounter};
-static Time_Slice_Descriptor2 gDescriptor2_B = {0, TIME_SLICE_CB_INVALID, TimeSlice_TestCB_B, gCounter};
+static Time_Slice_Descriptor2 gDescriptor2_A = {0, TIME_SLICE_CB_INVALID, NULL, gCounter};
+static Time_Slice_Descriptor2 gDescriptor2_B = {0, TIME_SLICE_CB_INVALID, NULL, gCounter};
 
 static int TimeSlice_TestCB_A(Handle_t hdl)
 {
@@ -497,7 +547,7 @@ static int TimeSlice_TestCB_B(Handle_t hdl)
     u32 *p_ctr = (u32 *)hdl;
     p_ctr[1]++;
     p_ctr[2]++;
-    printf("====== AAA Time Stamp:%d/%-5d -- %d/%d/%d\n", timeStamp1, timeStamp2, p_ctr[0], p_ctr[1], p_ctr[2]);
+    printf("====== BBB Time Stamp:%d/%-5d -- %d/%d/%d\n", timeStamp1, timeStamp2, p_ctr[0], p_ctr[1], p_ctr[2]);
 
 
     static int i = 0;
@@ -522,6 +572,22 @@ static int TimeSlice_TestCB_POST(void)
     return 0;
 }
 
+static Time_Slice_Descriptor2 *gDescriptor2_Last;
+
+static int TimeSlice_TestCB_Last(Handle_t hdl)
+{
+    u32 timeStamp1, timeStamp2;
+    SimTimeSlice_TimeStampGet(&timeStamp1, &timeStamp2);
+    printf("====== Last Time Stamp:%d/%-5d\n", timeStamp1, timeStamp2);
+    static int i = 0;
+    if (i < 6) {
+        i++;
+        gDescriptor2_Last->remain_time = 50;
+        gDescriptor2_Last->state = TIME_SLICE_CB_WAITING;
+    }
+    return 0;
+}
+
 int SimTimeSlice2_Demo(void)
 {
     printf("\nThis is %s()\n", __func__);
@@ -529,13 +595,22 @@ int SimTimeSlice2_Demo(void)
 
     gDescriptor2_A.remain_time = 200;
     gDescriptor2_A.state = TIME_SLICE_CB_WAITING;
+    gDescriptor2_A.times_up_cb = TimeSlice_TestCB_A;
     gDescriptor2_B.remain_time = 0;
     gDescriptor2_B.state = TIME_SLICE_CB_WAITING;
+    gDescriptor2_B.times_up_cb = TimeSlice_TestCB_B;
+
+    gDescriptor2_Last = SimTimeSlice2_GetLastStandaloneDes();
+    gDescriptor2_Last->remain_time = 50;
+    gDescriptor2_Last->state = TIME_SLICE_CB_WAITING;
+    gDescriptor2_Last->times_up_cb = TimeSlice_TestCB_Last;
 
     SimTimeSlice2_Init_AddDescriptor(&gDescriptor2_A);
     SimTimeSlice2_Init_AddDescriptor(&gDescriptor2_B);
     SimTimeSlice2_Init_PrePostCB(TimeSlice_TestCB_PRE, TimeSlice_TestCB_POST);
     SimTimeSlice2_Start();
+
+    SimTimeSlice2_Uninit();
 
     return 0;
 }

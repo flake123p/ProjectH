@@ -22,6 +22,7 @@ typedef struct {
 static std::vector<SimAir_Descriptor_t *> gSimAirDes_Vector;
 static SimAir_Handle_t gSimAir_Handle_Ctr = 0;
 static SimAir_Handle_t gSimAir_Handle_InternalTRx = 0;
+//static Time_Slice_Descriptor2 *gSimAir_Descriptor2_Last = NULL;
 
 static void SimAir_ActivePeriodicInternalTRx(void)
 {
@@ -78,7 +79,6 @@ SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rx
     SimAir_Descriptor_t *p_curr_sim_air_des;
     u32 newest;
 
-    //wake up cb
     p_curr_sim_air_des = (SimAir_Descriptor_t *)malloc(sizeof(SimAir_Descriptor_t));
     p_curr_sim_air_des->p_time_slice_descriptor = (Time_Slice_Descriptor2 *)malloc(sizeof(Time_Slice_Descriptor2));
     p_curr_sim_air_des->sim_air_hdl = gSimAir_Handle_Ctr;
@@ -103,11 +103,9 @@ SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rx
 static void SimAir_Init_AddDescriptor_InternalTRx(void)
 {
     SimAir_Descriptor_t *p_curr_sim_air_des;
-    u32 newest;
 
-    //wake up cb
     p_curr_sim_air_des = (SimAir_Descriptor_t *)malloc(sizeof(SimAir_Descriptor_t));
-    p_curr_sim_air_des->p_time_slice_descriptor = (Time_Slice_Descriptor2 *)malloc(sizeof(Time_Slice_Descriptor2));
+    p_curr_sim_air_des->p_time_slice_descriptor = SimTimeSlice2_GetLastStandaloneDes();
     p_curr_sim_air_des->sim_air_hdl = gSimAir_Handle_Ctr;
     p_curr_sim_air_des->cb_type = SIM_AIR_INTERNAL_TRx;
     p_curr_sim_air_des->wake_up_cb = SimAir_InternalTRx;
@@ -120,11 +118,12 @@ static void SimAir_Init_AddDescriptor_InternalTRx(void)
     p_curr_sim_air_des->requ_resp_info = NULL;
 
     gSimAirDes_Vector.push_back(p_curr_sim_air_des);
-    newest = gSimAirDes_Vector.size()-1;
-    SimTimeSlice2_Init_AddDescriptor(gSimAirDes_Vector[newest]->p_time_slice_descriptor);
+    //Flake: don't have to register, because it's using "LastStandalone Descriptor".
+    //newest = gSimAirDes_Vector.size()-1;
+    //SimTimeSlice2_Init_AddDescriptor(gSimAirDes_Vector[newest]->p_time_slice_descriptor);
 
-    gSimAir_Handle_Ctr++;
     gSimAir_Handle_InternalTRx = p_curr_sim_air_des->sim_air_hdl;
+    gSimAir_Handle_Ctr++;
 }
 
 int SimAir_Start(void)
@@ -140,12 +139,15 @@ int SimAir_Uninit(void)
 
     for (u32 i=0; i<size_of_gSimAirDes_Vector; i++)
     {
-        free(gSimAirDes_Vector[i]->p_time_slice_descriptor);
+        if (gSimAir_Handle_InternalTRx != i) {
+            free(gSimAirDes_Vector[i]->p_time_slice_descriptor);
+        }
         free(gSimAirDes_Vector[i]);
     }
     gSimAirDes_Vector.clear();
 
     gSimAir_Handle_Ctr = 0;
+    gSimAir_Handle_InternalTRx = 0;
 
     SimAir_ChMgr_Uninit();
 
@@ -155,6 +157,7 @@ int SimAir_Uninit(void)
 
 int SimAir_Request(SimAir_Info_t *info)
 {
+    //BASIC_ASSERT(gSimAir_Handle_InternalTRx != info->hdl);//upper can't use internal trx function directly
     switch (info->requ_type) {
         case SIM_AIR_WAKEUP_REQUEST:
             gSimAirDes_Vector[info->hdl]->p_time_slice_descriptor->remain_time = info->next_wake_up_time;
@@ -535,6 +538,17 @@ static int Test_4_Demo_ExtendRx(void)
     //SimAir_Dump();
     //SimTimeSlice2_Dump();
     SimAir_Start();
+
+//Demo restart mechanism
+#if 0
+    PRINT_LINE;
+    SimAir_Start();
+    PRINT_LINE;
+    g_slave_info.requ_type = SIM_AIR_WAKEUP_REQUEST;
+    g_slave_info.next_wake_up_time = 10;
+    SimAir_Request(&g_slave_info);
+    SimAir_Start();
+#endif
     //SimTimeSlice2_Dump();
     //SimAir_Dump();
     SimAir_Uninit();

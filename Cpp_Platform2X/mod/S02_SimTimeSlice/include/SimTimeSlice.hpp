@@ -40,6 +40,7 @@ void SimTimeSlice_TimeStampSet(u32 inTimeStamp1, u32 inTimeStamp2);
 int SimTimeSlice_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number);
 int SimTimeSlice_Start(void);
 
+Time_Slice_Descriptor2 *SimTimeSlice2_GetLastStandaloneDes(void);
 int SimTimeSlice2_Init_AddDescriptor(Time_Slice_Descriptor2 *p_descriptor);
 int SimTimeSlice2_Init_PrePostCB(Simple_CB_t in_pre_cb, Simple_CB_t in_post_cb);
 int SimTimeSlice2_Start(void);
