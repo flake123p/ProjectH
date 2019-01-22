@@ -4,44 +4,48 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
-typedef int (*Time_Slice_CB)(void);
-//typedef int (*Time_Slice_Mgr_CB)(void *on_going_cb);
-
+//Ver1
 typedef struct {
     u32 *p_remain_time;
-    Time_Slice_CB times_up_cb;
+    Simple_CB_t times_up_cb;
 }Time_Slice_Descriptor;
 
+//Ver2
 typedef enum {
     TIME_SLICE_CB_WAITING,
     TIME_SLICE_CB_DONE,
 
     TIME_SLICE_CB_INVALID,
-}Time_Slice_CB_State;
+}TimeSlice_CB_State;
 typedef struct {
     u32 remain_time; //ver2, not pointer
-    Time_Slice_CB times_up_cb;
-    Time_Slice_CB_State state; //ver2
-    void *next; //ver2
-}Time_Slice_Descriptor2; //for TimeSliceSim_Init2() & TimeSliceSim_Start2()
+    TimeSlice_CB_State state; //ver2
+
+    Common_CB_t times_up_cb;
+    Handle_t hdl_to_cb;
+//    void *lower_hdl; //for internal time slice module
+}Time_Slice_Descriptor2; //for SimTimeSlice2_Init() & SimTimeSlice2_Start()
 typedef struct {
-    Time_Slice_CB pre_cb;
-    Time_Slice_CB post_cb;
-}Time_Slice_Descriptor2_Mgr;
+    Simple_CB_t pre_cb;
+    Simple_CB_t post_cb;
+}Time_Slice_Descriptor2_Ext;
 
-int TimeSliceSim_Demo(void);
-int TimeSliceSim_Demo2(void);
-int TimeSliceSim_Demo3(void);
+int SimTimeSlice_Demo_Old(void);
+int SimTimeSlice1_Demo(void);
+int SimTimeSlice2_Demo(void);
 
-void TimeSliceSime_GetTimeStamp(u32 *outTimeStamp1, u32 *outTimeStamp2);
-void TimeSliceSime_SetTimeStamp(u32 inTimeStamp1, u32 inTimeStamp2);
+void SimTimeSlice_TimeStampGet(u32 *outTimeStamp1, u32 *outTimeStamp2);
+void SimTimeSlice_TimeStampSet(u32 inTimeStamp1, u32 inTimeStamp2);
 
-int TimeSliceSim_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number);
-int TimeSliceSim_Start(void);
+int SimTimeSlice_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number);
+int SimTimeSlice_Start(void);
 
-int TimeSliceSim_Init2(Time_Slice_Descriptor2 *descriptor_list);
-int TimeSliceSim_Mgr_Init2(Time_Slice_CB in_pre_cb, Time_Slice_CB in_post_cb);
-int TimeSliceSim_Start2(void);
+int SimTimeSlice2_Init_AddDescriptor(Time_Slice_Descriptor2 *p_descriptor);
+int SimTimeSlice2_Init_PrePostCB(Simple_CB_t in_pre_cb, Simple_CB_t in_post_cb);
+int SimTimeSlice2_Start(void);
+int SimTimeSlice2_Uninit(void);
+
+void SimTimeSlice2_Dump(void);
 
 #define _SIM_TIME_SLICE_INCLUDED_
 #endif//_SIM_TIME_SLICE_INCLUDED_

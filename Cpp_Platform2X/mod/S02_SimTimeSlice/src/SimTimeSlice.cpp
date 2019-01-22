@@ -1,6 +1,7 @@
 
 #include "Everything_SimTimeSlice.hpp"
 #include "SimTimeSlice.hpp"
+#include <vector> //for ver2
 
 EVENT_HANDLE_t  gSimAirEventAry[4];
 THREAD_HANDLE_t gSimAirThreadAry[4];
@@ -66,7 +67,7 @@ void *SimAir_GlobalTicker(void *arg)
 	return 0;
 }
 
-void Test(void)
+static void Test(void)
 {
 	int retVal;
 
@@ -127,7 +128,7 @@ void Test(void)
 	ASSERT_IF(retVal);
 }
 
-int TimeSliceSim_Demo(void)
+int SimTimeSlice_Demo_Old(void)
 {
 	printf("This is %s()\n", __func__);
 
@@ -140,7 +141,7 @@ static Time_Slice_Descriptor *g_descriptor_table = NULL;
 static u32 g_table_number = 0;
 static u32 gTimeStamp1 = 0;
 static u32 gTimeStamp2 = 0;
-static void TimeSliceSime_UpdateTimeStamp(u32 inTimeStamp)
+static void SimTimeSlice_UpdateTimeStamp(u32 inTimeStamp)
 {
     //if overflow
     if (gTimeStamp2 + inTimeStamp < gTimeStamp2) {
@@ -153,19 +154,19 @@ static void TimeSliceSime_UpdateTimeStamp(u32 inTimeStamp)
     gTimeStamp2 += inTimeStamp;
 }
 
-void TimeSliceSime_GetTimeStamp(u32 *outTimeStamp1, u32 *outTimeStamp2)
+void SimTimeSlice_TimeStampGet(u32 *outTimeStamp1, u32 *outTimeStamp2)
 {
     *outTimeStamp1 = gTimeStamp1;
     *outTimeStamp2 = gTimeStamp2;
 }
 
-void TimeSliceSime_SetTimeStamp(u32 inTimeStamp1, u32 inTimeStamp2)
+void SimTimeSlice_TimeStampSet(u32 inTimeStamp1, u32 inTimeStamp2)
 {
     gTimeStamp1 = inTimeStamp1;
     gTimeStamp2 = inTimeStamp2;
 }
 
-int TimeSliceSim_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number)
+int SimTimeSlice_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number)
 {
     BASIC_ASSERT(descriptor_table != NULL);
     BASIC_ASSERT(table_number != 0);
@@ -176,7 +177,7 @@ int TimeSliceSim_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number)
     return 0;
 }
 
-int TimeSliceSim_Start(void)
+int SimTimeSlice_Start(void)
 {
 #define CURR_REMAIN_TIME (*(g_descriptor_table[i].p_remain_time))
 #define CURR_CALLBACK (g_descriptor_table[i].times_up_cb)
@@ -228,7 +229,7 @@ int TimeSliceSim_Start(void)
 
         if (is_there_undone)
         {
-            TimeSliceSime_UpdateTimeStamp(min_remain_time);
+            SimTimeSlice_UpdateTimeStamp(min_remain_time);
             for (u32 i = 0; i<g_table_number; i++)
             {
                 if (CURR_REMAIN_TIME != 0)
@@ -263,37 +264,37 @@ int TimeSliceSim_Start(void)
 #undef CURR_CALLBACK
 }
 
-static int Time_Slice_CB_Demo1(void);
-static int Time_Slice_CB_Demo2(void);
-static int Time_Slice_CB_Demo3(void);
+static int TimeSlice_TestCB_1(void);
+static int TimeSlice_TestCB_2(void);
+static int TimeSlice_TestCB_3(void);
 static u32 gDemoRemainTime1  = 3125;
 static u32 gDemoRemainTime2  = 0;
 static u32 gDemoRemainTime3  = 6250;
 Time_Slice_Descriptor gDemoTable[] = 
 {
-    {&gDemoRemainTime1, Time_Slice_CB_Demo1},
-    {&gDemoRemainTime2, Time_Slice_CB_Demo2},
-    {&gDemoRemainTime3, Time_Slice_CB_Demo3},
+    {&gDemoRemainTime1, TimeSlice_TestCB_1},
+    {&gDemoRemainTime2, TimeSlice_TestCB_2},
+    {&gDemoRemainTime3, TimeSlice_TestCB_3},
 };
 
-static int Time_Slice_CB_Demo1(void)
+static int TimeSlice_TestCB_1(void)
 {
     printf("This is %s()\n", __func__);
 
     u32 timeStamp1, timeStamp2;
-    TimeSliceSime_GetTimeStamp(&timeStamp1, &timeStamp2);
+    SimTimeSlice_TimeStampGet(&timeStamp1, &timeStamp2);
     DUMPD(timeStamp1);
     DUMPD(timeStamp2);
 
     return 0;
 }
 
-static int Time_Slice_CB_Demo2(void)
+static int TimeSlice_TestCB_2(void)
 {
     printf("This is %s()\n", __func__);
 
     u32 timeStamp1, timeStamp2;
-    TimeSliceSime_GetTimeStamp(&timeStamp1, &timeStamp2);
+    SimTimeSlice_TimeStampGet(&timeStamp1, &timeStamp2);
     DUMPD(timeStamp1);
     DUMPD(timeStamp2);
 
@@ -306,12 +307,12 @@ static int Time_Slice_CB_Demo2(void)
     return 0;
 }
 
-static int Time_Slice_CB_Demo3(void)
+static int TimeSlice_TestCB_3(void)
 {
     printf("This is %s()\n", __func__);
 
     u32 timeStamp1, timeStamp2;
-    TimeSliceSime_GetTimeStamp(&timeStamp1, &timeStamp2);
+    SimTimeSlice_TimeStampGet(&timeStamp1, &timeStamp2);
     DUMPD(timeStamp1);
     DUMPD(timeStamp2);
 
@@ -324,38 +325,37 @@ static int Time_Slice_CB_Demo3(void)
     return 0;
 }
 
-int TimeSliceSim_Demo2(void)
+int SimTimeSlice1_Demo(void)
 {
     printf("This is %s()\n", __func__);
 
-    TimeSliceSim_Init(ARRAY_AND_SIZE(gDemoTable));
-    TimeSliceSim_Start();
+    SimTimeSlice_Init(ARRAY_AND_SIZE(gDemoTable));
+    SimTimeSlice_Start();
     //Test();
 
     return 0;
 }
 
-Time_Slice_Descriptor2 *g_descriptor2_list = NULL;
-Time_Slice_Descriptor2_Mgr g_descriptor2_mgr = {
+static std::vector<Time_Slice_Descriptor2 *> gDescriptor2_vector;
+static Time_Slice_Descriptor2_Ext g_descriptor2_ext = {
     .pre_cb = NULL,
-    .post_cb = NULL};
+    .post_cb = NULL
+};
 
-
-int TimeSliceSim_Init2(Time_Slice_Descriptor2 *descriptor_list)
+int SimTimeSlice2_Init_AddDescriptor(Time_Slice_Descriptor2 *p_descriptor)
 {
-    BASIC_ASSERT(descriptor_list != NULL);
-    g_descriptor2_list = descriptor_list;
+    gDescriptor2_vector.push_back(p_descriptor);
     return 0;
 }
 
-int TimeSliceSim_Mgr_Init2(Time_Slice_CB in_pre_cb, Time_Slice_CB in_post_cb)
+int SimTimeSlice2_Init_PrePostCB(Simple_CB_t in_pre_cb, Simple_CB_t in_post_cb)
 {
-    g_descriptor2_mgr.pre_cb = in_pre_cb;
-    g_descriptor2_mgr.post_cb = in_post_cb;
+    g_descriptor2_ext.pre_cb = in_pre_cb;
+    g_descriptor2_ext.post_cb = in_post_cb;
     return 0;
 }
 
-int TimeSliceSim_Start2(void)
+int SimTimeSlice2_Start(void)
 {
 #define CURR_REMAIN_TIME (pCurrDescriptor->remain_time)
 #define CURR_CALLBACK (pCurrDescriptor->times_up_cb)
@@ -363,19 +363,18 @@ int TimeSliceSim_Start2(void)
     int is_there_remain_waitings;
     int is_pre_cb_executed;
     int need_post_cb;
-    int i;//for debug dump
+    u32 descriptor_vector_size = gDescriptor2_vector.size();
     int ret;
     u32 min_remain_time;
     Time_Slice_Descriptor2 *pCurrDescriptor;
 
-    BASIC_ASSERT(g_descriptor2_list != NULL);
-
     do {
-        i = 0; //for debug dump
+        //i = 0; //for debug dump
         is_pre_cb_executed = 0;
         need_post_cb = 0;
-        for (pCurrDescriptor = g_descriptor2_list; pCurrDescriptor != NULL; pCurrDescriptor = (Time_Slice_Descriptor2 *)pCurrDescriptor->next)
+        for (u32 i=0; i<descriptor_vector_size; i++)
         {
+            pCurrDescriptor = gDescriptor2_vector[i];
             //Check if there are callbacks need execute immediatly.
             if (CURR_REMAIN_TIME == 0 && pCurrDescriptor->state == TIME_SLICE_CB_WAITING)
             {
@@ -388,30 +387,31 @@ int TimeSliceSim_Start2(void)
                 {
                     if (is_pre_cb_executed == 0) {
                         is_pre_cb_executed = 1;
-                        if (g_descriptor2_mgr.pre_cb != NULL) {
-                            ret = (*(g_descriptor2_mgr.pre_cb))();
+                        if (g_descriptor2_ext.pre_cb != NULL) {
+                            ret = (*(g_descriptor2_ext.pre_cb))();
                         }
                     }
                     need_post_cb = 1;
                     do {
                         pCurrDescriptor->state = TIME_SLICE_CB_DONE;
-                        ret = (*CURR_CALLBACK)();
-                    } while (CURR_REMAIN_TIME == 0 && pCurrDescriptor->state == TIME_SLICE_CB_WAITING); //if zero remain been setting & setting
+                        ret = (*CURR_CALLBACK)(pCurrDescriptor->hdl_to_cb);
+                    } while (CURR_REMAIN_TIME == 0 && pCurrDescriptor->state == TIME_SLICE_CB_WAITING); //if "zero remain time" been setting & setting
                 }
             }
-            i++; //for debug dump
         }
         if (need_post_cb) {
             need_post_cb = 0;
-            if (g_descriptor2_mgr.post_cb != NULL) {
-                ret = (*(g_descriptor2_mgr.post_cb))();
+            if (g_descriptor2_ext.post_cb != NULL) {
+                ret = (*(g_descriptor2_ext.post_cb))();
             }
         }
 
         is_there_remain_waitings = 0;
         min_remain_time = 0xFFFFFFFF; //Find minimun remain time
-        for (pCurrDescriptor = g_descriptor2_list; pCurrDescriptor != NULL; pCurrDescriptor = (Time_Slice_Descriptor2 *)pCurrDescriptor->next)
+        for (u32 i=0; i<descriptor_vector_size; i++)
         {
+            pCurrDescriptor = gDescriptor2_vector[i];
+
             if (/*CURR_REMAIN_TIME != 0 && */pCurrDescriptor->state == TIME_SLICE_CB_WAITING)
             {
                 is_there_remain_waitings = 1;
@@ -422,15 +422,17 @@ int TimeSliceSim_Start2(void)
             }
         }
 
-        if (is_there_remain_waitings) //update all remain time in list
+        if (is_there_remain_waitings) //update all remain time in vector
         {
-            for (pCurrDescriptor = g_descriptor2_list; pCurrDescriptor != NULL; pCurrDescriptor = (Time_Slice_Descriptor2 *)pCurrDescriptor->next)
+            for (u32 i=0; i<descriptor_vector_size; i++)
             {
+                pCurrDescriptor = gDescriptor2_vector[i];
+
                 if (pCurrDescriptor->state == TIME_SLICE_CB_WAITING) {
                     CURR_REMAIN_TIME -= min_remain_time;
                 }
             }
-            TimeSliceSime_UpdateTimeStamp(min_remain_time);
+            SimTimeSlice_UpdateTimeStamp(min_remain_time);
         }
     } while(is_there_remain_waitings);
 
@@ -439,19 +441,36 @@ int TimeSliceSim_Start2(void)
 #undef CURR_CALLBACK
 }
 
-static int Time_Slice_CB_DemoA(void);
-static int Time_Slice_CB_DemoB(void);
-static Time_Slice_Descriptor2 gDescriptor2_A = {0, Time_Slice_CB_DemoA, TIME_SLICE_CB_INVALID, NULL};
-static Time_Slice_Descriptor2 gDescriptor2_B = {0, Time_Slice_CB_DemoB, TIME_SLICE_CB_INVALID, NULL};
-
-static int Time_Slice_CB_DemoA(void)
+int SimTimeSlice2_Uninit(void)
 {
-    printf("This is %s()\n", __func__);
+    SimTimeSlice_TimeStampSet(0, 0);
+    SimTimeSlice2_Init_PrePostCB(NULL, NULL);
+    gDescriptor2_vector.clear();
+    return 0;
+}
+
+#define ___DEMO___________________________
+#define ___DEMO__________________________
+#define ___DEMO_________________________
+
+static int TimeSlice_TestCB_A(Handle_t hdl);
+static int TimeSlice_TestCB_B(Handle_t hdl);
+static u32 gCounter[3] = {0};//0 for A, 1 for B, 2 for all
+static Time_Slice_Descriptor2 gDescriptor2_A = {0, TIME_SLICE_CB_INVALID, TimeSlice_TestCB_A, gCounter};
+static Time_Slice_Descriptor2 gDescriptor2_B = {0, TIME_SLICE_CB_INVALID, TimeSlice_TestCB_B, gCounter};
+
+static int TimeSlice_TestCB_A(Handle_t hdl)
+{
+    //printf("%s()\n", __func__);
 
     u32 timeStamp1, timeStamp2;
-    TimeSliceSime_GetTimeStamp(&timeStamp1, &timeStamp2);
-    DUMPD(timeStamp1);
-    DUMPD(timeStamp2);
+    SimTimeSlice_TimeStampGet(&timeStamp1, &timeStamp2);
+
+    u32 *p_ctr = (u32 *)hdl;
+    p_ctr[0]++;
+    p_ctr[2]++;
+    printf("====== AAA Time Stamp:%d/%-5d -- %d/%d/%d\n", timeStamp1, timeStamp2, p_ctr[0], p_ctr[1], p_ctr[2]);
+
 
     static int i = 0;
     if (i < 3) {
@@ -468,14 +487,18 @@ static int Time_Slice_CB_DemoA(void)
     return 0;
 }
 
-static int Time_Slice_CB_DemoB(void)
+static int TimeSlice_TestCB_B(Handle_t hdl)
 {
-    printf("This is %s()\n", __func__);
+    //printf("%s()\n", __func__);
 
     u32 timeStamp1, timeStamp2;
-    TimeSliceSime_GetTimeStamp(&timeStamp1, &timeStamp2);
-    DUMPD(timeStamp1);
-    DUMPD(timeStamp2);
+    SimTimeSlice_TimeStampGet(&timeStamp1, &timeStamp2);
+
+    u32 *p_ctr = (u32 *)hdl;
+    p_ctr[1]++;
+    p_ctr[2]++;
+    printf("====== AAA Time Stamp:%d/%-5d -- %d/%d/%d\n", timeStamp1, timeStamp2, p_ctr[0], p_ctr[1], p_ctr[2]);
+
 
     static int i = 0;
     if (i < 6) {
@@ -487,33 +510,56 @@ static int Time_Slice_CB_DemoB(void)
     return 0;
 }
 
-static int Time_Slice_CB_PRE(void)
+static int TimeSlice_TestCB_PRE(void)
 {
-    printf("This is %s()\n", __func__);
+    printf("%s()\n", __func__);
     return 0;
 }
 
-static int Time_Slice_CB_POST(void)
+static int TimeSlice_TestCB_POST(void)
 {
-    printf("This is %s()\n", __func__);
+    printf("%s() -- %d/%d/%d\n\n", __func__, gCounter[0], gCounter[1], gCounter[2]);
     return 0;
 }
 
-int TimeSliceSim_Demo3(void)
+int SimTimeSlice2_Demo(void)
 {
     printf("\nThis is %s()\n", __func__);
-    TimeSliceSime_SetTimeStamp(0, 0);
+    SimTimeSlice_TimeStampSet(0, 0);
 
-    gDescriptor2_A.next = (void *)&gDescriptor2_B;
     gDescriptor2_A.remain_time = 200;
     gDescriptor2_A.state = TIME_SLICE_CB_WAITING;
     gDescriptor2_B.remain_time = 0;
     gDescriptor2_B.state = TIME_SLICE_CB_WAITING;
 
-    TimeSliceSim_Init2(&gDescriptor2_A);
-    TimeSliceSim_Mgr_Init2(Time_Slice_CB_PRE, Time_Slice_CB_POST);
-    TimeSliceSim_Start2();
+    SimTimeSlice2_Init_AddDescriptor(&gDescriptor2_A);
+    SimTimeSlice2_Init_AddDescriptor(&gDescriptor2_B);
+    SimTimeSlice2_Init_PrePostCB(TimeSlice_TestCB_PRE, TimeSlice_TestCB_POST);
+    SimTimeSlice2_Start();
 
     return 0;
+}
+
+void SimTimeSlice2_Dump(void)
+{
+    printf("\n=== %s() ===\n", __func__);
+    
+    u32 size_of_gDescriptor2_vector = gDescriptor2_vector.size();
+    DUMPU(size_of_gDescriptor2_vector);
+
+    for (u32 i=0; i<size_of_gDescriptor2_vector; i++)
+    {
+        printf("remain_time:%6d, state:%d, times_up_cb:0x%08X, hdl_to_cb:0x%08X\n",
+            gDescriptor2_vector[i]->remain_time,
+            gDescriptor2_vector[i]->state,
+            (u32)gDescriptor2_vector[i]->times_up_cb,
+            (u32)gDescriptor2_vector[i]->hdl_to_cb);
+    }
+
+    for (u32 i=0; i<size_of_gDescriptor2_vector; i++)
+    {
+        printf("time slice des:0x%08X\n",
+            (u32)gDescriptor2_vector[i]);
+    }
 }
 

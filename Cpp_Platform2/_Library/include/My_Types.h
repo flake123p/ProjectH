@@ -5,6 +5,11 @@
 
 #include <stdint.h> //for uint32_t
 
+typedef void *Handle_t;
+
+typedef int (*Simple_CB_t)(void);
+typedef int (*Common_CB_t)(Handle_t handle);
+
 //For argument
 #ifndef IN
 #define IN
