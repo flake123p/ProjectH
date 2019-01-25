@@ -420,7 +420,7 @@ static int Test_3(void)
     return 0;
 }
 
-/* TEST 3 - Rx + Rx, Test1+Test2
+/* TEST 4 - Extend Rx
 Time:   10      20      100     340         900
 S       wake            w+r320  rExtend480  rDone
 M               wake    w+t800              tDone
