@@ -45,5 +45,53 @@ typedef enum{
 
 extern s32 lm_sla_entry(u16 id, Bt_Dev_Info_t *dev, s32 len, u8 *data);
 
+#define NEW_ON_SIM____________________________
+#define NEW_ON_SIM___________________________
+#define NEW_ON_SIM__________________________
+
+typedef enum{
+    LC_CONN_STT_ESTABLISHED,
+    LC_CONN_STT_SLEEPING_FOR_1ST_GRANT,
+    LC_CONN_STT_WAITING_FOR_1ST_GRANT,
+    LC_CONN_STT_ON_CONNECTION_EVENT,
+    LC_CONN_STT_WAITING_CONNECTION_EVENT,
+    LC_CONN_STT_DISCONNECTED,
+
+    LC_CONN_STT_INVALID,
+}LC_CONNECTION_STATE_t;
+typedef enum{
+    LC_CONN_STT_EVT_RECEIVE_CONN_IND,
+    LC_CONN_STT_EVT_SLEEP_TIMESUP,
+    LC_CONN_STT_EVT_SCH_GRANT,
+    LC_CONN_STT_EVT_SCH_NACK,
+    LC_CONN_STT_EVT_SCH_ABORT,
+    LC_CONN_STT_EVT_SCH_CLEAR_REQUEST,
+    LC_CONN_STT_EVT_CORR_OK,
+    LC_CONN_STT_EVT_PL_RCV_OK,
+    LC_CONN_STT_EVT_PL_RCV_ERR,
+    LC_CONN_STT_EVT_RX_TIMEOUT,
+    LC_CONN_STT_EVT_TX_DONE,
+}LC_CONNECTION_STATE_EVENT_t;
+
+typedef struct {
+    Adv_Connect_Ind_Payload_t conn_ind_payload; //Packet payload from advertiser
+
+    //u8 section
+    //u8 Role; // LE_ROLE_SLAVE or LE_ROLE_MASTER
+    //u8 Mode; // LE_MODE_CONNECTION or ...
+    //u8 sn; //S1 for slave,
+    //u8 nesn; //N1 for slave,
+
+    //u16 section
+    //u16 conn_hdl;
+
+    //u32 section
+    //u32 conn_evt_remain_clks;
+    
+    LC_CONNECTION_STATE_t state;
+} Conn_State_Info_t;
+
+
+
 #endif //#define __CMN_LE_LM_SLA_H__
 
