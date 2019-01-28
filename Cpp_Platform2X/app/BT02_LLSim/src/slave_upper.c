@@ -35,3 +35,8 @@ void Slave_Upper_InitSimAir(void)
     return;
 }
 
+void Slave_Upper_InitTest(void)
+{
+
+}
+

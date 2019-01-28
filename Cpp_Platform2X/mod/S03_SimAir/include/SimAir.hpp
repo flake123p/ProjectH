@@ -61,6 +61,11 @@ typedef struct {
 }SimAir_Info_t;
 
 typedef int (*SimAir_CB_t)(SimAir_Info_t *info);
+typedef struct {
+    SimAir_CB_t wake_cb;
+    SimAir_CB_t rx_cb;
+    SimAir_CB_t tx_cb;
+}SimAir_CB_Set_t;
 
 /*
 typedef struct {
@@ -70,8 +75,11 @@ typedef struct {
 }SimAir_Descriptor_t;
 */
 
+u32 SimAir_TimeStamp_Low_Get(void);
+u32 SimAir_TimeStamp_High_Get(void);
 
 SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rxing_cb, SimAir_CB_t txing_cb);
+SimAir_Handle_t SimAir_Init_AddDescriptor2(SimAir_CB_Set_t *cb_set);
 int SimAir_Start(void);
 int SimAir_Uninit(void);
 

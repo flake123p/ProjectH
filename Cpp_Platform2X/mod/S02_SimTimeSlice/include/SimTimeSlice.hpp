@@ -34,6 +34,8 @@ int SimTimeSlice_Demo_Old(void);
 int SimTimeSlice1_Demo(void);
 int SimTimeSlice2_Demo(void);
 
+u32 SimTimeSlice_TimeStamp_Low_Get(void);
+u32 SimTimeSlice_TimeStamp_High_Get(void);
 void SimTimeSlice_TimeStampGet(u32 *outTimeStamp1, u32 *outTimeStamp2);
 void SimTimeSlice_TimeStampSet(u32 inTimeStamp1, u32 inTimeStamp2);
 

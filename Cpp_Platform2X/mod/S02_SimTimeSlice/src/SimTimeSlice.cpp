@@ -139,31 +139,41 @@ int SimTimeSlice_Demo_Old(void)
 
 static Time_Slice_Descriptor *g_descriptor_table = NULL;
 static u32 g_table_number = 0;
-static u32 gTimeStamp1 = 0;
-static u32 gTimeStamp2 = 0;
+static u32 gTimeStampHigh = 0;
+static u32 gTimeStampLow = 0;
 static void SimTimeSlice_UpdateTimeStamp(u32 inTimeStamp)
 {
     //if overflow
-    if (gTimeStamp2 + inTimeStamp < gTimeStamp2) {
-        gTimeStamp1++;
+    if (gTimeStampLow + inTimeStamp < gTimeStampLow) {
+        gTimeStampHigh++;
     }
-    else if (gTimeStamp2 + inTimeStamp < inTimeStamp) {
-        gTimeStamp1++;
+    else if (gTimeStampLow + inTimeStamp < inTimeStamp) {
+        gTimeStampHigh++;
     }
 
-    gTimeStamp2 += inTimeStamp;
+    gTimeStampLow += inTimeStamp;
+}
+
+u32 SimTimeSlice_TimeStamp_Low_Get(void)
+{
+    return gTimeStampLow;
+}
+
+u32 SimTimeSlice_TimeStamp_High_Get(void)
+{
+    return gTimeStampHigh;
 }
 
 void SimTimeSlice_TimeStampGet(u32 *outTimeStamp1, u32 *outTimeStamp2)
 {
-    *outTimeStamp1 = gTimeStamp1;
-    *outTimeStamp2 = gTimeStamp2;
+    *outTimeStamp1 = gTimeStampHigh;
+    *outTimeStamp2 = gTimeStampLow;
 }
 
 void SimTimeSlice_TimeStampSet(u32 inTimeStamp1, u32 inTimeStamp2)
 {
-    gTimeStamp1 = inTimeStamp1;
-    gTimeStamp2 = inTimeStamp2;
+    gTimeStampHigh = inTimeStamp1;
+    gTimeStampLow = inTimeStamp2;
 }
 
 int SimTimeSlice_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number)

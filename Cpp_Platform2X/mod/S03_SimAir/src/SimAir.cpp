@@ -67,11 +67,22 @@ static int SimAir_Dispatcher(SimAir_Descriptor_t* p_des)
             break;
 
         default:
+            DUMPD(p_des->cb_type);
             BASIC_ASSERT(0);
             break;
     }
 
     return 0;
+}
+
+u32 SimAir_TimeStamp_Low_Get(void)
+{
+    return SimTimeSlice_TimeStamp_Low_Get();
+}
+
+u32 SimAir_TimeStamp_High_Get(void)
+{
+    return SimTimeSlice_TimeStamp_High_Get();
 }
 
 SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rxing_cb, SimAir_CB_t txing_cb)
@@ -86,6 +97,32 @@ SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rx
     p_curr_sim_air_des->wake_up_cb = wake_up_cb;
     p_curr_sim_air_des->rxing_cb = rxing_cb;
     p_curr_sim_air_des->txing_cb = txing_cb;
+    p_curr_sim_air_des->p_time_slice_descriptor->remain_time = 0;
+    p_curr_sim_air_des->p_time_slice_descriptor->state = TIME_SLICE_CB_DONE;
+    p_curr_sim_air_des->p_time_slice_descriptor->times_up_cb = (Common_CB_t)SimAir_Dispatcher;
+    p_curr_sim_air_des->p_time_slice_descriptor->hdl_to_cb = p_curr_sim_air_des;
+    p_curr_sim_air_des->requ_resp_info = NULL;
+
+    gSimAirDes_Vector.push_back(p_curr_sim_air_des);
+    newest = gSimAirDes_Vector.size()-1;
+    SimTimeSlice2_Init_AddDescriptor(gSimAirDes_Vector[newest]->p_time_slice_descriptor);
+
+    gSimAir_Handle_Ctr++;
+    return p_curr_sim_air_des->sim_air_hdl;
+}
+
+SimAir_Handle_t SimAir_Init_AddDescriptor2(SimAir_CB_Set_t *cb_set)
+{
+    SimAir_Descriptor_t *p_curr_sim_air_des;
+    u32 newest;
+
+    p_curr_sim_air_des = (SimAir_Descriptor_t *)malloc(sizeof(SimAir_Descriptor_t));
+    p_curr_sim_air_des->p_time_slice_descriptor = (Time_Slice_Descriptor2 *)malloc(sizeof(Time_Slice_Descriptor2));
+    p_curr_sim_air_des->sim_air_hdl = gSimAir_Handle_Ctr;
+    p_curr_sim_air_des->cb_type = SIM_AIR_WAKEUP_CB;
+    p_curr_sim_air_des->wake_up_cb = cb_set->wake_cb;
+    p_curr_sim_air_des->rxing_cb = cb_set->rx_cb;
+    p_curr_sim_air_des->txing_cb = cb_set->tx_cb;
     p_curr_sim_air_des->p_time_slice_descriptor->remain_time = 0;
     p_curr_sim_air_des->p_time_slice_descriptor->state = TIME_SLICE_CB_DONE;
     p_curr_sim_air_des->p_time_slice_descriptor->times_up_cb = (Common_CB_t)SimAir_Dispatcher;
