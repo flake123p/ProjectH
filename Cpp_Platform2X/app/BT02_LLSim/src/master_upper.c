@@ -9,16 +9,16 @@ static u8  g_master_tx_buf[400];
 
 extern int Master_Phy_Wake_CLKN(SimAir_Info_t *info);
 extern int Master_Phy_Wake_CLKB(SimAir_Info_t *info);
-extern int Master_Phy_Wake(SimAir_Info_t *info);
-extern int Master_Phy_Rx(SimAir_Info_t *info);
-extern int Master_Phy_Tx(SimAir_Info_t *info);
+extern int Master_Phy_Wake_TRx0(SimAir_Info_t *info);
+extern int Master_Phy_Rx_0(SimAir_Info_t *info);
+extern int Master_Phy_Tx_0(SimAir_Info_t *info);
 extern int Master_Phy_Wake_Timer0(SimAir_Info_t *info);
 extern int Master_Phy_Wake_Sch0(SimAir_Info_t *info);
 
 SimAir_CB_Set_t g_master_cb_set[SIM_AIR_TASK_NUMBER] = {
 /* SIM_AIR_TASK_CLKN     */ {Master_Phy_Wake_CLKN, NULL, NULL},
 /* SIM_AIR_TASK_CLKB     */ {Master_Phy_Wake_CLKB, NULL, NULL},
-/* SIM_AIR_TASK_0_TRX    */ {Master_Phy_Wake, Master_Phy_Rx, Master_Phy_Tx},
+/* SIM_AIR_TASK_0_TRX    */ {Master_Phy_Wake_TRx0, Master_Phy_Rx_0, Master_Phy_Tx_0},
 /* SIM_AIR_TASK_1_TRX    */ {NULL, NULL, NULL},
 /* SIM_AIR_TASK_SCH_0    */ {Master_Phy_Wake_Sch0, NULL, NULL},
 /* SIM_AIR_TASK_SCH_1    */ {NULL, NULL, NULL},
