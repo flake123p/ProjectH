@@ -3,7 +3,7 @@
 extern void Master_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us);
 #define controller_timer_insert(dev,time,q,cmd,len,data) Master_Timer_0((Bt_Dev_Info_t *)(dev),time)
 #else //#ifdef DFS_SIM_ON
-
+#define POINTER_TO_U32(a) (u32)(a)
 #endif //#ifdef DFS_SIM_ON
 
 #define CONPENSATE_SCH_TIME 350
@@ -34,13 +34,13 @@ void lc_mas_add_request(Bt_Dev_Info_t *mas_dev)
     Request_ADDR_T      *p_requ_addr =      Scheduler_APIGetRequestAddress();
     //Scheduler_Request_T *p_sch_requ = &g_sch_requ;
     Scheduler_Request_T *p_sch_requ =       Scheduler_APIGetRequest();
-    p_requ_addr->Request_ADDR = (u32)p_sch_requ;
+    p_requ_addr->Request_ADDR = POINTER_TO_U32(p_sch_requ);
     TAILQ_INSERT_TAIL(p_requ_addr_list, p_requ_addr, next);
 
     //TAILQ_FOREACH(p_adv_sch_req_addr, gp_sch_req_addr_list, next)
     {
         //p_adv_sch_req = (Scheduler_Request_T*)p_adv_sch_req_addr->Request_ADDR;
-        //ASSERT_Reboot(p_adv_sch_req->dev != NULL);       
+        //ASSERT_Reboot(p_adv_sch_req->dev != NULL);
         //p_adv_dev = (Adv_Dev_t*)p_adv_sch_req->dev->infrastructure;
         //ASSERT_Reboot((p_adv_dev->adv_event_type) != EXT_PERIODIC); //TBD, has not implemented lm_adv_add_sch_req for Periodic
 
@@ -57,7 +57,7 @@ void lc_mas_add_request(Bt_Dev_Info_t *mas_dev)
                                                  |(LC_SLA_MSG_HANDLE_GRANT) );;              //Message;
 
         p_sch_requ->NACK_callback_task_queue = INVALID_TASK_QUEUE;
-        p_sch_requ->NACK_callback_message_id = 0; 
+        p_sch_requ->NACK_callback_message_id = 0;
 
         p_sch_requ->Clear_Request_callback_task_queue = BBM_TASK_QUEUE;
         p_sch_requ->Clear_Request_callback_message_id = ( (BB_MANAGER_MSG_GROUP_LMP)                     //Group
@@ -74,7 +74,7 @@ if(p_adv_dev->event.is_preiodical == TRUE)
     u32 current_clknu;
     u32 offset_in_us = 1250;//temp use 600us
     u32 offset_in_clknu;
-    
+
     current_clknu = bt_hal_read_clknu();
 
     offset_in_clknu = CLK_Trans_Us_To_CLKU(offset_in_us);
@@ -89,7 +89,7 @@ if(p_adv_dev->event.is_preiodical == TRUE)
     u32 current_clknu;
     u32 offset_in_us = 1250 - /*compensate*/0;//temp use 600us
     u32 offset_in_clknu;
-    
+
     current_clknu = bt_hal_read_clknu();
 
     offset_in_clknu = CLK_Trans_Us_To_CLKU(offset_in_us);
@@ -100,7 +100,7 @@ if(p_adv_dev->event.is_preiodical == TRUE)
     p_sch_requ->anchor = 0;
 #endif
         //p_sch_requ->anchor_clku;
-        
+
         p_sch_requ->CLK_type = CLK_TYPE_CLKN;
         p_sch_requ->anchor_unit = ANCHOR_UNIT_CLKU;
         p_sch_requ->bandwidth_unit = BANDWIDTH_UNIT_US;
@@ -130,6 +130,19 @@ if(p_adv_dev->event.is_preiodical == TRUE)
     value = (u32)p_requ_addr_list;
     Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
 #endif
+}
+
+void lc_mas_start_connection_event(Bt_Dev_Info_t *mas_dev);
+{
+  #ifdef DFS_SIM_ON
+      {
+          extern void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
+          master_sch_0_add_request(mas_dev, p_sch_requ);
+      }
+  #else
+      value = (u32)p_requ_addr_list;
+      Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
+  #endif
 }
 
 void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt)
@@ -170,8 +183,7 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             switch (evt)
             {
                 case LC_CONN_STT_EVT_SCH_GRANT: {
-                    //Start TX
-                    printf("START TX\n");
+                    lc_mas_start_connection_event(mas_dev);
                     conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
                 } break;
 
@@ -194,6 +206,11 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
     }
 #ifdef DFS_SIM_ON
         printf("%s(), old_state:%d, new_state:%d, evt:%d, time:%d\n", __func__, old_state, conn_info->state, evt, SimAir_TimeStamp_Low_Get());
+        MASTER_DUMP(" [MAS][%7d.%d] state machine old:%d, new:%d, evt:%d\n", \
+                    NORMALIZE_TIME2, \
+                    old_state, \
+                    conn_info->state, \
+                    evt);
 #endif
 }
 
@@ -217,4 +234,3 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
 
     //Dump_Conn_Info(new_mas_dev);
 }
-

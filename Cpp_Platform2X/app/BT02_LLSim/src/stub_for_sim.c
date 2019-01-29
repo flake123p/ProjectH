@@ -29,7 +29,7 @@ u32 scheduler_simulate_delay_in_us(void)
 {
     srand (time(NULL));
 
-    u32 randon_delay_in_us = rand() % 100 + 350;
+    u32 randon_delay_in_us = 444;//rand() % 100 + 350;
 
     return randon_delay_in_us;
 }

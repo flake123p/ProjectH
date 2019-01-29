@@ -236,7 +236,7 @@ int SimAir_ExecuteResponseCallback(SimAir_Info_t *info)
 {
     BASIC_ASSERT(info!=NULL);
     SimTimeSlice_TimeStampGet(&info->response.ref_clock_H, &info->response.ref_clock_L);
-    
+
     switch (info->response.resp_type) {
         case SIM_AIR_RXING:
         case SIM_AIR_RX_DONE:
@@ -605,7 +605,7 @@ int SimAir_Demo(void)
 void SimAir_Dump(void)
 {
     printf("\n=== %s() ===\n", __func__);
-    
+
     u32 size_of_gSimAirDes_Vector = gSimAirDes_Vector.size();
     DUMPU(size_of_gSimAirDes_Vector);
 
@@ -616,18 +616,17 @@ void SimAir_Dump(void)
             gSimAirDes_Vector[i]->cb_type,
             gSimAirDes_Vector[i]->p_time_slice_descriptor->remain_time,
             gSimAirDes_Vector[i]->p_time_slice_descriptor->state,
-            (u32)gSimAirDes_Vector[i]->p_time_slice_descriptor->times_up_cb,
-            (u32)gSimAirDes_Vector[i]->p_time_slice_descriptor->hdl_to_cb);
+            POINTER_TO_U32(gSimAirDes_Vector[i]->p_time_slice_descriptor->times_up_cb),
+            POINTER_TO_U32(gSimAirDes_Vector[i]->p_time_slice_descriptor->hdl_to_cb));
     }
 
     for (u32 i=0; i<size_of_gSimAirDes_Vector; i++)
     {
         printf("sim air des:0x%08X, time slice des:0x%08X\n",
-            (u32)gSimAirDes_Vector[i],
-            (u32)gSimAirDes_Vector[i]->p_time_slice_descriptor);
+            POINTER_TO_U32(gSimAirDes_Vector[i]),
+            POINTER_TO_U32(gSimAirDes_Vector[i]->p_time_slice_descriptor));
     }
 
     //DUMPA(Test_Slave_Wake_Up);
     //DUMPA(Test_Master_Txing);
 }
-

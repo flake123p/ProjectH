@@ -75,7 +75,7 @@ if curr_os == 'WIN':
 		OFS_String = "OFS=\"" + OFS_String + "\""
 else:
 	if OFS_Exist == 1:
-		OFS_String = "OFS=\"" + OFS_String + "\""
+		OFS_String = OFS_String ### "OFS=\"" + OFS_String + "\""
 
 if curr_os == 'WIN':
 	foutBuildfile.write('@ECHO OFF\n')

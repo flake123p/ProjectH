@@ -100,7 +100,7 @@ static void Test(void)
 
 	LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
 	LibIPC_Event_Set(gSimAirEventAry[0]);
-	
+
 	LibTime_StartMicroSecondClock();
 	LibThread_WaitThread(gSimAirThreadAry[0]);
 	LibThread_WaitThread(gSimAirThreadAry[1]);
@@ -218,7 +218,7 @@ int SimTimeSlice_Start(void)
     u32 min_remain_time;
     do {
         is_there_undone = 0;
-        
+
         //Find minimun remain time
         min_remain_time = 0xFFFFFFFF;
         for (u32 i = 0; i<g_table_number; i++)
@@ -280,7 +280,7 @@ static int TimeSlice_TestCB_3(void);
 static u32 gDemoRemainTime1  = 3125;
 static u32 gDemoRemainTime2  = 0;
 static u32 gDemoRemainTime3  = 6250;
-Time_Slice_Descriptor gDemoTable[] = 
+Time_Slice_Descriptor gDemoTable[] =
 {
     {&gDemoRemainTime1, TimeSlice_TestCB_1},
     {&gDemoRemainTime2, TimeSlice_TestCB_2},
@@ -628,7 +628,7 @@ int SimTimeSlice2_Demo(void)
 void SimTimeSlice2_Dump(void)
 {
     printf("\n=== %s() ===\n", __func__);
-    
+
     u32 size_of_gDescriptor2_vector = gDescriptor2_vector.size();
     DUMPU(size_of_gDescriptor2_vector);
 
@@ -637,14 +637,13 @@ void SimTimeSlice2_Dump(void)
         printf("remain_time:%6d, state:%d, times_up_cb:0x%08X, hdl_to_cb:0x%08X\n",
             gDescriptor2_vector[i]->remain_time,
             gDescriptor2_vector[i]->state,
-            (u32)gDescriptor2_vector[i]->times_up_cb,
-            (u32)gDescriptor2_vector[i]->hdl_to_cb);
+            POINTER_TO_U32(gDescriptor2_vector[i]->times_up_cb),
+            POINTER_TO_U32(gDescriptor2_vector[i]->hdl_to_cb));
     }
 
     for (u32 i=0; i<size_of_gDescriptor2_vector; i++)
     {
         printf("time slice des:0x%08X\n",
-            (u32)gDescriptor2_vector[i]);
+            POINTER_TO_U32(gDescriptor2_vector[i]));
     }
 }
-
