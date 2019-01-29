@@ -1,9 +1,9 @@
 #ifdef DFS_SIM_ON
-#include "Everything_App.hpp"
-extern void Master_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us);
-#define controller_timer_insert(dev,time,q,cmd,len,data) Master_Timer_0((Bt_Dev_Info_t *)(dev),time)
+  #include "Everything_App.hpp"
+  extern void Master_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us);
+  #define controller_timer_insert(dev,time,q,cmd,len,data) Master_Timer_0((Bt_Dev_Info_t *)(dev),time)
 #else //#ifdef DFS_SIM_ON
-#define POINTER_TO_U32(a) (u32)(a)
+  #define POINTER_TO_U32(a) (u32)(a)
 #endif //#ifdef DFS_SIM_ON
 
 #define CONPENSATE_SCH_TIME 350
@@ -132,17 +132,17 @@ if(p_adv_dev->event.is_preiodical == TRUE)
 #endif
 }
 
-void lc_mas_start_connection_event(Bt_Dev_Info_t *mas_dev);
+void lc_mas_start_connection_event(Bt_Dev_Info_t *mas_dev)
 {
-  #ifdef DFS_SIM_ON
-      {
-          extern void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
-          master_sch_0_add_request(mas_dev, p_sch_requ);
-      }
-  #else
-      value = (u32)p_requ_addr_list;
-      Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
-  #endif
+#ifdef DFS_SIM_ON
+//{
+  //extern void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
+  //master_sch_0_add_request(mas_dev, p_sch_requ);
+//}
+#else
+//value = (u32)p_requ_addr_list;
+//Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
+#endif
 }
 
 void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt)

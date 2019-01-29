@@ -2,9 +2,9 @@
 #define __CMN_LE_LM_SLA_H__
 
 #ifdef DFS_SIM_ON
-#include "cmn_le_lm_conn_state.h"
+  #include "cmn_le_lm_conn_state.h"
 #else
-#include "common/le_lm/cmn_le_lm_adv.h"
+  #include "common/le_lm/cmn_le_lm_adv.h"
 #endif
 
 typedef enum{

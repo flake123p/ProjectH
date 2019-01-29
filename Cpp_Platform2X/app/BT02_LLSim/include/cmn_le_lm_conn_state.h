@@ -2,12 +2,12 @@
 #define __CMN_LE_LM_CONN_STATE_H__
 
 #ifdef DFS_SIM_ON
-#include "stub_for_sim.h"
+  #include "stub_for_sim.h"
 #else //#ifdef DFS_SIM_ON
-#include "common/hci.h"
-#include "common/cmn_scheduler.h"
-#include "common/le_lc/cmn_le_lc_adv.h"
-#include "common/cmn_le.h"
+  #include "common/hci.h"
+  #include "common/cmn_scheduler.h"
+  #include "common/le_lc/cmn_le_lc_adv.h"
+  #include "common/cmn_le.h"
 #endif //#ifdef DFS_SIM_ON
 
 typedef enum{
