@@ -6,7 +6,7 @@ extern SimAir_Info_t g_master_info[SIM_AIR_TASK_NUMBER];
 Bt_Dev_Info_t *g_dev_mas_timer_00;
 u32 g_sleep_time_in_us;
 
-void Master_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us)
+void MAS_PHY_API_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us)
 {
     g_dev_mas_timer_00 = mas_dev;
     g_sleep_time_in_us = sleep_time_in_us;
@@ -17,7 +17,7 @@ void Master_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us)
 
 int Master_Phy_Wake_Timer0(SimAir_Info_t *info)
 {
-    MASTER_DUMP1(" timer0 wake up, sleep_time_in_us=%d\n", g_sleep_time_in_us);
+    MASTER_DUMP2(" timer0 wake up, sleep_time_in_us=%d\n", g_sleep_time_in_us);
 
     printf("%s() -- %d\n", __func__, info->response.ref_clock_L);
     {
@@ -61,7 +61,7 @@ int Master_Phy_Wake_CLKN(SimAir_Info_t *info)
     g_master_clkn++;
     //printf("%s() -- %d, clkn:%d\n", __func__, info->response.ref_clock_L, g_master_clkn);
     //MASTER_DUMP("N[ MAS ][ CLK N ][%8d][%5d]\n", info->response.ref_clock_L, g_master_clkn);
-    MASTER_DUMPn1(" clkn:%d\n", g_master_clkn);
+    MASTER_DUMPn(" clkn:%d\n", g_master_clkn);
 
     BASIC_ASSERT(CLOCKS_PER_BT_CLOCK == SimAir_TimeStamp_Low_Get() - g_sim_time_curr)
     g_sim_time_curr += CLOCKS_PER_BT_CLOCK;
@@ -84,7 +84,7 @@ int Master_Phy_Wake_CLKB(SimAir_Info_t *info)
     g_master_clkb++;
     //printf("%s() -- %d, clkb:%d\n", __func__, info->response.ref_clock_L, g_master_clkb);
     //MASTER_DUMP("B[ MAS ][ CLK B ][%8d][%5d]\n", info->response.ref_clock_L, g_master_clkb);
-    MASTER_DUMPb1(" clkb:%d\n", g_master_clkb);
+    MASTER_DUMPb(" clkb:%d\n", g_master_clkb);
 
     if (g_sim_timesup)
         return 0;
@@ -95,12 +95,11 @@ int Master_Phy_Wake_CLKB(SimAir_Info_t *info)
     return 0;
 }
 
-Bt_Dev_Info_t *g_dev_mas_sch_00;
+//Bt_Dev_Info_t *g_dev_mas_sch_00;
 Scheduler_Request_T *g_sch_requ_mas_sch_00;
-void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ)
+void MAS_PHY_API_Sch_0_Add_Request(Scheduler_Request_T *p_sch_requ)
 {
     u32 sch_delay_in_us = scheduler_simulate_delay_in_us();
-    g_dev_mas_sch_00 = mas_dev;
     g_sch_requ_mas_sch_00 = p_sch_requ;
 
     //DUMPD(g_sch_requ_mas_sch_00->periodical_interval_us);
@@ -125,7 +124,7 @@ int Master_Phy_Wake_Sch0(SimAir_Info_t *info)
     //if (g_sch_requ_mas_sch_00->sim_state == SIM_SCH_STT_WAITING_1ST_WAKUP_TO_GRANT)
     {
         extern void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
-        lc_mas_conn_state_machine(g_dev_mas_sch_00, LC_CONN_STT_EVT_SCH_GRANT);
+        lc_mas_conn_state_machine(g_sch_requ_mas_sch_00->dev, LC_CONN_STT_EVT_SCH_GRANT);
     }
 
     g_master_info[SIM_AIR_TASK_SCH_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -134,3 +133,20 @@ int Master_Phy_Wake_Sch0(SimAir_Info_t *info)
 
     return 0;
 }
+
+#define ___TX_RX________________________
+#define ___TX_RX_______________________
+#define ___TX_RX______________________
+u8 *MAS__RXLE_PLH_SP = NULL;
+u8 *MAS__RXLE_PLH_CP = NULL;
+u8 *MAS__RXLE_PLH_EP = NULL;
+u8 *MAS__RXLE_PLD_SP = NULL;
+u8 *MAS__RXLE_PLD_CP = NULL;
+u8 *MAS__RXLE_PLD_EP = NULL;
+u8 *MAS__TXLE_PLH_SP = NULL;
+u8 *MAS__TXLE_PLH_CP_RE = NULL;
+u8 *MAS__TXLE_PLH_EP = NULL;
+u8 *MAS__TXLE_PLD_SP = NULL;
+u8 *MAS__TXLE_PLD_CP_RE = NULL;
+u8 *MAS__TXLE_PLD_EP = NULL;
+

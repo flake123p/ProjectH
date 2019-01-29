@@ -1,10 +1,60 @@
 #ifdef DFS_SIM_ON
   #include "Everything_App.hpp"
-  extern void Master_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us);
-  #define controller_timer_insert(dev,time,q,cmd,len,data) Master_Timer_0((Bt_Dev_Info_t *)(dev),time)
+  extern void MAS_PHY_API_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us);
+  #define controller_timer_insert(dev,time,q,cmd,len,data) MAS_PHY_API_Timer_0((Bt_Dev_Info_t *)(dev),time)
+
+  #define PTR_TO_U32(a) (u8 *)(a)
+  extern u8 *MAS__RXLE_PLH_SP;
+  extern u8 *MAS__RXLE_PLH_CP;
+  extern u8 *MAS__RXLE_PLH_EP;
+  #define DIRECT_RFIELD_AGU_RXLE_PLH_SP MAS__RXLE_PLH_SP
+  #define DIRECT_RFIELD_AGU_RXLE_PLH_CP MAS__RXLE_PLH_CP
+  #define DIRECT_RFIELD_AGU_RXLE_PLH_EP MAS__RXLE_PLH_EP
+  extern u8 *MAS__RXLE_PLD_SP;
+  extern u8 *MAS__RXLE_PLD_CP;
+  extern u8 *MAS__RXLE_PLD_EP;
+  #define DIRECT_RFIELD_AGU_RXLE_PLD_SP MAS__RXLE_PLD_SP
+  #define DIRECT_RFIELD_AGU_RXLE_PLD_CP MAS__RXLE_PLD_CP
+  #define DIRECT_RFIELD_AGU_RXLE_PLD_EP MAS__RXLE_PLD_EP
+  extern u8 *MAS__TXLE_PLH_SP;
+  extern u8 *MAS__TXLE_PLH_CP_RE;
+  extern u8 *MAS__TXLE_PLH_EP;
+  #define DIRECT_RFIELD_AGU_TXLE_PLH_SP MAS__TXLE_PLH_SP
+  #define DIRECT_RFIELD_AGU_TXLE_PLH_CP_RE MAS__TXLE_PLH_CP_RE
+  #define DIRECT_RFIELD_AGU_TXLE_PLH_EP MAS__TXLE_PLH_EP
+  extern u8 *MAS__TXLE_PLD_SP;
+  extern u8 *MAS__TXLE_PLD_CP_RE;
+  extern u8 *MAS__TXLE_PLD_EP;
+  #define DIRECT_RFIELD_AGU_TXLE_PLD_SP MAS__TXLE_PLD_SP
+  #define DIRECT_RFIELD_AGU_TXLE_PLD_CP_RE MAS__TXLE_PLD_CP_RE
+  #define DIRECT_RFIELD_AGU_TXLE_PLD_EP MAS__TXLE_PLD_EP
+
 #else //#ifdef DFS_SIM_ON
   #define POINTER_TO_U32(a) (u32)(a)
+  #define PTR_TO_U32(a) (u32)(a)
 #endif //#ifdef DFS_SIM_ON
+
+static void le_mas_assign_rx_buf(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, u32 rx_pld_len)
+{
+    DIRECT_RFIELD_AGU_RXLE_PLH_SP = PTR_TO_U32(&(rx_plh[0]));
+    DIRECT_RFIELD_AGU_RXLE_PLH_CP = PTR_TO_U32(&(rx_plh[0]));
+    DIRECT_RFIELD_AGU_RXLE_PLH_EP = PTR_TO_U32(&(rx_plh[rx_plh_len]));
+
+    DIRECT_RFIELD_AGU_RXLE_PLD_SP = PTR_TO_U32(&(rx_pld[0]));
+    DIRECT_RFIELD_AGU_RXLE_PLD_CP = PTR_TO_U32(&(rx_pld[0]));
+    DIRECT_RFIELD_AGU_RXLE_PLD_EP = PTR_TO_U32(&(rx_pld[rx_pld_len]));
+}
+
+static void le_mas_assign_tx_buf(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, u32 tx_pld_len)
+{
+    DIRECT_RFIELD_AGU_TXLE_PLH_SP = PTR_TO_U32(&(tx_plh[0]));
+    DIRECT_RFIELD_AGU_TXLE_PLH_CP_RE = PTR_TO_U32(&(tx_plh[0]));
+    DIRECT_RFIELD_AGU_TXLE_PLH_EP = PTR_TO_U32(&(tx_plh[tx_plh_len]));
+
+    DIRECT_RFIELD_AGU_TXLE_PLD_SP = PTR_TO_U32(&(tx_pld[0]));
+    DIRECT_RFIELD_AGU_TXLE_PLD_CP_RE = PTR_TO_U32(&(tx_pld[0]));
+    DIRECT_RFIELD_AGU_TXLE_PLD_EP = PTR_TO_U32(&(tx_pld[tx_pld_len]));
+}
 
 #define CONPENSATE_SCH_TIME 350
 #define CONPENSATE_MASTER_DELAY 0
@@ -117,14 +167,16 @@ if(p_adv_dev->event.is_preiodical == TRUE)
         p_sch_requ->priority = 9;
     }
 
+    p_sch_requ->dev = mas_dev;
+
 #ifdef DFS_SIM_ON
     value = 0;
     value = value;
     free(p_requ_addr_list);
     free(p_requ_addr);
     {
-        extern void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
-        master_sch_0_add_request(mas_dev, p_sch_requ);
+        extern void MAS_PHY_API_Sch_0_Add_Request(Scheduler_Request_T *p_sch_requ);
+        MAS_PHY_API_Sch_0_Add_Request(p_sch_requ);
     }
 #else
     value = (u32)p_requ_addr_list;
@@ -132,12 +184,34 @@ if(p_adv_dev->event.is_preiodical == TRUE)
 #endif
 }
 
+void lc_mas_init_connection_event(Bt_Dev_Info_t *mas_dev)
+{
+#ifdef PLATFORM
+    #if (PLATFORM == PLATFORM_CHIMERA)
+        ISR_INT00_TABLE[IRQ_LE_PL_RCV_OK].isr_entry = LE_ISR_SLA_LE_PL_RCV_OK_Handler;
+        ISR_INT00_TABLE[IRQ_LE_PL_RCV_ERR].isr_entry = LE_ISR_SLA_LE_PL_RCV_ERR_Handler;
+        ISR_INT00_TABLE[IRQ_LE_CORREL_OK_8MHZ].isr_entry = LE_ISR_SLA_LE_CORREL_OK_8MHZ_Handler;
+        ISR_INT00_TABLE[IRQ_LE_CORREL_ERR].isr_entry = LE_ISR_SLA_LE_CORREL_ERR_Handler;
+    #endif
+#endif
+
+#ifdef DFS_SIM_ON
+//{
+  //extern void MAS_PHY_API_Sch_0_Add_Request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
+  //MAS_PHY_API_Sch_0_Add_Request(mas_dev, p_sch_requ);
+//}
+#else
+//value = (u32)p_requ_addr_list;
+//Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
+#endif
+}
+
 void lc_mas_start_connection_event(Bt_Dev_Info_t *mas_dev)
 {
 #ifdef DFS_SIM_ON
 //{
-  //extern void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
-  //master_sch_0_add_request(mas_dev, p_sch_requ);
+  //extern void MAS_PHY_API_Sch_0_Add_Request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
+  //MAS_PHY_API_Sch_0_Add_Request(mas_dev, p_sch_requ);
 //}
 #else
 //value = (u32)p_requ_addr_list;
@@ -183,6 +257,7 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             switch (evt)
             {
                 case LC_CONN_STT_EVT_SCH_GRANT: {
+                    lc_mas_init_connection_event(mas_dev);
                     lc_mas_start_connection_event(mas_dev);
                     conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
                 } break;
