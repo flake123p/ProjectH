@@ -17,7 +17,7 @@ void Master_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us)
 
 int Master_Phy_Wake_Timer0(SimAir_Info_t *info)
 {
-    MASTER_DUMP(" [MAS][%7d.%d] timer0 wake up, sleep_time_in_us=%d\n", NORMALIZE_TIME1, g_sleep_time_in_us);
+    MASTER_DUMP1(" timer0 wake up, sleep_time_in_us=%d\n", g_sleep_time_in_us);
 
     printf("%s() -- %d\n", __func__, info->response.ref_clock_L);
     {
@@ -61,7 +61,7 @@ int Master_Phy_Wake_CLKN(SimAir_Info_t *info)
     g_master_clkn++;
     //printf("%s() -- %d, clkn:%d\n", __func__, info->response.ref_clock_L, g_master_clkn);
     //MASTER_DUMP("N[ MAS ][ CLK N ][%8d][%5d]\n", info->response.ref_clock_L, g_master_clkn);
-    MASTER_DUMP("N[MAS][%7d.%d] clkn:%d\n", NORMALIZE_TIME1, g_master_clkn);
+    MASTER_DUMPn1(" clkn:%d\n", g_master_clkn);
 
     BASIC_ASSERT(CLOCKS_PER_BT_CLOCK == SimAir_TimeStamp_Low_Get() - g_sim_time_curr)
     g_sim_time_curr += CLOCKS_PER_BT_CLOCK;
@@ -84,7 +84,7 @@ int Master_Phy_Wake_CLKB(SimAir_Info_t *info)
     g_master_clkb++;
     //printf("%s() -- %d, clkb:%d\n", __func__, info->response.ref_clock_L, g_master_clkb);
     //MASTER_DUMP("B[ MAS ][ CLK B ][%8d][%5d]\n", info->response.ref_clock_L, g_master_clkb);
-    MASTER_DUMP("B[MAS][%7d.%d] clkb:%d\n", NORMALIZE_TIME1, g_master_clkb);
+    MASTER_DUMPb1(" clkb:%d\n", g_master_clkb);
 
     if (g_sim_timesup)
         return 0;
@@ -99,6 +99,7 @@ Bt_Dev_Info_t *g_dev_mas_sch_00;
 Scheduler_Request_T *g_sch_requ_mas_sch_00;
 void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ)
 {
+    u32 sch_delay_in_us = scheduler_simulate_delay_in_us();
     g_dev_mas_sch_00 = mas_dev;
     g_sch_requ_mas_sch_00 = p_sch_requ;
 
@@ -106,10 +107,10 @@ void master_sch_0_add_request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch
     g_sch_requ_mas_sch_00->sim_state = SIM_SCH_STT_WAITING_1ST_WAKUP_TO_GRANT;
 
     g_master_info[SIM_AIR_TASK_SCH_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
-    g_master_info[SIM_AIR_TASK_SCH_0].next_wake_up_time = scheduler_simulate_delay_in_us() * g_master_info[SIM_AIR_TASK_SCH_0].clocks_per_bit;
-    DUMPD(g_master_info[SIM_AIR_TASK_SCH_0].next_wake_up_time);
+    g_master_info[SIM_AIR_TASK_SCH_0].next_wake_up_time = sch_delay_in_us * g_master_info[SIM_AIR_TASK_SCH_0].clocks_per_bit;
+    //DUMPD(g_master_info[SIM_AIR_TASK_SCH_0].next_wake_up_time);
+    MASTER_DUMP2(" Sch 0 add request, sch_delay_in_us = %d\n", sch_delay_in_us);
     SimAir_Request(&(g_master_info[SIM_AIR_TASK_SCH_0]));
-
 }
 
 int Master_Phy_Wake_Sch0(SimAir_Info_t *info)
@@ -119,7 +120,7 @@ int Master_Phy_Wake_Sch0(SimAir_Info_t *info)
 
     //printf(" [ MAS ][ Sch 0]%s() -- %d\n", __func__, info->response.ref_clock_L);
     //MASTER_DUMP(" [ MAS ][ Sch 0 ][%8d]\n", info->response.ref_clock_L);
-    MASTER_DUMP(" [MAS][%7d.%d] Sch 0 wake up\n", NORMALIZE_TIME1);
+    MASTER_DUMP1(" Sch 0 wake up\n");
 
     //if (g_sch_requ_mas_sch_00->sim_state == SIM_SCH_STT_WAITING_1ST_WAKUP_TO_GRANT)
     {

@@ -206,8 +206,7 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
     }
 #ifdef DFS_SIM_ON
         printf("%s(), old_state:%d, new_state:%d, evt:%d, time:%d\n", __func__, old_state, conn_info->state, evt, SimAir_TimeStamp_Low_Get());
-        MASTER_DUMP(" [MAS][%7d.%d] state machine old:%d, new:%d, evt:%d\n", \
-                    NORMALIZE_TIME2, \
+        MASTER_DUMP2(" state machine old:%d, new:%d, evt:%d\n", \
                     old_state, \
                     conn_info->state, \
                     evt);
