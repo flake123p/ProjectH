@@ -12,6 +12,7 @@ typedef enum{
     
 }CONN_STATE_T;
 
+/*
 typedef struct Conn_Info_t {
     Adv_Connect_Ind_Payload_t conn_ind_payload; //Packet payload from advertiser
 
@@ -27,6 +28,7 @@ typedef struct Conn_Info_t {
     //u32 section
     u32 conn_evt_remain_clks;
 } Conn_Info_t;
+*/
 
 //#include "common/mac.h"
 typedef enum{

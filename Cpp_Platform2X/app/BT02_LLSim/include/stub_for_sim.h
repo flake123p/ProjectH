@@ -24,6 +24,8 @@ typedef struct Bt_Dev_Info_t {
     void *infrastructure;
     BT_DEV_TYPE_t Type;
     BT_DEV_ROLE_t Role;
+
+    u16 connection_handle;
 }Bt_Dev_Info_t;
 typedef struct
 {

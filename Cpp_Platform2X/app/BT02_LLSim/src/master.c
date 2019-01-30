@@ -34,7 +34,7 @@
   #define PTR_TO_U32(a) (u32)(a)
 #endif //#ifdef DFS_SIM_ON
 
-static void le_mas_assign_rx_buf(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, u32 rx_pld_len)
+static void lc_conn_state_assign_rx_buf(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, u32 rx_pld_len)
 {
     DIRECT_RFIELD_AGU_RXLE_PLH_SP = PTR_TO_U32(&(rx_plh[0]));
     DIRECT_RFIELD_AGU_RXLE_PLH_CP = PTR_TO_U32(&(rx_plh[0]));
@@ -45,7 +45,7 @@ static void le_mas_assign_rx_buf(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, u32 rx_
     DIRECT_RFIELD_AGU_RXLE_PLD_EP = PTR_TO_U32(&(rx_pld[rx_pld_len]));
 }
 
-static void le_mas_assign_tx_buf(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, u32 tx_pld_len)
+static void lc_conn_state_assign_tx_buf(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, u32 tx_pld_len)
 {
     DIRECT_RFIELD_AGU_TXLE_PLH_SP = PTR_TO_U32(&(tx_plh[0]));
     DIRECT_RFIELD_AGU_TXLE_PLH_CP_RE = PTR_TO_U32(&(tx_plh[0]));
@@ -54,6 +54,295 @@ static void le_mas_assign_tx_buf(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, u32 tx_
     DIRECT_RFIELD_AGU_TXLE_PLD_SP = PTR_TO_U32(&(tx_pld[0]));
     DIRECT_RFIELD_AGU_TXLE_PLD_CP_RE = PTR_TO_U32(&(tx_pld[0]));
     DIRECT_RFIELD_AGU_TXLE_PLD_EP = PTR_TO_U32(&(tx_pld[tx_pld_len]));
+}
+static u8 *g_tx_plh_cmn_buf_dummy = NULL;
+static u8 *g_tx_pld_cmn_buf_dummy = NULL;
+#define LC_CONN_STATE_TX_BUF_DUMMY_LEN 10
+static u8 *g_rx_plh_cmn_buf = NULL;
+static u8 *g_rx_pld_cmn_buf = NULL;
+#define LC_CONN_STATE_RX_BUF_LEN 4096
+static u32 g_rx_pld_cmn_buf_curr_index = 0; //update in payload rx ok, turn around in the start of rf prepare
+void lc_conn_state_init(void)
+{
+#ifdef DFS_SIM_ON
+    #define pvPortMalloc_ext malloc
+#else
+    extern void *pvPortMalloc_ext(u32 xWantedSize);
+#endif
+    if (g_tx_plh_cmn_buf_dummy == NULL)
+        g_tx_plh_cmn_buf_dummy = (u8 *)pvPortMalloc_ext(12);
+
+    if (g_tx_pld_cmn_buf_dummy == NULL)
+        g_tx_pld_cmn_buf_dummy = (u8 *)pvPortMalloc_ext(LC_CONN_STATE_TX_BUF_DUMMY_LEN);
+
+    if (g_rx_plh_cmn_buf == NULL)
+        g_rx_plh_cmn_buf = (u8 *)pvPortMalloc_ext(12);
+
+    if (g_rx_pld_cmn_buf == NULL)
+        g_rx_pld_cmn_buf = (u8 *)pvPortMalloc_ext(LC_CONN_STATE_RX_BUF_LEN);
+
+}
+
+void lc_conn_state_rf_buf_set(Bt_Dev_Info_t *dev)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    //Tx setting
+    u8 tx_llid, tx_nesn, tx_sn, tx_md, tx_len;
+    tx_sn = conn_info->sn;
+    tx_nesn = conn_info->nesn;
+    if (conn_info->tx_request != NULL) {
+        tx_len = conn_info->tx_request->tx_len;
+    }
+    else {
+        tx_len = 0;
+        tx_llid = 1; //01b = LL Data PDU: Continuation fragment of an L2CAP message, or an Empty PDU
+    }
+    //g_tx_plh_cmn_buf_dummy = 
+    lc_conn_state_assign_tx_buf(g_tx_plh_cmn_buf_dummy, 2, g_tx_pld_cmn_buf_dummy, LC_CONN_STATE_TX_BUF_DUMMY_LEN);
+
+    //Rx setting
+    if (g_rx_pld_cmn_buf_curr_index == 0) {
+        lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
+    }
+    else {
+        // turn around when payload buffer is small than 255
+        if (g_rx_pld_cmn_buf_curr_index + 255 > LC_CONN_STATE_RX_BUF_LEN) {
+            g_rx_pld_cmn_buf_curr_index = 0;
+            lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
+        }
+        else {
+            //do nothing, let rf use left buffer
+        }
+    }
+}
+
+Bt_Dev_Info_t *g_conn_state_dev_head = NULL;
+Bt_Dev_Info_t *g_conn_state_dev_tail = NULL;
+static void lc_conn_state_push_dev_to_list_tail(Bt_Dev_Info_t *dev)
+{
+    if (g_conn_state_dev_head == NULL)
+    {
+        g_conn_state_dev_head = dev;
+        g_conn_state_dev_tail = dev;
+    }
+    else
+    {
+        Conn_State_Info_t *old_tail_conn_info = (Conn_State_Info_t *)g_conn_state_dev_tail->infrastructure;
+        Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+        old_tail_conn_info->next_dev = dev;
+        curr_conn_info->prev_dev = g_conn_state_dev_tail;
+
+        g_conn_state_dev_tail = dev;
+    }
+}
+
+static void lc_conn_state_delete_dev_from_list(Bt_Dev_Info_t *dev)
+{
+    Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
+    while(curr_dev != NULL)
+    {
+        Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)curr_dev->infrastructure;
+        if (curr_dev == dev) {
+            Bt_Dev_Info_t *prev_dev = curr_conn_info->prev_dev;
+            Bt_Dev_Info_t *next_dev = curr_conn_info->next_dev;
+            if (prev_dev != NULL) {
+                Conn_State_Info_t *prev_conn_info = (Conn_State_Info_t *)prev_dev->infrastructure;
+                prev_conn_info->next_dev = curr_conn_info->next_dev;
+            }
+            if (next_dev != NULL) {
+                Conn_State_Info_t *next_conn_info = (Conn_State_Info_t *)next_dev->infrastructure;
+                next_conn_info->prev_dev = curr_conn_info->prev_dev;
+            }
+            if (curr_dev == g_conn_state_dev_head) {
+                g_conn_state_dev_head = curr_conn_info->next_dev;
+            }
+            if (curr_dev == g_conn_state_dev_tail) {
+                g_conn_state_dev_tail = curr_conn_info->prev_dev;
+            }
+        }
+        else {
+            curr_dev = curr_conn_info->next_dev;
+        }
+    }
+}
+
+static u16 lc_conn_state_calculate_new_conn_handle(void)
+{
+    static u16 new_conn_hdl = 0x70;
+    Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
+
+    new_conn_hdl = new_conn_hdl >= 0x0FFF ? 0 : 1+new_conn_hdl; //so first conn hdl is 0x71
+    while(curr_dev != NULL)
+    {
+        Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)curr_dev->infrastructure;
+        if (new_conn_hdl == curr_conn_info->conn_hdl) {
+            new_conn_hdl = new_conn_hdl >= 0x0FFF ? 0 : 1+new_conn_hdl;
+            curr_dev = g_conn_state_dev_head;
+        }
+        else {
+            curr_dev = curr_conn_info->next_dev;
+        }
+    }
+    return new_conn_hdl;
+}
+
+static Bt_Dev_Info_t * lc_conn_state_get_dev_by_conn_handle(u16 conn_hdl)
+{
+    Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
+    while(curr_dev != NULL)
+    {
+        Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)curr_dev->infrastructure;
+        if (conn_hdl == curr_conn_info->conn_hdl) {
+            return curr_dev;
+        }
+        else {
+            curr_dev = curr_conn_info->next_dev;
+        }
+    }
+    return NULL;
+}
+
+
+static u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_Ind_Payload_t *in_conn_ind, Bt_Dev_Info_t **out_new_dev)
+{
+    Bt_Dev_Info_t   *new_dev = NULL;
+
+    new_dev = (Bt_Dev_Info_t *)dev_init(DEVICE_TYPE_BLE, role, (u16)(sizeof(Conn_State_Info_t)));
+
+    //If the Advertising_Handle does not identify an existing advertising set and the
+    //Controller is unable to support a new advertising set at present, the Controller
+    //shall return the error code Memory Capacity Exceeded (0x07).
+    if(new_dev == NULL)
+    {
+        return  ERROR_CODES_Memory_Capacity_Exceeded;
+    }
+
+    Conn_State_Info_t *new_conn_info = (Conn_State_Info_t *)new_dev->infrastructure;
+
+    DUMPD(in_conn_ind->LLData.Interval);
+    DUMPD(in_conn_ind->LLData.WinOffset);
+
+    //copy to new dev
+    new_conn_info->conn_ind_payload = *in_conn_ind;
+
+    //20180116_IJ: WBNF-63 transmitWindowSize shall be at least 1.25ms
+    if(new_conn_info->conn_ind_payload.LLData.WinSize == 0x00)
+    {
+       new_conn_info->conn_ind_payload.LLData.WinSize = 0x01;//at least 1.25ms
+    }
+
+    new_conn_info->sn = 0;
+    new_conn_info->nesn = 0;
+    new_conn_info->conn_hdl = lc_conn_state_calculate_new_conn_handle();
+    new_conn_info->state = LC_CONN_STT_ESTABLISHED;
+    new_conn_info->prev_dev = NULL;
+    new_conn_info->next_dev = NULL;
+    new_conn_info->remain_tx_len = 0;
+    new_conn_info->tx_request = NULL;
+
+    new_dev->connection_handle = new_conn_info->conn_hdl; //for upper
+
+#if 0
+    gCurrBtDev = p_bt_dev;
+    gCurrConnInfo = (Conn_Info_t*)(p_bt_dev->infrastructure);
+    {
+        //Copy connection indication packet payload from advertiser to slave
+        Adv_Dev_t                   *p_adv_dev = (Adv_Dev_t*)dev_from_adv->infrastructure;
+        Adv_Connect_Ind_Payload_t   *p_conn_ind_payload = (Adv_Connect_Ind_Payload_t *)p_adv_dev->p_rx_pdu_payload;
+        gCurrConnInfo->conn_ind_payload = *p_conn_ind_payload;
+
+        //Determine connection role
+        gCurrConnInfo->Role = LE_ROLE_SLAVE;
+
+        //20180116_IJ: WBNF-63 transmitWindowSize shall be at least 1.25ms
+        if(gCurrConnInfo->conn_ind_payload.LLData.WinSize == 0x00)
+        {
+           gCurrConnInfo->conn_ind_payload.LLData.WinSize = 0x01;//at least 1.25ms
+        }
+
+        gCurrConnInfo->conn_hdl = 0x81;
+        gCurrConnInfo->sn = 0xFF;
+        gCurrConnInfo->nesn = 0xFF;
+    }
+#endif
+
+    lc_conn_state_push_dev_to_list_tail(new_dev);
+    *out_new_dev = new_dev;
+    return  0;
+}
+
+static void lc_conn_state_dump_all_dev(void)
+{
+#ifdef DFS_SIM_ON
+    u32 i = 0;
+    Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
+    while(curr_dev != NULL)
+    {
+        Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)curr_dev->infrastructure;
+        MAS_INT_DUMP2(" -- [[ conn state dev dump %d ]]\n", i);
+        MAS_INT_DUMP2(" -- Type:%d, Role:%d, Up_Conn_Hdl:0x%X\n", curr_dev->Type, curr_dev->Role, curr_dev->connection_handle);
+        MAS_INT_DUMP2(" -- sn:%d, nesn:%d, conn_hdl:0x%X, state:%d\n", curr_conn_info->sn, curr_conn_info->nesn, curr_conn_info->conn_hdl, curr_conn_info->state);
+        MAS_INT_DUMP2(" -- -- InitA:0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
+                      curr_conn_info->conn_ind_payload.InitA[0], \
+                      curr_conn_info->conn_ind_payload.InitA[1], \
+                      curr_conn_info->conn_ind_payload.InitA[2], \
+                      curr_conn_info->conn_ind_payload.InitA[3], \
+                      curr_conn_info->conn_ind_payload.InitA[4], \
+                      curr_conn_info->conn_ind_payload.InitA[5]);
+        MAS_INT_DUMP2(" -- -- AdvA :0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
+                      curr_conn_info->conn_ind_payload.AdvA[0], \
+                      curr_conn_info->conn_ind_payload.AdvA[1], \
+                      curr_conn_info->conn_ind_payload.AdvA[2], \
+                      curr_conn_info->conn_ind_payload.AdvA[3], \
+                      curr_conn_info->conn_ind_payload.AdvA[4], \
+                      curr_conn_info->conn_ind_payload.AdvA[5]);
+        MAS_INT_DUMP2(" -- -- LLData.AA :0x%X, 0x%X, 0x%X, 0x%X\n", \
+                      curr_conn_info->conn_ind_payload.LLData.AA[0], \
+                      curr_conn_info->conn_ind_payload.LLData.AA[1], \
+                      curr_conn_info->conn_ind_payload.LLData.AA[2], \
+                      curr_conn_info->conn_ind_payload.LLData.AA[3]);
+        MAS_INT_DUMP2(" -- -- LLData.CRCInit :0x%X, 0x%X, 0x%X, 0x%X\n", \
+                      curr_conn_info->conn_ind_payload.LLData.CRCInit[0], \
+                      curr_conn_info->conn_ind_payload.LLData.CRCInit[1], \
+                      curr_conn_info->conn_ind_payload.LLData.CRCInit[2]);
+        MAS_INT_DUMP2(" -- -- LLData.WinSize:%d  WinOffset:%d  Interval:%d  Latency:%d  Timeout:%d\n", \
+                      curr_conn_info->conn_ind_payload.LLData.WinSize, \
+                      curr_conn_info->conn_ind_payload.LLData.WinOffset, \
+                      curr_conn_info->conn_ind_payload.LLData.Interval, \
+                      curr_conn_info->conn_ind_payload.LLData.Latency, \
+                      curr_conn_info->conn_ind_payload.LLData.Timeout);
+        MAS_INT_DUMP2(" -- -- LLData.ChM :0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
+                      curr_conn_info->conn_ind_payload.LLData.ChM[0], \
+                      curr_conn_info->conn_ind_payload.LLData.ChM[1], \
+                      curr_conn_info->conn_ind_payload.LLData.ChM[2], \
+                      curr_conn_info->conn_ind_payload.LLData.ChM[3], \
+                      curr_conn_info->conn_ind_payload.LLData.ChM[4]);
+        MAS_INT_DUMP2(" -- -- LLData.Hop:%d  SCA:%d\n", \
+                      curr_conn_info->conn_ind_payload.LLData.Hop, \
+                      curr_conn_info->conn_ind_payload.LLData.SCA);
+
+        MAS_INT_DUMP2(" -- -- -- remain_tx_len:%d\n", curr_conn_info->remain_tx_len);
+        u32 j = 0;
+        MAS_INT_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
+        Conn_State_Tx_Request_From_Upper_t *curr_tx_request = curr_conn_info->tx_request;
+        while (curr_tx_request != NULL) {
+            MAS_INT_DUMP2(" -- -- -- tx_request_active:%d  tx_request_done:%d  tx_len:%d\n",
+                          curr_tx_request->tx_request_active, \
+                          curr_tx_request->tx_request_done, \
+                          curr_tx_request->tx_len);
+            curr_tx_request = (Conn_State_Tx_Request_From_Upper_t *)curr_tx_request->lc_hdl;
+            if (curr_tx_request != NULL) {
+                j++;
+                MAS_INT_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
+            }
+        }
+
+        curr_dev = curr_conn_info->next_dev;
+        i++;
+    }
+#endif
 }
 
 #define CONPENSATE_SCH_TIME 350
@@ -194,6 +483,7 @@ void lc_mas_init_connection_event(Bt_Dev_Info_t *mas_dev)
         ISR_INT00_TABLE[IRQ_LE_CORREL_ERR].isr_entry = LE_ISR_SLA_LE_CORREL_ERR_Handler;
     #endif
 #endif
+    lc_conn_state_rf_buf_set(mas_dev);
 
 #ifdef DFS_SIM_ON
 //{
@@ -257,6 +547,7 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             switch (evt)
             {
                 case LC_CONN_STT_EVT_SCH_GRANT: {
+                    MASTER_DUMP2(" ENABLE TX & RX_TIFS\n");
                     lc_mas_init_connection_event(mas_dev);
                     lc_mas_start_connection_event(mas_dev);
                     conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
@@ -303,6 +594,7 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
     Adv_Connect_Ind_Payload_t *p_conn_ind_from_ini = lc_mas_extract_conn_ind_from_ini(dev_from_ini);
 
     lc_conn_state_create_dev_by_conn_ind(LE_MASTER, p_conn_ind_from_ini, &new_mas_dev);
+    lc_conn_state_dump_all_dev();
 
     lc_mas_conn_state_machine(new_mas_dev, LC_CONN_STT_EVT_JUST_SENT_CONN_IND);
 

@@ -36,6 +36,14 @@ typedef enum{
 }LC_CONNECTION_STATE_EVENT_t;
 
 typedef struct {
+    u8 tx_request_active; // upper set 1 to enable lc to send tx
+    u8 tx_request_done; // upper shall set 0 as initial value
+    u32 tx_len;
+    u8 *tx_buf;
+    void *lc_hdl;
+} Conn_State_Tx_Request_From_Upper_t;
+
+typedef struct {
     Adv_Connect_Ind_Payload_t conn_ind_payload; //Packet payload from advertiser
 
     //u8 section
@@ -51,9 +59,13 @@ typedef struct {
     //u32 conn_evt_remain_clks;
 
     LC_CONNECTION_STATE_t state;
-} Conn_State_Info_t;
 
-u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_Ind_Payload_t *in_conn_ind, Bt_Dev_Info_t **out_new_dev);
+    Bt_Dev_Info_t *prev_dev;
+    Bt_Dev_Info_t *next_dev;
+
+    u32 remain_tx_len;
+    Conn_State_Tx_Request_From_Upper_t *tx_request;
+} Conn_State_Info_t;
 
 #endif //#define __CMN_LE_LM_CONN_STATE_H__
 

@@ -19,6 +19,11 @@ int main(int argc, char *argv[])
     Master_Upper_InitSimAir();
     Slave_Upper_InitSimAir();
 
+    {
+        extern void lc_conn_state_init(void);
+        lc_conn_state_init();
+    }
+
     Master_Upper_InitTest();
     Slave_Upper_InitTest();
 
