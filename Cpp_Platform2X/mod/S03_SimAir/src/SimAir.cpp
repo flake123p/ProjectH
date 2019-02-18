@@ -516,7 +516,7 @@ static int Test_4_M_Wake(SimAir_Info_t *info)
             g_master_stage++;
             break;
 
-        case 1: //t240
+        case 1: //t800
             g_master_info.requ_type = SIM_AIR_TX_REQUEST;
             g_master_info.clocks_total = 800;
             g_master_info.freq = 5;

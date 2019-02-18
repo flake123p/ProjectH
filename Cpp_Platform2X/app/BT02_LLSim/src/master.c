@@ -29,10 +29,56 @@
   #define DIRECT_RFIELD_AGU_TXLE_PLD_CP_RE MAS__TXLE_PLD_CP_RE
   #define DIRECT_RFIELD_AGU_TXLE_PLD_EP MAS__TXLE_PLD_EP
 
+  extern u8 MAS__ACCESS_CODE[4];
+  #define LE_PHY_ACCESS_CODE_LLbyte MAS__ACCESS_CODE[0]
+  #define LE_PHY_ACCESS_CODE_LHbyte MAS__ACCESS_CODE[1]
+  #define LE_PHY_ACCESS_CODE_HLbyte MAS__ACCESS_CODE[2]
+  #define LE_PHY_ACCESS_CODE_HHbyte MAS__ACCESS_CODE[3]
+
+  extern u8 MAS__LE_Control_Reg_LLbyte;
+  #define LE_Control_Reg_LLbyte  MAS__LE_Control_Reg_LLbyte
+
+  extern u8 MAS__LE_HOP_CTRL0_Reg_HLbyte;
+  #define LE_HOP_CTRL0_Reg_HLbyte MAS__LE_HOP_CTRL0_Reg_HLbyte
+
+  extern u8 MAS__LE_PHY_CRC24[3];
+  #define LE_PHY_CRC24_LL MAS__LE_PHY_CRC24[0]
+  #define LE_PHY_CRC24_LH MAS__LE_PHY_CRC24[1]
+  #define LE_PHY_CRC24_HL MAS__LE_PHY_CRC24[2]
+
+  #define LET0T1STOP
+  extern u8 MAS__DIRECT_RFIELD_DISABLE_TIMEOUT;
+  extern u32 MAS__DIRECT_RFIELD_RX_TIMEOUT_VALUE;
+  #define DIRECT_RFIELD_DISABLE_TIMEOUT   MAS__DIRECT_RFIELD_DISABLE_TIMEOUT
+  #define DIRECT_RFIELD_RX_TIMEOUT_VALUE  MAS__DIRECT_RFIELD_RX_TIMEOUT_VALUE
+
+  extern u32 MAS__T0_SLOT_TIMER;
+  //extern u32 MAS__T1_SLOT_TIMER;
+  extern u32 g_master_clkb;
+  #define T0_SLOT_TIMER_SET(a) MAS__T0_SLOT_TIMER=g_master_clkb+(a)
+  #define T1_SLOT_TIMER_SET(a) MAS__T0_SLOT_TIMER=g_master_clkb+(a)
+
+  extern u8 MAS__RXENABLE;
+  extern u8 MAS__TXENABLE;
+  #define T0RXENABLE MAS__RXENABLE=1
+  #define T1RXENABLE MAS__RXENABLE=1
+  #define T0TXENABLE MAS__TXENABLE=1
+  #define T1TXENABLE MAS__TXENABLE=1
+  #define T0RXENABLE_TIFS MAS__RXENABLE=2
+  #define T1RXENABLE_TIFS MAS__RXENABLE=2
+  #define T0TXENABLE_TIFS MAS__TXENABLE=2
+  #define T1TXENABLE_TIFS MAS__TXENABLE=2
+
 #else //#ifdef DFS_SIM_ON
   #define POINTER_TO_U32(a) (u32)(a)
   #define PTR_TO_U32(a) (u32)(a)
+
+  #define T0_SLOT_TIMER_SET(a) pNBBREG2->Task0SlotTimer.Gbyte.LLbyte=pNBBREG2->CLK.Gbyte.LLbyte+(a)
+  #define T1_SLOT_TIMER_SET(a) pNBBREG2->Task1SlotTimer.Gbyte.LLbyte=pNBBREG2->CLK.Gbyte.LLbyte+(a)
 #endif //#ifdef DFS_SIM_ON
+
+//0 to 1, or 1 to 0
+#define TOGGLE_1_BIT(a) a?0:1
 
 static void lc_conn_state_assign_rx_buf(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, u32 rx_pld_len)
 {
@@ -55,6 +101,7 @@ static void lc_conn_state_assign_tx_buf(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, 
     DIRECT_RFIELD_AGU_TXLE_PLD_CP_RE = PTR_TO_U32(&(tx_pld[0]));
     DIRECT_RFIELD_AGU_TXLE_PLD_EP = PTR_TO_U32(&(tx_pld[tx_pld_len]));
 }
+#define LC_CONN_STATE_DUMMY_TRX_HEADER_LEN 10
 static u8 *g_tx_plh_cmn_buf_dummy = NULL;
 static u8 *g_tx_pld_cmn_buf_dummy = NULL;
 #define LC_CONN_STATE_TX_BUF_DUMMY_LEN 10
@@ -70,51 +117,166 @@ void lc_conn_state_init(void)
     extern void *pvPortMalloc_ext(u32 xWantedSize);
 #endif
     if (g_tx_plh_cmn_buf_dummy == NULL)
-        g_tx_plh_cmn_buf_dummy = (u8 *)pvPortMalloc_ext(12);
+        g_tx_plh_cmn_buf_dummy = (u8 *)pvPortMalloc_ext(LC_CONN_STATE_DUMMY_TRX_HEADER_LEN);
 
     if (g_tx_pld_cmn_buf_dummy == NULL)
         g_tx_pld_cmn_buf_dummy = (u8 *)pvPortMalloc_ext(LC_CONN_STATE_TX_BUF_DUMMY_LEN);
 
     if (g_rx_plh_cmn_buf == NULL)
-        g_rx_plh_cmn_buf = (u8 *)pvPortMalloc_ext(12);
+        g_rx_plh_cmn_buf = (u8 *)pvPortMalloc_ext(LC_CONN_STATE_DUMMY_TRX_HEADER_LEN);
 
     if (g_rx_pld_cmn_buf == NULL)
         g_rx_pld_cmn_buf = (u8 *)pvPortMalloc_ext(LC_CONN_STATE_RX_BUF_LEN);
 
 }
 
+void lc_conn_state_update_tx_request(Conn_State_Info_t *conn_info)
+{
+}
+
+void lc_conn_state_tx_hold_enable(Bt_Dev_Info_t *dev)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    conn_info->tx_hold = 1;
+
+    if (conn_info->tx_ctr == 0) {
+        //first packet, need init value
+        conn_info->llid = 1; //01b = LL Data PDU: Continuation fragment of an L2CAP message, or an Empty PDU
+        conn_info->sn = 0; //set to 0 manully, because tx is holded
+        //Ignore nesn, it's in rx hold enable
+        //conn_info->nesn = 1;
+        conn_info->md = 0;
+        conn_info->tx_len = 0;
+        conn_info->tx_buf = g_tx_pld_cmn_buf_dummy;
+    }
+}
+
+void lc_conn_state_tx_hold_disable(Bt_Dev_Info_t *dev)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    conn_info->tx_hold = 0;
+
+    if (conn_info->tx_ctr == 0) {
+        conn_info->sn = 1; //set to init value manully
+    }
+}
+
+void lc_conn_state_rx_hold_enable(Bt_Dev_Info_t *dev)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    conn_info->rx_hold = 1;
+
+    if (conn_info->rx_ctr == 0) {
+        //first packet, need init value
+        conn_info->nesn = 0; //set to 0 manully
+    }
+}
+
+void lc_conn_state_rx_hold_disable(Bt_Dev_Info_t *dev)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    conn_info->rx_hold = 0;
+
+    if (conn_info->rx_ctr == 0) {
+        conn_info->nesn = 1; //set to init value manully
+    }
+}
+
 void lc_conn_state_rf_buf_set(Bt_Dev_Info_t *dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 
-    //Tx setting
-    u8 tx_llid, tx_nesn, tx_sn, tx_md, tx_len;
-    tx_sn = conn_info->sn;
-    tx_nesn = conn_info->nesn;
-    if (conn_info->tx_request != NULL) {
-        tx_len = conn_info->tx_request->tx_len;
+    //Tx setting start
+    if (conn_info->rx_hold == 0 && conn_info->last_rx_nesn_is_match) {
+        conn_info->last_rx_nesn_is_match = 0;
+        conn_info->nesn = TOGGLE_1_BIT(conn_info->nesn);
     }
-    else {
-        tx_len = 0;
-        tx_llid = 1; //01b = LL Data PDU: Continuation fragment of an L2CAP message, or an Empty PDU
-    }
-    //g_tx_plh_cmn_buf_dummy = 
-    lc_conn_state_assign_tx_buf(g_tx_plh_cmn_buf_dummy, 2, g_tx_pld_cmn_buf_dummy, LC_CONN_STATE_TX_BUF_DUMMY_LEN);
 
-    //Rx setting
-    if (g_rx_pld_cmn_buf_curr_index == 0) {
-        lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
+    if (conn_info->tx_hold == 0 && conn_info->last_tx_is_acked) {
+        lc_conn_state_update_tx_request(conn_info); //update "conn_info->curr_tx_request"
+        //new tx
+        conn_info->last_tx_is_acked = 0;
+        conn_info->sn = TOGGLE_1_BIT(conn_info->sn);
+        if (conn_info->curr_tx_request == NULL) {
+            // empty packet
+            conn_info->llid = 1; //01b = LL Data PDU: Continuation fragment of an L2CAP message, or an Empty PDU
+            conn_info->md = 0;
+            conn_info->tx_len = 0;
+            conn_info->tx_buf = g_tx_pld_cmn_buf_dummy;
+        }
+        else {
+            u32 is_remain_tx_data = 0;
+            u32 tx_len_this_ll_packet = conn_info->curr_tx_request->tx_len - conn_info->accu_tx_len;
+            if (conn_info->accu_tx_len == 0) {
+                conn_info->llid = 2; //10b = LL Data PDU: Start of an L2CAP message or a complete L2CAP message with no fragmentation.
+            }
+            else {
+                //continue packet
+                conn_info->llid = 1; //01b = LL Data PDU: Continuation fragment of an L2CAP message, or an Empty PDU
+            }
+            conn_info->tx_buf = &(conn_info->curr_tx_request->tx_buf[conn_info->accu_tx_len]);
+            if (tx_len_this_ll_packet > conn_info->tx_max_len) {
+                tx_len_this_ll_packet = conn_info->tx_max_len;
+                is_remain_tx_data = 1;
+            }
+            conn_info->tx_len = tx_len_this_ll_packet;
+            conn_info->accu_tx_len += tx_len_this_ll_packet;
+            // more data calculate
+            if (0 == conn_info->tx_md_enable) {
+                conn_info->md = 0;
+            }
+            else {
+                if (is_remain_tx_data) {
+                    conn_info->md = 1;
+                }
+                else {
+                    //check is there next tx request
+                    if (conn_info->curr_tx_request->next != NULL)
+                        conn_info->md = 1;
+                    else
+                        conn_info->md = 0;
+                }
+            }
+        }
     }
     else {
-        // turn around when payload buffer is small than 255
-        if (g_rx_pld_cmn_buf_curr_index + 255 > LC_CONN_STATE_RX_BUF_LEN) {
-            g_rx_pld_cmn_buf_curr_index = 0;
+        //old tx
+        //llid is the same
+        //sn is the same
+        //nesn may be updated by "last_rx_nesn_is_match"
+        //md is the same
+        //tx_len is the same
+    }
+    g_tx_plh_cmn_buf_dummy[0] = (conn_info->md << 4) | (conn_info->sn << 3) | (conn_info->nesn << 2) | conn_info->llid;
+    g_tx_plh_cmn_buf_dummy[1] = conn_info->tx_len;
+    lc_conn_state_assign_tx_buf(g_tx_plh_cmn_buf_dummy, 2, conn_info->tx_buf, conn_info->tx_len);
+    //Tx setting end
+
+    //Rx setting start
+    if (conn_info->rx_hold) {
+        //ignore last rx payload
+        lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, &(g_rx_pld_cmn_buf[g_rx_pld_cmn_buf_curr_index]), LC_CONN_STATE_RX_BUF_LEN-g_rx_pld_cmn_buf_curr_index);
+    }
+    else {
+        if (g_rx_pld_cmn_buf_curr_index == 0) {
             lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
         }
         else {
-            //do nothing, let rf use left buffer
+            // turn around when payload buffer is small than 255
+            if (g_rx_pld_cmn_buf_curr_index + 255 > LC_CONN_STATE_RX_BUF_LEN) {
+                g_rx_pld_cmn_buf_curr_index = 0;
+                lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
+            }
+            else {
+                //do nothing, let rf use remain buffer
+            }
         }
     }
+    //Rx setting end
 }
 
 Bt_Dev_Info_t *g_conn_state_dev_head = NULL;
@@ -188,6 +350,50 @@ static u16 lc_conn_state_calculate_new_conn_handle(void)
     return new_conn_hdl;
 }
 
+static u32 lc_conn_state_calculate_window_widen_size_in_us(Conn_State_Info_t *conn_info)
+{
+    u32 window_widen_max;
+    u32 window_widen_size = 0;
+    u32 sca_in_ppm = 0;
+
+    if (conn_info->role == LC_CONN_ROLE_MASTER)
+    {
+        return 0;
+    }
+
+    switch(conn_info->conn_ind_payload.LLData.SCA)
+    {
+        case 0: sca_in_ppm=500; break; /*251~500*/
+        case 1: sca_in_ppm=250; break; /*151~250*/
+        case 2: sca_in_ppm=150; break; /*101~150*/
+        case 3: sca_in_ppm=100; break; /* 76~100*/
+        case 4: sca_in_ppm=75; break;  /* 51~ 75*/
+        case 5: sca_in_ppm=50; break;  /* 31~ 50*/
+        case 6: sca_in_ppm=30; break;  /* 21~ 30*/
+        case 7: sca_in_ppm=20; break;  /*  0~ 20*/
+        default: break;
+    }
+
+    window_widen_size = conn_info->conn_ind_payload.LLData.Interval * 1250 * (/*masterSCA*/sca_in_ppm + /*slaveSCA*/500);
+    if (window_widen_size % 1000000)
+    {
+        window_widen_size = (window_widen_size / 1000000) + 1;
+    }
+    else
+    {
+        window_widen_size = window_widen_size / 1000000;
+    }
+
+    //Useless???
+    window_widen_max = (conn_info->conn_ind_payload.LLData.Interval * 1250 / 2) - /*T_IFS*/150;
+    if (window_widen_size >= window_widen_max)
+    {
+        window_widen_size = window_widen_max - 1;
+    }
+
+    return window_widen_size;
+}
+
 static Bt_Dev_Info_t * lc_conn_state_get_dev_by_conn_handle(u16 conn_hdl)
 {
     Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
@@ -203,7 +409,6 @@ static Bt_Dev_Info_t * lc_conn_state_get_dev_by_conn_handle(u16 conn_hdl)
     }
     return NULL;
 }
-
 
 static u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_Ind_Payload_t *in_conn_ind, Bt_Dev_Info_t **out_new_dev)
 {
@@ -233,14 +438,41 @@ static u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_I
        new_conn_info->conn_ind_payload.LLData.WinSize = 0x01;//at least 1.25ms
     }
 
-    new_conn_info->sn = 0;
-    new_conn_info->nesn = 0;
-    new_conn_info->conn_hdl = lc_conn_state_calculate_new_conn_handle();
+    if (role == LE_MASTER)
+        new_conn_info->role = LC_CONN_ROLE_MASTER;
+    else if (role == LE_SLAVE)
+        new_conn_info->role = LC_CONN_ROLE_SLAVE;
+
     new_conn_info->state = LC_CONN_STT_ESTABLISHED;
+
+    //new_conn_info->llid = 1; //01b = LL Data PDU: Continuation fragment of an L2CAP message, or an Empty PDU
+    new_conn_info->llid = 0; //dummy
+    new_conn_info->sn = 1; //the first sn will be 0, bacause last_tx_is_acked is init to 1, sn will then turn to 0.
+    new_conn_info->nesn = 1; //the first sn will be 0, bacause last_rx_nesn_is_match is init to 1, nesn will then turn to 0.
+    new_conn_info->md = 0;
+    new_conn_info->tx_len = 0;
+    //new_conn_info->tx_buf = g_tx_pld_cmn_buf_dummy;
+    new_conn_info->tx_buf = NULL;
+    new_conn_info->last_rx_nesn_is_match = 1;
+    new_conn_info->last_tx_is_acked = 1;
+    new_conn_info->accu_tx_len = 0;
+    new_conn_info->window_size_in_us = new_conn_info->conn_ind_payload.LLData.WinSize * 1250;
+    new_conn_info->window_widen_size_in_us = lc_conn_state_calculate_window_widen_size_in_us(new_conn_info);
+
+    new_conn_info->tx_ctr = 0;
+    new_conn_info->rx_ctr = 0;
+    new_conn_info->conn_hdl = lc_conn_state_calculate_new_conn_handle();
+    new_conn_info->tx_max_len = 255;
+    new_conn_info->tx_md_enable = 1;
+    new_conn_info->rx_md_enable = 1;
+    new_conn_info->tx_hold = 0;
+    new_conn_info->rx_hold = 0;
+
+    new_conn_info->curr_tx_request = NULL;
+    new_conn_info->lm_tx_request = NULL;
+
     new_conn_info->prev_dev = NULL;
     new_conn_info->next_dev = NULL;
-    new_conn_info->remain_tx_len = 0;
-    new_conn_info->tx_request = NULL;
 
     new_dev->connection_handle = new_conn_info->conn_hdl; //for upper
 
@@ -283,7 +515,10 @@ static void lc_conn_state_dump_all_dev(void)
         Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)curr_dev->infrastructure;
         MAS_INT_DUMP2(" -- [[ conn state dev dump %d ]]\n", i);
         MAS_INT_DUMP2(" -- Type:%d, Role:%d, Up_Conn_Hdl:0x%X\n", curr_dev->Type, curr_dev->Role, curr_dev->connection_handle);
-        MAS_INT_DUMP2(" -- sn:%d, nesn:%d, conn_hdl:0x%X, state:%d\n", curr_conn_info->sn, curr_conn_info->nesn, curr_conn_info->conn_hdl, curr_conn_info->state);
+        MAS_INT_DUMP2(" -- -- state:%d, llid:%d, sn:%d, nesn:%d, md:%d\n", curr_conn_info->state, curr_conn_info->llid, curr_conn_info->sn, curr_conn_info->nesn, curr_conn_info->md);
+        MAS_INT_DUMP2(" -- -- tx_len:%d, last_rx_nesn_is_match:%d, last_tx_is_acked:%d, accu_tx_len:%d\n", curr_conn_info->tx_len, curr_conn_info->last_rx_nesn_is_match, curr_conn_info->last_tx_is_acked, curr_conn_info->accu_tx_len);
+        MAS_INT_DUMP2(" -- -- tx_ctr:%d, rx_ctr:%d, conn_hdl:0x%X\n", curr_conn_info->tx_ctr, curr_conn_info->rx_ctr, curr_conn_info->conn_hdl);
+        MAS_INT_DUMP2(" -- -- tx_max_len:%d, tx_md_enable:%d, rx_md_enable:%d, tx_hold:%d, rx_hold:%d\n", curr_conn_info->tx_max_len, curr_conn_info->tx_md_enable, curr_conn_info->rx_md_enable, curr_conn_info->tx_hold, curr_conn_info->rx_hold);
         MAS_INT_DUMP2(" -- -- InitA:0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
                       curr_conn_info->conn_ind_payload.InitA[0], \
                       curr_conn_info->conn_ind_payload.InitA[1], \
@@ -303,7 +538,7 @@ static void lc_conn_state_dump_all_dev(void)
                       curr_conn_info->conn_ind_payload.LLData.AA[1], \
                       curr_conn_info->conn_ind_payload.LLData.AA[2], \
                       curr_conn_info->conn_ind_payload.LLData.AA[3]);
-        MAS_INT_DUMP2(" -- -- LLData.CRCInit :0x%X, 0x%X, 0x%X, 0x%X\n", \
+        MAS_INT_DUMP2(" -- -- LLData.CRCInit :0x%X, 0x%X, 0x%X\n", \
                       curr_conn_info->conn_ind_payload.LLData.CRCInit[0], \
                       curr_conn_info->conn_ind_payload.LLData.CRCInit[1], \
                       curr_conn_info->conn_ind_payload.LLData.CRCInit[2]);
@@ -323,16 +558,15 @@ static void lc_conn_state_dump_all_dev(void)
                       curr_conn_info->conn_ind_payload.LLData.Hop, \
                       curr_conn_info->conn_ind_payload.LLData.SCA);
 
-        MAS_INT_DUMP2(" -- -- -- remain_tx_len:%d\n", curr_conn_info->remain_tx_len);
         u32 j = 0;
         MAS_INT_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
-        Conn_State_Tx_Request_From_Upper_t *curr_tx_request = curr_conn_info->tx_request;
+        Conn_State_Tx_Request_t *curr_tx_request = curr_conn_info->lm_tx_request;
         while (curr_tx_request != NULL) {
             MAS_INT_DUMP2(" -- -- -- tx_request_active:%d  tx_request_done:%d  tx_len:%d\n",
                           curr_tx_request->tx_request_active, \
                           curr_tx_request->tx_request_done, \
                           curr_tx_request->tx_len);
-            curr_tx_request = (Conn_State_Tx_Request_From_Upper_t *)curr_tx_request->lc_hdl;
+            curr_tx_request = curr_tx_request->next;
             if (curr_tx_request != NULL) {
                 j++;
                 MAS_INT_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
@@ -473,8 +707,9 @@ if(p_adv_dev->event.is_preiodical == TRUE)
 #endif
 }
 
-void lc_mas_init_connection_event(Bt_Dev_Info_t *mas_dev)
+void lc_mas_connection_event_init(Bt_Dev_Info_t *dev)
 {
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 #ifdef PLATFORM
     #if (PLATFORM == PLATFORM_CHIMERA)
         ISR_INT00_TABLE[IRQ_LE_PL_RCV_OK].isr_entry = LE_ISR_SLA_LE_PL_RCV_OK_Handler;
@@ -483,30 +718,49 @@ void lc_mas_init_connection_event(Bt_Dev_Info_t *mas_dev)
         ISR_INT00_TABLE[IRQ_LE_CORREL_ERR].isr_entry = LE_ISR_SLA_LE_CORREL_ERR_Handler;
     #endif
 #endif
-    lc_conn_state_rf_buf_set(mas_dev);
+    lc_conn_state_rf_buf_set(dev);
 
-#ifdef DFS_SIM_ON
-//{
-  //extern void MAS_PHY_API_Sch_0_Add_Request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
-  //MAS_PHY_API_Sch_0_Add_Request(mas_dev, p_sch_requ);
-//}
-#else
-//value = (u32)p_requ_addr_list;
-//Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
-#endif
+    LE_PHY_ACCESS_CODE_LLbyte=conn_info->conn_ind_payload.LLData.AA[0];
+    LE_PHY_ACCESS_CODE_LHbyte=conn_info->conn_ind_payload.LLData.AA[1];
+    LE_PHY_ACCESS_CODE_HLbyte=conn_info->conn_ind_payload.LLData.AA[2];
+    LE_PHY_ACCESS_CODE_HHbyte=conn_info->conn_ind_payload.LLData.AA[3];
+    //enable test packet format and disable whiten, enable LE xxx
+    LE_Control_Reg_LLbyte=0x01;
+
+    //fixed channel
+    LE_HOP_CTRL0_Reg_HLbyte=(0x80|(conn_info->conn_ind_payload.LLData.Hop));
+
+    //channel map all enable
+    //NBB_Reg.LE_HOP_CTRL1_Reg.Gword.Lword=0xff;
+    //NBB_Reg.LE_HOP_CTRL1_Reg.Gword.Hword=0xff;
+    //NBB_Reg.LE_HOP_CTRL2_Reg.Gbyte.LLbyte=0x1f;
+
+    //CRC24 initial value of RF test packet is 0x555555
+    LE_PHY_CRC24_LL=conn_info->conn_ind_payload.LLData.CRCInit[0];
+    LE_PHY_CRC24_LH=conn_info->conn_ind_payload.LLData.CRCInit[1];
+    LE_PHY_CRC24_HL=conn_info->conn_ind_payload.LLData.CRCInit[2];
 }
 
-void lc_mas_start_connection_event(Bt_Dev_Info_t *mas_dev)
+void lc_mas_connection_event_start(Bt_Dev_Info_t *mas_dev)
 {
-#ifdef DFS_SIM_ON
-//{
-  //extern void MAS_PHY_API_Sch_0_Add_Request(Bt_Dev_Info_t *mas_dev, Scheduler_Request_T *p_sch_requ);
-  //MAS_PHY_API_Sch_0_Add_Request(mas_dev, p_sch_requ);
-//}
-#else
-//value = (u32)p_requ_addr_list;
-//Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
-#endif
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)mas_dev->infrastructure;
+
+    //why
+    LET0T1STOP;
+    
+    //why again?
+    //le_sla_assign_rx_buf(gp_cmn_buf_rx_payload_curr, gp_cmn_buf_rx_payload_left_size);
+    
+    //why again?
+    //le_sla_assign_tx_buf(gp_cmn_buf_tx_payload_curr, TX_TOTAL_SIZE);
+    
+    DIRECT_RFIELD_DISABLE_TIMEOUT = 0;
+    DIRECT_RFIELD_RX_TIMEOUT_VALUE = 1000;//conn_info->window_size_in_us;
+    T1_SLOT_TIMER_SET(1);
+
+    T1TXENABLE;
+
+    T0RXENABLE_TIFS;
 }
 
 void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt)
@@ -548,8 +802,8 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             {
                 case LC_CONN_STT_EVT_SCH_GRANT: {
                     MASTER_DUMP2(" ENABLE TX & RX_TIFS\n");
-                    lc_mas_init_connection_event(mas_dev);
-                    lc_mas_start_connection_event(mas_dev);
+                    lc_mas_connection_event_init(mas_dev);
+                    lc_mas_connection_event_start(mas_dev);
                     conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
                 } break;
 

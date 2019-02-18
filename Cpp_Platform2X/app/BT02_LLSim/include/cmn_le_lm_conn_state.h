@@ -11,6 +11,11 @@
 #endif //#ifdef DFS_SIM_ON
 
 typedef enum{
+    LC_CONN_ROLE_MASTER,
+    LC_CONN_ROLE_SLAVE,
+}LC_CONNECTION_ROLE_t;
+
+typedef enum{
     LC_CONN_STT_ESTABLISHED = 20,
     LC_CONN_STT_SLEEPING_FOR_ADDING_REQUEST,
     LC_CONN_STT_WAITING_FOR_1ST_GRANT,
@@ -35,36 +40,54 @@ typedef enum{
     LC_CONN_STT_EVT_TX_DONE,
 }LC_CONNECTION_STATE_EVENT_t;
 
-typedef struct {
+typedef struct Conn_State_Tx_Request_t{
     u8 tx_request_active; // upper set 1 to enable lc to send tx
     u8 tx_request_done; // upper shall set 0 as initial value
     u32 tx_len;
     u8 *tx_buf;
-    void *lc_hdl;
-} Conn_State_Tx_Request_From_Upper_t;
+    Conn_State_Tx_Request_t *next;
+} Conn_State_Tx_Request_t;
 
 typedef struct {
     Adv_Connect_Ind_Payload_t conn_ind_payload; //Packet payload from advertiser
 
-    //u8 section
-    //u8 Role; // LE_ROLE_SLAVE or LE_ROLE_MASTER
-    //u8 Mode; // LE_MODE_CONNECTION or ...
+    //LC:read/write, LM:forbiden
+    LC_CONNECTION_ROLE_t role;
+    LC_CONNECTION_STATE_t state;
+    u8 llid;
     u8 sn; //S1 for slave,
     u8 nesn; //N1 for slave,
+    u8 md;
+    u8 tx_len;
+    u8 *tx_buf;
+    u8 last_rx_nesn_is_match;
+    u8 last_tx_is_acked; //init to 1, set to 0 before new tx
+    u32 accu_tx_len; //accumulate
+    u32 window_size_in_us;
+    u32 window_widen_size_in_us;
+    u32 window_size_remain_in_us; //TODO, remain window size in single connection event
 
-    //u16 section
+    //LC:write, LM:read
+    u32 tx_ctr;
+    u32 rx_ctr;
     u16 conn_hdl;
 
-    //u32 section
-    //u32 conn_evt_remain_clks;
+    //LC:read, LM:write
+    u8 tx_max_len;
+    u8 tx_md_enable;
+    u8 rx_md_enable;
+    u8 tx_hold; // 1 for hold, tx empty packet
+    u8 rx_hold; // 1 for hold, rx nack to peer device, peer device will keep resend data repeatly.
 
-    LC_CONNECTION_STATE_t state;
+    //LC:read/write, LM:forbiden
+    Conn_State_Tx_Request_t *curr_tx_request;
+    //LC:read pointer, only write lm_tx_request->tx_request_done
+    //LM:read/write pointer,
+    Conn_State_Tx_Request_t *lm_tx_request;
 
+    //LC init, LM read/write, LC don't care
     Bt_Dev_Info_t *prev_dev;
     Bt_Dev_Info_t *next_dev;
-
-    u32 remain_tx_len;
-    Conn_State_Tx_Request_From_Upper_t *tx_request;
 } Conn_State_Info_t;
 
 #endif //#define __CMN_LE_LM_CONN_STATE_H__
