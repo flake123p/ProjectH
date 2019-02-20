@@ -341,7 +341,7 @@ static u16 lc_conn_state_calculate_new_conn_handle(void)
         Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)curr_dev->infrastructure;
         if (new_conn_hdl == curr_conn_info->conn_hdl) {
             new_conn_hdl = new_conn_hdl >= 0x0FFF ? 0 : 1+new_conn_hdl;
-            curr_dev = g_conn_state_dev_head;
+            curr_dev = g_conn_state_dev_head; //start over while loop
         }
         else {
             curr_dev = curr_conn_info->next_dev;

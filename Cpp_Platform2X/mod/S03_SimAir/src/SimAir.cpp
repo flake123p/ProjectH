@@ -3,6 +3,12 @@
 #include "SimAir.hpp"
 #include <vector>
 
+#define SIM_AIR_LOG (1)
+#if SIM_AIR_LOG
+LibFileIoClass g_sim_air_log = LibFileIoClass("sim_air_log.txt", "w+b");
+bool g_sim_air_log_enable = false;
+#endif //SIM_AIR_LOG
+
 typedef enum {
     SIM_AIR_WAKEUP_CB = 100,
     SIM_AIR_INTERNAL_TRx,
@@ -189,6 +195,24 @@ int SimAir_Uninit(void)
     SimAir_ChMgr_Uninit();
 
     SimTimeSlice2_Uninit();
+    return 0;
+}
+
+int SimAir_Log_Enable(void)
+{
+#if SIM_AIR_LOG
+    g_sim_air_log.FileOpen();
+    g_sim_air_log_enable = true;
+#endif //SIM_AIR_LOG
+    return 0;
+}
+
+int SimAir_Log_Disable(void)
+{
+#if SIM_AIR_LOG
+    g_sim_air_log.FileClose();
+    g_sim_air_log_enable = false;
+#endif //SIM_AIR_LOG
     return 0;
 }
 
