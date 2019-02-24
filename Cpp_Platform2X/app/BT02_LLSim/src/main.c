@@ -18,19 +18,19 @@ int main(int argc, char *argv[])
 
     Init_Dump_Files();
 
-    Master_Upper_InitSimAir();
-    Slave_Upper_InitSimAir();
+    //Master_Upper_InitSimAir();
+    //Slave_Upper_InitSimAir();
 
     Peer0_InitSimAir();
     Peer1_InitSimAir();
 
     {
         extern void lc_conn_state_initXX(void);
-        lc_conn_state_initXX();
+        //lc_conn_state_initXX();
     }
 
-    Master_Upper_InitTest();
-    Slave_Upper_InitTest();
+    //Master_Upper_InitTest();
+    //Slave_Upper_InitTest();
 
     Peer0_StartTest();
 

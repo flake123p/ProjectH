@@ -331,7 +331,7 @@ int SimAir_ChMgr_CheckDoesNeedToTick(void)
 
 static u32 SimAir_ChMgr_CalculateChannel(SimAir_Info_t *info)
 {
-    return info->freq + 3;
+    return info->freq;// + 3;
 }
 
 int SimAir_ChMgr_AddRequest(SimAir_Info_t *info)

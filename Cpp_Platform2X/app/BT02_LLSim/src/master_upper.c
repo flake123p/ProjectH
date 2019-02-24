@@ -1,3 +1,6 @@
+#if 0
+
+
 
 #include "Everything_App.hpp"
 
@@ -105,3 +108,6 @@ void Master_Upper_InitTest(void)
 
     lc_mas_handle_conn_indXX(&temp_dev);
 }
+
+
+#endif //#if 0

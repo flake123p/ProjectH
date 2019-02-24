@@ -48,6 +48,9 @@ typedef struct {
     u8 *tx_pld_buf;
     u8 *rx_hdr_buf;
     u8 *rx_pld_buf;
+    u32 rx_pld_buf_curr_index;
+
+    void *phy_info;
 } LL_Info_t;
 
 typedef struct Conn_State_Tx_Request_t{
@@ -64,6 +67,7 @@ typedef struct {
     //LC:read/write, LM:forbiden
     LC_CONNECTION_ROLE_t role;
     LC_CONNECTION_STATE_t state;
+    u8 channel;
     u8 llid;
     u8 sn; //S1 for slave,
     u8 nesn; //N1 for slave,

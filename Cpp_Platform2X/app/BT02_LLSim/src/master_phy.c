@@ -1,4 +1,19 @@
 
+
+
+
+
+
+#if 0
+
+
+
+
+
+
+
+
+
 #include "Everything_App.hpp"
 
 extern SimAir_Info_t g_master_info[SIM_AIR_TASK_NUMBER];
@@ -53,7 +68,7 @@ int Master_Phy_Tx_0(SimAir_Info_t *info)
 
 //Bt_Dev_Info_t *g_dev_mas_sch_00;
 Scheduler_Request_T *g_sch_requ_mas_sch_00;
-void MAS_PHY_API_Sch_0_Add_Request(Scheduler_Request_T *p_sch_requ)
+void MAS_PHY_API_Sch_0_Add_RequestXX(Scheduler_Request_T *p_sch_requ)
 {
     u32 sch_delay_in_us = scheduler_simulate_delay_in_us();
     g_sch_requ_mas_sch_00 = p_sch_requ;
@@ -240,3 +255,5 @@ int Master_Phy_Wake_CLKB(SimAir_Info_t *info)
     return 0;
 }
 
+
+#endif //#if 0

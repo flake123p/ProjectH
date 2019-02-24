@@ -1,3 +1,10 @@
+#if 0
+
+
+
+
+
+
 #ifdef DFS_SIM_ON
   #include "Everything_App.hpp"
   extern void MAS_PHY_API_Timer_0(Bt_Dev_Info_t *mas_dev, u32 sleep_time_in_us);
@@ -698,8 +705,8 @@ if(p_adv_dev->event.is_preiodical == TRUE)
     free(p_requ_addr_list);
     free(p_requ_addr);
     {
-        extern void MAS_PHY_API_Sch_0_Add_Request(Scheduler_Request_T *p_sch_requ);
-        MAS_PHY_API_Sch_0_Add_Request(p_sch_requ);
+        extern void MAS_PHY_API_Sch_0_Add_RequestXX(Scheduler_Request_T *p_sch_requ);
+        MAS_PHY_API_Sch_0_Add_RequestXX(p_sch_requ);
     }
 #else
     value = (u32)p_requ_addr_list;
@@ -854,3 +861,9 @@ void lc_mas_handle_conn_indXX(Bt_Dev_Info_t *dev_from_ini)
 
     //Dump_Conn_Info(new_mas_dev);
 }
+
+
+
+
+
+#endif //#if 0
