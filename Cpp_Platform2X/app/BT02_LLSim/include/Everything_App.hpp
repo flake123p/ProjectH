@@ -16,6 +16,10 @@ void Slave_Upper_InitTest(void);
 void Master_Upper_InitSimAir(void);
 void Master_Upper_InitTest(void);
 
+void Peer0_InitSimAir(void);
+void Peer1_InitSimAir(void);
+void Peer0_StartTest(void);
+
 enum
 {
     SIM_AIR_TASK_CLKN,
@@ -65,6 +69,8 @@ extern LibFileIoClass g_dump_all;
 #define SLAVE_DUMPb(a, ...) fprintf(g_dump_master.fp, HDR_B HDR_SLA a, CURR_TIME_1, ##__VA_ARGS__);fprintf(g_dump_all.fp, HDR_B HDR_SLA a, CURR_TIME_1, ##__VA_ARGS__);
 #define SLAVE_DUMP1(a, ...) fprintf(g_dump_master.fp, HDR__ HDR_SLA a, CURR_TIME_1, ##__VA_ARGS__);fprintf(g_dump_all.fp, HDR__ HDR_SLA a, CURR_TIME_1, ##__VA_ARGS__);
 #define SLAVE_DUMP2(a, ...) fprintf(g_dump_master.fp, HDR__ HDR_SLA a, CURR_TIME_2, ##__VA_ARGS__);fprintf(g_dump_all.fp, HDR__ HDR_SLA a, CURR_TIME_2, ##__VA_ARGS__);
+
+#include "bt_phy.h"
 
 #define _EVERYTHING_APP_HPP_INCLUDED_
 #endif//_EVERYTHING_APP_HPP_INCLUDED_

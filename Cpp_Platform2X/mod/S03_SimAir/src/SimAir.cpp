@@ -3,10 +3,10 @@
 #include "SimAir.hpp"
 #include <vector>
 
-#define SIM_AIR_LOG (1)
 #if SIM_AIR_LOG
 LibFileIoClass g_sim_air_log = LibFileIoClass("sim_air_log.txt", "w+b");
 bool g_sim_air_log_enable = false;
+bool g_sim_air_log_enable_every_clock_dump =false;
 #endif //SIM_AIR_LOG
 
 typedef enum {
@@ -16,6 +16,7 @@ typedef enum {
 
 typedef struct {
     SimAir_Handle_t sim_air_hdl;
+    const char *sim_air_id_str;
     SimAir_CB_Type_t cb_type;
     SimAir_CB_t wake_up_cb;
     SimAir_CB_t rxing_cb; //including last rx done
@@ -30,6 +31,14 @@ static SimAir_Handle_t gSimAir_Handle_Ctr = 0;
 static SimAir_Handle_t gSimAir_Handle_InternalTRx = 0;
 //static Time_Slice_Descriptor2 *gSimAir_Descriptor2_Last = NULL;
 
+const char *_SimAir_Handle_ID_String_Get(u32 index)
+{
+    BASIC_ASSERT(index < gSimAirDes_Vector.size());
+    if (gSimAirDes_Vector[index]->sim_air_id_str == NULL)
+        return "(NULL)";
+    return gSimAirDes_Vector[index]->sim_air_id_str;
+}
+
 static void SimAir_ActivePeriodicInternalTRx(void)
 {
     if (gSimAirDes_Vector[gSimAir_Handle_InternalTRx]->p_time_slice_descriptor->state == TIME_SLICE_CB_DONE)
@@ -41,8 +50,8 @@ static void SimAir_ActivePeriodicInternalTRx(void)
 
 static int SimAir_InternalTRx(SimAir_Info_t *info)
 {
-    u32 clk_h, clk_l;
-    SimTimeSlice_TimeStampGet(&clk_h, &clk_l);
+//    u32 clk_h, clk_l;
+//    SimTimeSlice_TimeStampGet(&clk_h, &clk_l);
 //    printf("%s() -- %d\n", __func__, clk_l);
 
     SimAir_ChMgr_ProcessOneTick();
@@ -56,6 +65,30 @@ static int SimAir_InternalTRx(SimAir_Info_t *info)
 static int SimAir_Dispatcher(SimAir_Descriptor_t* p_des)
 {
     //printf("%s() hdl:%d, cb_type:%d\n", __func__, p_des->sim_air_hdl, p_des->cb_type);
+
+#if SIM_AIR_LOG
+    if (g_sim_air_log_enable) {
+        u32 clk_h, clk_l;
+        SimTimeSlice_TimeStampGet(&clk_h, &clk_l);
+
+        const char *cb_type_str;
+        switch (p_des->cb_type) {
+            case SIM_AIR_WAKEUP_CB:
+                cb_type_str="wake";
+                fprintf(g_sim_air_log.fp, "[%8d][%4s][------]%s\n", 
+                    clk_l,
+                    cb_type_str,
+                    _SimAir_Handle_ID_String_Get(p_des->sim_air_hdl));
+                break;
+            case SIM_AIR_INTERNAL_TRx:
+                cb_type_str="i_TR";
+                break;
+            default:
+                cb_type_str="????";
+                break;
+        }
+    }
+#endif //SIM_AIR_LOG
 
     switch (p_des->cb_type) {
         case SIM_AIR_WAKEUP_CB:
@@ -91,7 +124,7 @@ u32 SimAir_TimeStamp_High_Get(void)
     return SimTimeSlice_TimeStamp_High_Get();
 }
 
-SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rxing_cb, SimAir_CB_t txing_cb)
+SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rxing_cb, SimAir_CB_t txing_cb, const char *id_str)
 {
     SimAir_Descriptor_t *p_curr_sim_air_des;
     u32 newest;
@@ -99,6 +132,7 @@ SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rx
     p_curr_sim_air_des = (SimAir_Descriptor_t *)malloc(sizeof(SimAir_Descriptor_t));
     p_curr_sim_air_des->p_time_slice_descriptor = (Time_Slice_Descriptor2 *)malloc(sizeof(Time_Slice_Descriptor2));
     p_curr_sim_air_des->sim_air_hdl = gSimAir_Handle_Ctr;
+    p_curr_sim_air_des->sim_air_id_str = id_str;
     p_curr_sim_air_des->cb_type = SIM_AIR_WAKEUP_CB;
     p_curr_sim_air_des->wake_up_cb = wake_up_cb;
     p_curr_sim_air_des->rxing_cb = rxing_cb;
@@ -125,6 +159,7 @@ SimAir_Handle_t SimAir_Init_AddDescriptor2(SimAir_CB_Set_t *cb_set)
     p_curr_sim_air_des = (SimAir_Descriptor_t *)malloc(sizeof(SimAir_Descriptor_t));
     p_curr_sim_air_des->p_time_slice_descriptor = (Time_Slice_Descriptor2 *)malloc(sizeof(Time_Slice_Descriptor2));
     p_curr_sim_air_des->sim_air_hdl = gSimAir_Handle_Ctr;
+    p_curr_sim_air_des->sim_air_id_str = cb_set->id_str;
     p_curr_sim_air_des->cb_type = SIM_AIR_WAKEUP_CB;
     p_curr_sim_air_des->wake_up_cb = cb_set->wake_cb;
     p_curr_sim_air_des->rxing_cb = cb_set->rx_cb;
@@ -198,11 +233,12 @@ int SimAir_Uninit(void)
     return 0;
 }
 
-int SimAir_Log_Enable(void)
+int SimAir_Log_Enable(bool enable_every_clock_dump)
 {
 #if SIM_AIR_LOG
     g_sim_air_log.FileOpen();
     g_sim_air_log_enable = true;
+    g_sim_air_log_enable_every_clock_dump = enable_every_clock_dump;
 #endif //SIM_AIR_LOG
     return 0;
 }
@@ -212,6 +248,7 @@ int SimAir_Log_Disable(void)
 #if SIM_AIR_LOG
     g_sim_air_log.FileClose();
     g_sim_air_log_enable = false;
+    g_sim_air_log_enable_every_clock_dump = false;
 #endif //SIM_AIR_LOG
     return 0;
 }
@@ -341,7 +378,7 @@ static int Test_1(void)
     printf("\n[[[ This is %s() ]]]\n", __func__);
 
     g_slave_stage = 0;
-    g_slave_hdl = SimAir_Init_AddDescriptor(Test_1_S_Wake, Test_1_S_Rx, NULL);
+    g_slave_hdl = SimAir_Init_AddDescriptor(Test_1_S_Wake, Test_1_S_Rx, NULL, NULL);
     //init first wake up & set hdl into info
     g_slave_info.hdl = g_slave_hdl;
     g_slave_info.requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -408,7 +445,7 @@ static int Test_2(void)
     printf("\n[[[ This is %s() ]]]\n", __func__);
 
     g_master_stage = 0;
-    g_master_hdl = SimAir_Init_AddDescriptor(Test_2_M_Wake, NULL, Test_2_M_Tx);
+    g_master_hdl = SimAir_Init_AddDescriptor(Test_2_M_Wake, NULL, Test_2_M_Tx, NULL);
     //init first wake up & set hdl into info
     g_master_info.hdl = g_master_hdl;
     g_master_info.requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -441,8 +478,10 @@ static int Test_3(void)
 {
     printf("\n[[[ This is %s() ]]]\n", __func__);
 
+    //SimAir_Log_Enable();
+
     g_slave_stage = 0;
-    g_slave_hdl = SimAir_Init_AddDescriptor(Test_1_S_Wake, Test_1_S_Rx, NULL);
+    g_slave_hdl = SimAir_Init_AddDescriptor(Test_1_S_Wake, Test_1_S_Rx, NULL, NULL);
     //init first wake up & set hdl into info
     g_slave_info.hdl = g_slave_hdl;
     g_slave_info.requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -457,7 +496,7 @@ static int Test_3(void)
     SimAir_Request(&g_slave_info);
 
     g_master_stage = 0;
-    g_master_hdl = SimAir_Init_AddDescriptor(Test_2_M_Wake, NULL, Test_2_M_Tx);
+    g_master_hdl = SimAir_Init_AddDescriptor(Test_2_M_Wake, NULL, Test_2_M_Tx, NULL);
     //init first wake up & set hdl into info
     g_master_info.hdl = g_master_hdl;
     g_master_info.requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -477,6 +516,8 @@ static int Test_3(void)
     //SimTimeSlice2_Dump();
     //SimAir_Dump();
     SimAir_Uninit();
+
+    SimAir_Log_Disable();
 
     return 0;
 }
@@ -566,8 +607,10 @@ static int Test_4_Demo_ExtendRx(void)
 {
     printf("\n[[[ This is %s() ]]]\n", __func__);
 
+    SimAir_Log_Enable();
+
     g_slave_stage = 0;
-    g_slave_hdl = SimAir_Init_AddDescriptor(Test_4_S_Wake, Test_4_S_Rx, NULL);
+    g_slave_hdl = SimAir_Init_AddDescriptor(Test_4_S_Wake, Test_4_S_Rx, NULL, "Peer_R");
     //init first wake up & set hdl into info
     g_slave_info.hdl = g_slave_hdl;
     g_slave_info.requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -582,7 +625,7 @@ static int Test_4_Demo_ExtendRx(void)
     SimAir_Request(&g_slave_info);
 
     g_master_stage = 0;
-    g_master_hdl = SimAir_Init_AddDescriptor(Test_4_M_Wake, NULL, Test_4_M_Tx);
+    g_master_hdl = SimAir_Init_AddDescriptor(Test_4_M_Wake, NULL, Test_4_M_Tx, "Peer_T");
     //init first wake up & set hdl into info
     g_master_info.hdl = g_master_hdl;
     g_master_info.requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -613,6 +656,8 @@ static int Test_4_Demo_ExtendRx(void)
     //SimTimeSlice2_Dump();
     //SimAir_Dump();
     SimAir_Uninit();
+
+    SimAir_Log_Disable();
 
     return 0;
 }

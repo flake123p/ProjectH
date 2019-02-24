@@ -15,7 +15,7 @@ void Slave_Upper_InitSimAir(void)
 {
     //F.Y.R.: SimAir_Demo()
 
-    g_slave_hdl = SimAir_Init_AddDescriptor(Slave_Phy_Wake, Slave_Phy_Rx, Slave_Phy_Tx);
+    g_slave_hdl = SimAir_Init_AddDescriptor(Slave_Phy_Wake, Slave_Phy_Rx, Slave_Phy_Tx, NULL);
     //init first wake up & set hdl into info
     g_slave_info.hdl = g_slave_hdl;
     g_slave_info.requ_type = SIM_AIR_WAKEUP_REQUEST;

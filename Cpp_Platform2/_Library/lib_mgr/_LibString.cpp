@@ -757,6 +757,20 @@ int LibStringClass::InsertAfter(const char *pattern, const char *s)
 	return 0;
 }
 
+const char* LibStringClass::BitsStringOfOneByte_LittleEndian(u8 byte, u32 bits_size)
+{
+    str = "";
+    BASIC_ASSERT(bits_size>=1&&bits_size<=8);
+    for (u32 i=0; i<bits_size; i++) {
+        if (byte & 0x01)
+            str = "1" + str;
+        else
+            str = "0" + str;
+        byte=byte>>1;
+    }
+    return str.c_str();
+}
+
 const char * LibStringClass::CStr(void)
 {
 	return str.c_str();

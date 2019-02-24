@@ -40,6 +40,16 @@ typedef enum{
     LC_CONN_STT_EVT_TX_DONE,
 }LC_CONNECTION_STATE_EVENT_t;
 
+#define LL_TX_BUF_SIZE (10)
+typedef struct {
+    Bt_Dev_Info_t *dev_head;
+    Bt_Dev_Info_t *dev_tail;
+    u8 *tx_hdr_buf;
+    u8 *tx_pld_buf;
+    u8 *rx_hdr_buf;
+    u8 *rx_pld_buf;
+} LL_Info_t;
+
 typedef struct Conn_State_Tx_Request_t{
     u8 tx_request_active; // upper set 1 to enable lc to send tx
     u8 tx_request_done; // upper shall set 0 as initial value
@@ -89,6 +99,10 @@ typedef struct {
     Bt_Dev_Info_t *prev_dev;
     Bt_Dev_Info_t *next_dev;
 } Conn_State_Info_t;
+
+void lc_conn_state_ll_info_set(LL_Info_t *ll_info);
+void lc_conn_state_init(void);
+void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini);
 
 #endif //#define __CMN_LE_LM_CONN_STATE_H__
 

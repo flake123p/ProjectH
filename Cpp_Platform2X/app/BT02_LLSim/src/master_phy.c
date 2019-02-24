@@ -23,8 +23,8 @@ int Master_Phy_Wake_Timer0(SimAir_Info_t *info)
 
     printf("%s() -- %d\n", __func__, info->response.ref_clock_L);
     {
-        extern void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
-        lc_mas_conn_state_machine(g_dev_mas_timer_00, LC_CONN_STT_EVT_SLEEP_TIMESUP);
+        extern void lc_mas_conn_state_machineXX(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
+        lc_mas_conn_state_machineXX(g_dev_mas_timer_00, LC_CONN_STT_EVT_SLEEP_TIMESUP);
     }
 
     return 0;
@@ -79,8 +79,8 @@ int Master_Phy_Wake_Sch0(SimAir_Info_t *info)
 
     //if (g_sch_requ_mas_sch_00->sim_state == SIM_SCH_STT_WAITING_1ST_WAKUP_TO_GRANT)
     {
-        extern void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
-        lc_mas_conn_state_machine(g_sch_requ_mas_sch_00->dev, LC_CONN_STT_EVT_SCH_GRANT);
+        extern void lc_mas_conn_state_machineXX(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
+        lc_mas_conn_state_machineXX(g_sch_requ_mas_sch_00->dev, LC_CONN_STT_EVT_SCH_GRANT);
     }
 
     g_master_info[SIM_AIR_TASK_SCH_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -154,6 +154,7 @@ u32 Master_Phy_Wake_CLKB__RF_Controll__Tx_Buffer_Copy(void)
     extern u8 g_master_tx_buf[];
 
     u32 buf_ctr = 0;
+    u32 ll_pdu_len;
 
     //preamble
     g_master_tx_buf[buf_ctr] = 0x55; buf_ctr++;
@@ -162,8 +163,14 @@ u32 Master_Phy_Wake_CLKB__RF_Controll__Tx_Buffer_Copy(void)
     g_master_tx_buf[buf_ctr] = MAS__ACCESS_CODE[1]; buf_ctr++;
     g_master_tx_buf[buf_ctr] = MAS__ACCESS_CODE[2]; buf_ctr++;
     g_master_tx_buf[buf_ctr] = MAS__ACCESS_CODE[3]; buf_ctr++;
+    //2bytes header
+    g_master_tx_buf[buf_ctr] = MAS__TXLE_PLH_CP_RE[0]; buf_ctr++; MAS__TXLE_PLH_CP_RE++;
+    ll_pdu_len = MAS__TXLE_PLH_CP_RE[0];
+    g_master_tx_buf[buf_ctr] = MAS__TXLE_PLH_CP_RE[0]; buf_ctr++; MAS__TXLE_PLH_CP_RE++;
     //PDU
-    
+    for (u32 i = 0; i < ll_pdu_len; i++) {
+        g_master_tx_buf[buf_ctr] = MAS__TXLE_PLD_CP_RE[0]; buf_ctr++; MAS__TXLE_PLD_CP_RE++;
+    }
     //CRC
     g_master_tx_buf[buf_ctr] = MAS__LE_PHY_CRC24[0]; buf_ctr++;
     g_master_tx_buf[buf_ctr] = MAS__LE_PHY_CRC24[1]; buf_ctr++;
@@ -184,10 +191,11 @@ void Master_Phy_Wake_CLKB__RF_Controll(void)
         g_is_prepare_rf = 0; //prepare done
         MASTER_DUMP2(" PHY - START RF\n");
 
-        g_master_info[SIM_AIR_TASK_0_TRX].requ_type = SIM_AIR_RX_REQUEST;
-        g_master_info[SIM_AIR_TASK_0_TRX].clocks_total = Master_Phy_Wake_CLKB__RF_Controll__Tx_Buffer_Copy() * g_master_info[SIM_AIR_TASK_0_TRX].clocks_per_bit;
-        g_master_info[SIM_AIR_TASK_0_TRX].freq = LE_HOP_CTRL0_Reg_HLbyte;
-        SimAir_Request(&g_slave_info);
+        g_master_info[SIM_AIR_TASK_0_TRX].requ_type = SIM_AIR_TX_REQUEST;
+        u32 total_tx_bytes = Master_Phy_Wake_CLKB__RF_Controll__Tx_Buffer_Copy();
+        g_master_info[SIM_AIR_TASK_0_TRX].clocks_total = total_tx_bytes * 8 * g_master_info[SIM_AIR_TASK_0_TRX].clocks_per_bit;
+        g_master_info[SIM_AIR_TASK_0_TRX].freq = MAS__LE_HOP_CTRL0_Reg_HLbyte & 0x7F;
+        SimAir_Request(&(g_master_info[SIM_AIR_TASK_0_TRX]));
     }
 }
 

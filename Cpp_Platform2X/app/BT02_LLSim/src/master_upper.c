@@ -21,20 +21,20 @@ extern int Master_Phy_Wake_TIFS_1(SimAir_Info_t *info);
 
 
 SimAir_CB_Set_t g_master_cb_set[SIM_AIR_TASK_NUMBER] = {
-/* SIM_AIR_TASK_CLKN     */ {Master_Phy_Wake_CLKN, NULL, NULL},
-/* SIM_AIR_TASK_CLKB     */ {Master_Phy_Wake_CLKB, NULL, NULL},
-/* SIM_AIR_TASK_0_TRX    */ {Master_Phy_Wake_TRx0, Master_Phy_Rx_0, Master_Phy_Tx_0},
-/* SIM_AIR_TASK_1_TRX    */ {NULL, NULL, NULL},
-/* SIM_AIR_TASK_SCH_0    */ {Master_Phy_Wake_Sch0, NULL, NULL},
-/* SIM_AIR_TASK_SCH_1    */ {NULL, NULL, NULL},
-/* SIM_AIR_TASK_SCH_2    */ {NULL, NULL, NULL},
-/* SIM_AIR_TASK_SCH_3    */ {NULL, NULL, NULL},
-/* SIM_AIR_TASK_TIMER_0  */ {Master_Phy_Wake_Timer0, NULL, NULL},
-/* SIM_AIR_TASK_TIMER_1  */ {NULL, NULL, NULL},
-/* SIM_AIR_TASK_TIMER_2  */ {NULL, NULL, NULL},
-/* SIM_AIR_TASK_TIMER_3  */ {NULL, NULL, NULL},
-/* SIM_AIR_TASK_TIFS_0   */ {Master_Phy_Wake_TIFS_0, NULL, NULL},
-/* SIM_AIR_TASK_TIFS_1   */ {Master_Phy_Wake_TIFS_1, NULL, NULL},
+/* SIM_AIR_TASK_CLKN     */ {Master_Phy_Wake_CLKN, NULL, NULL, NULL},
+/* SIM_AIR_TASK_CLKB     */ {Master_Phy_Wake_CLKB, NULL, NULL, NULL},
+/* SIM_AIR_TASK_0_TRX    */ {Master_Phy_Wake_TRx0, Master_Phy_Rx_0, Master_Phy_Tx_0, NULL},
+/* SIM_AIR_TASK_1_TRX    */ {NULL, NULL, NULL, NULL},
+/* SIM_AIR_TASK_SCH_0    */ {Master_Phy_Wake_Sch0, NULL, NULL, NULL},
+/* SIM_AIR_TASK_SCH_1    */ {NULL, NULL, NULL, NULL},
+/* SIM_AIR_TASK_SCH_2    */ {NULL, NULL, NULL, NULL},
+/* SIM_AIR_TASK_SCH_3    */ {NULL, NULL, NULL, NULL},
+/* SIM_AIR_TASK_TIMER_0  */ {Master_Phy_Wake_Timer0, NULL, NULL, NULL},
+/* SIM_AIR_TASK_TIMER_1  */ {NULL, NULL, NULL, NULL},
+/* SIM_AIR_TASK_TIMER_2  */ {NULL, NULL, NULL, NULL},
+/* SIM_AIR_TASK_TIMER_3  */ {NULL, NULL, NULL, NULL},
+/* SIM_AIR_TASK_TIFS_0   */ {Master_Phy_Wake_TIFS_0, NULL, NULL, NULL},
+/* SIM_AIR_TASK_TIFS_1   */ {Master_Phy_Wake_TIFS_1, NULL, NULL, NULL},
 };
 
 
@@ -78,30 +78,30 @@ void Master_Upper_InitSimAir(void)
     return;
 }
 
-Adv_Connect_Ind_Payload_t gTestConnInd;
+Adv_Connect_Ind_Payload_t gTestConnIndXX;
 void Master_Upper_InitTest(void)
 {
-    gTestConnInd.LLData.WinSize = 1;
-    gTestConnInd.LLData.WinOffset = 0;
-    gTestConnInd.LLData.AA[0] = 0x11;
-    gTestConnInd.LLData.AA[1] = 0x22;
-    gTestConnInd.LLData.AA[2] = 0x33;
-    gTestConnInd.LLData.AA[3] = 0x44;
+    gTestConnIndXX.LLData.WinSize = 1;
+    gTestConnIndXX.LLData.WinOffset = 0;
+    gTestConnIndXX.LLData.AA[0] = 0x11;
+    gTestConnIndXX.LLData.AA[1] = 0x22;
+    gTestConnIndXX.LLData.AA[2] = 0x33;
+    gTestConnIndXX.LLData.AA[3] = 0x44;
 
-    gTestConnInd.LLData.CRCInit[0] = 0x77;
-    gTestConnInd.LLData.CRCInit[1] = 0x88;
-    gTestConnInd.LLData.CRCInit[2] = 0x99;
+    gTestConnIndXX.LLData.CRCInit[0] = 0x99;
+    gTestConnIndXX.LLData.CRCInit[1] = 0x88;
+    gTestConnIndXX.LLData.CRCInit[2] = 0x77;
 
-    gTestConnInd.LLData.Hop = 5;
-    gTestConnInd.LLData.Interval = 2;
+    gTestConnIndXX.LLData.Hop = 5;
+    gTestConnIndXX.LLData.Interval = 2;
     MASTER_DUMP2(" <<< TEST INFO: >>>\n");
-    MASTER_DUMP2(" <<< WinSize   = %d >>>\n", gTestConnInd.LLData.WinSize);
-    MASTER_DUMP2(" <<< WinOffset = %d >>>\n", gTestConnInd.LLData.WinOffset);
-    MASTER_DUMP2(" <<< Hop       = %d >>>\n", gTestConnInd.LLData.Hop);
-    MASTER_DUMP2(" <<< Interval  = %d >>>\n", gTestConnInd.LLData.Interval);
+    MASTER_DUMP2(" <<< WinSize   = %d >>>\n", gTestConnIndXX.LLData.WinSize);
+    MASTER_DUMP2(" <<< WinOffset = %d >>>\n", gTestConnIndXX.LLData.WinOffset);
+    MASTER_DUMP2(" <<< Hop       = %d >>>\n", gTestConnIndXX.LLData.Hop);
+    MASTER_DUMP2(" <<< Interval  = %d >>>\n", gTestConnIndXX.LLData.Interval);
 
     Bt_Dev_Info_t temp_dev;
-    temp_dev.infrastructure = (void *)&gTestConnInd;
+    temp_dev.infrastructure = (void *)&gTestConnIndXX;
 
-    lc_mas_handle_conn_ind(&temp_dev);
+    lc_mas_handle_conn_indXX(&temp_dev);
 }

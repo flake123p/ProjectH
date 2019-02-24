@@ -4,6 +4,8 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
+#define SIM_AIR_LOG ( 1 )
+
 typedef u32 SimAir_Handle_t;
 
 typedef enum {
@@ -58,6 +60,10 @@ typedef struct {
     u8 *rx_buf; //pre-allocated buffer
 
     SimAir_Response_t response;
+
+    u32 upper_msg;
+    void *upper_hdl;
+    //void *upper_cb; // = SimAir_CB_t, maybe
 }SimAir_Info_t;
 
 typedef int (*SimAir_CB_t)(SimAir_Info_t *info);
@@ -65,6 +71,7 @@ typedef struct {
     SimAir_CB_t wake_cb;
     SimAir_CB_t rx_cb;
     SimAir_CB_t tx_cb;
+    const char *id_str;
 }SimAir_CB_Set_t;
 
 /*
@@ -78,11 +85,11 @@ typedef struct {
 u32 SimAir_TimeStamp_Low_Get(void);
 u32 SimAir_TimeStamp_High_Get(void);
 
-SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rxing_cb, SimAir_CB_t txing_cb);
+SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rxing_cb, SimAir_CB_t txing_cb, const char *id_str);
 SimAir_Handle_t SimAir_Init_AddDescriptor2(SimAir_CB_Set_t *cb_set);
 int SimAir_Start(void);
 int SimAir_Uninit(void);
-int SimAir_Log_Enable(void);
+int SimAir_Log_Enable(bool enable_every_clock_dump = true);
 int SimAir_Log_Disable(void);
 
 int SimAir_Request(SimAir_Info_t *info);

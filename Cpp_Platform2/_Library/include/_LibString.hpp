@@ -106,7 +106,9 @@ public:
 	int RemoveEmptyPostfixChar(void);
 	int InsertBefore(const char *pattern, const char *s);
 	int InsertAfter(const char *pattern, const char *s);
-	
+
+	const char* BitsStringOfOneByte_LittleEndian(u8 byte, u32 bits_size);
+
 	const char* CStr(void);
 	void Dump(void);
 };

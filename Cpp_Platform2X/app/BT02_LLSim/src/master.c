@@ -80,7 +80,7 @@
 //0 to 1, or 1 to 0
 #define TOGGLE_1_BIT(a) a?0:1
 
-static void lc_conn_state_assign_rx_buf(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, u32 rx_pld_len)
+static void lc_conn_state_assign_rx_bufXX(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, u32 rx_pld_len)
 {
     DIRECT_RFIELD_AGU_RXLE_PLH_SP = PTR_TO_U32(&(rx_plh[0]));
     DIRECT_RFIELD_AGU_RXLE_PLH_CP = PTR_TO_U32(&(rx_plh[0]));
@@ -91,7 +91,7 @@ static void lc_conn_state_assign_rx_buf(u8 *rx_plh, u32 rx_plh_len, u8 *rx_pld, 
     DIRECT_RFIELD_AGU_RXLE_PLD_EP = PTR_TO_U32(&(rx_pld[rx_pld_len]));
 }
 
-static void lc_conn_state_assign_tx_buf(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, u32 tx_pld_len)
+static void lc_conn_state_assign_tx_bufXX(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, u32 tx_pld_len)
 {
     DIRECT_RFIELD_AGU_TXLE_PLH_SP = PTR_TO_U32(&(tx_plh[0]));
     DIRECT_RFIELD_AGU_TXLE_PLH_CP_RE = PTR_TO_U32(&(tx_plh[0]));
@@ -109,7 +109,7 @@ static u8 *g_rx_plh_cmn_buf = NULL;
 static u8 *g_rx_pld_cmn_buf = NULL;
 #define LC_CONN_STATE_RX_BUF_LEN 4096
 static u32 g_rx_pld_cmn_buf_curr_index = 0; //update in payload rx ok, turn around in the start of rf prepare
-void lc_conn_state_init(void)
+void lc_conn_state_initXX(void)
 {
 #ifdef DFS_SIM_ON
     #define pvPortMalloc_ext malloc
@@ -130,11 +130,11 @@ void lc_conn_state_init(void)
 
 }
 
-void lc_conn_state_update_tx_request(Conn_State_Info_t *conn_info)
+void lc_conn_state_update_tx_requestXX(Conn_State_Info_t *conn_info)
 {
 }
 
-void lc_conn_state_tx_hold_enable(Bt_Dev_Info_t *dev)
+void lc_conn_state_tx_hold_enableXX(Bt_Dev_Info_t *dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 
@@ -152,7 +152,7 @@ void lc_conn_state_tx_hold_enable(Bt_Dev_Info_t *dev)
     }
 }
 
-void lc_conn_state_tx_hold_disable(Bt_Dev_Info_t *dev)
+void lc_conn_state_tx_hold_disableXX(Bt_Dev_Info_t *dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 
@@ -163,7 +163,7 @@ void lc_conn_state_tx_hold_disable(Bt_Dev_Info_t *dev)
     }
 }
 
-void lc_conn_state_rx_hold_enable(Bt_Dev_Info_t *dev)
+void lc_conn_state_rx_hold_enableXX(Bt_Dev_Info_t *dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 
@@ -175,7 +175,7 @@ void lc_conn_state_rx_hold_enable(Bt_Dev_Info_t *dev)
     }
 }
 
-void lc_conn_state_rx_hold_disable(Bt_Dev_Info_t *dev)
+void lc_conn_state_rx_hold_disableXX(Bt_Dev_Info_t *dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 
@@ -186,7 +186,7 @@ void lc_conn_state_rx_hold_disable(Bt_Dev_Info_t *dev)
     }
 }
 
-void lc_conn_state_rf_buf_set(Bt_Dev_Info_t *dev)
+void lc_conn_state_rf_buf_setXX(Bt_Dev_Info_t *dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 
@@ -197,7 +197,7 @@ void lc_conn_state_rf_buf_set(Bt_Dev_Info_t *dev)
     }
 
     if (conn_info->tx_hold == 0 && conn_info->last_tx_is_acked) {
-        lc_conn_state_update_tx_request(conn_info); //update "conn_info->curr_tx_request"
+        lc_conn_state_update_tx_requestXX(conn_info); //update "conn_info->curr_tx_request"
         //new tx
         conn_info->last_tx_is_acked = 0;
         conn_info->sn = TOGGLE_1_BIT(conn_info->sn);
@@ -253,23 +253,23 @@ void lc_conn_state_rf_buf_set(Bt_Dev_Info_t *dev)
     }
     g_tx_plh_cmn_buf_dummy[0] = (conn_info->md << 4) | (conn_info->sn << 3) | (conn_info->nesn << 2) | conn_info->llid;
     g_tx_plh_cmn_buf_dummy[1] = conn_info->tx_len;
-    lc_conn_state_assign_tx_buf(g_tx_plh_cmn_buf_dummy, 2, conn_info->tx_buf, conn_info->tx_len);
+    lc_conn_state_assign_tx_bufXX(g_tx_plh_cmn_buf_dummy, 2, conn_info->tx_buf, conn_info->tx_len);
     //Tx setting end
 
     //Rx setting start
     if (conn_info->rx_hold) {
         //ignore last rx payload
-        lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, &(g_rx_pld_cmn_buf[g_rx_pld_cmn_buf_curr_index]), LC_CONN_STATE_RX_BUF_LEN-g_rx_pld_cmn_buf_curr_index);
+        lc_conn_state_assign_rx_bufXX(g_rx_plh_cmn_buf, 2, &(g_rx_pld_cmn_buf[g_rx_pld_cmn_buf_curr_index]), LC_CONN_STATE_RX_BUF_LEN-g_rx_pld_cmn_buf_curr_index);
     }
     else {
         if (g_rx_pld_cmn_buf_curr_index == 0) {
-            lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
+            lc_conn_state_assign_rx_bufXX(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
         }
         else {
             // turn around when payload buffer is small than 255
             if (g_rx_pld_cmn_buf_curr_index + 255 > LC_CONN_STATE_RX_BUF_LEN) {
                 g_rx_pld_cmn_buf_curr_index = 0;
-                lc_conn_state_assign_rx_buf(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
+                lc_conn_state_assign_rx_bufXX(g_rx_plh_cmn_buf, 2, g_rx_pld_cmn_buf, LC_CONN_STATE_RX_BUF_LEN);
             }
             else {
                 //do nothing, let rf use remain buffer
@@ -281,7 +281,7 @@ void lc_conn_state_rf_buf_set(Bt_Dev_Info_t *dev)
 
 Bt_Dev_Info_t *g_conn_state_dev_head = NULL;
 Bt_Dev_Info_t *g_conn_state_dev_tail = NULL;
-static void lc_conn_state_push_dev_to_list_tail(Bt_Dev_Info_t *dev)
+static void lc_conn_state_push_dev_to_list_tailXX(Bt_Dev_Info_t *dev)
 {
     if (g_conn_state_dev_head == NULL)
     {
@@ -300,7 +300,7 @@ static void lc_conn_state_push_dev_to_list_tail(Bt_Dev_Info_t *dev)
     }
 }
 
-static void lc_conn_state_delete_dev_from_list(Bt_Dev_Info_t *dev)
+static void lc_conn_state_delete_dev_from_listXX(Bt_Dev_Info_t *dev)
 {
     Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
     while(curr_dev != NULL)
@@ -330,7 +330,7 @@ static void lc_conn_state_delete_dev_from_list(Bt_Dev_Info_t *dev)
     }
 }
 
-static u16 lc_conn_state_calculate_new_conn_handle(void)
+static u16 lc_conn_state_calculate_new_conn_handleXX(void)
 {
     static u16 new_conn_hdl = 0x70;
     Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
@@ -350,7 +350,7 @@ static u16 lc_conn_state_calculate_new_conn_handle(void)
     return new_conn_hdl;
 }
 
-static u32 lc_conn_state_calculate_window_widen_size_in_us(Conn_State_Info_t *conn_info)
+static u32 lc_conn_state_calculate_window_widen_size_in_usXX(Conn_State_Info_t *conn_info)
 {
     u32 window_widen_max;
     u32 window_widen_size = 0;
@@ -394,7 +394,7 @@ static u32 lc_conn_state_calculate_window_widen_size_in_us(Conn_State_Info_t *co
     return window_widen_size;
 }
 
-static Bt_Dev_Info_t * lc_conn_state_get_dev_by_conn_handle(u16 conn_hdl)
+static Bt_Dev_Info_t * lc_conn_state_get_dev_by_conn_handleXX(u16 conn_hdl)
 {
     Bt_Dev_Info_t *curr_dev = g_conn_state_dev_head;
     while(curr_dev != NULL)
@@ -410,7 +410,7 @@ static Bt_Dev_Info_t * lc_conn_state_get_dev_by_conn_handle(u16 conn_hdl)
     return NULL;
 }
 
-static u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_Ind_Payload_t *in_conn_ind, Bt_Dev_Info_t **out_new_dev)
+static u8 lc_conn_state_create_dev_by_conn_indXX(BT_DEV_ROLE_t role, Adv_Connect_Ind_Payload_t *in_conn_ind, Bt_Dev_Info_t **out_new_dev)
 {
     Bt_Dev_Info_t   *new_dev = NULL;
 
@@ -457,11 +457,11 @@ static u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_I
     new_conn_info->last_tx_is_acked = 1;
     new_conn_info->accu_tx_len = 0;
     new_conn_info->window_size_in_us = new_conn_info->conn_ind_payload.LLData.WinSize * 1250;
-    new_conn_info->window_widen_size_in_us = lc_conn_state_calculate_window_widen_size_in_us(new_conn_info);
+    new_conn_info->window_widen_size_in_us = lc_conn_state_calculate_window_widen_size_in_usXX(new_conn_info);
 
     new_conn_info->tx_ctr = 0;
     new_conn_info->rx_ctr = 0;
-    new_conn_info->conn_hdl = lc_conn_state_calculate_new_conn_handle();
+    new_conn_info->conn_hdl = lc_conn_state_calculate_new_conn_handleXX();
     new_conn_info->tx_max_len = 255;
     new_conn_info->tx_md_enable = 1;
     new_conn_info->rx_md_enable = 1;
@@ -500,12 +500,12 @@ static u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_I
     }
 #endif
 
-    lc_conn_state_push_dev_to_list_tail(new_dev);
+    lc_conn_state_push_dev_to_list_tailXX(new_dev);
     *out_new_dev = new_dev;
     return  0;
 }
 
-static void lc_conn_state_dump_all_dev(void)
+static void lc_conn_state_dump_all_devXX(void)
 {
 #ifdef DFS_SIM_ON
     u32 i = 0;
@@ -582,7 +582,7 @@ static void lc_conn_state_dump_all_dev(void)
 #define CONPENSATE_SCH_TIME 350
 #define CONPENSATE_MASTER_DELAY 0
 
-void lc_mas_set_timer_for_adding_request(Bt_Dev_Info_t *mas_dev)
+void lc_mas_set_timer_for_adding_requestXX(Bt_Dev_Info_t *mas_dev)
 {
     u32 cmd;
     cmd = ( (LC_GROUP_EVENT)                           //Group
@@ -598,7 +598,7 @@ void lc_mas_set_timer_for_adding_request(Bt_Dev_Info_t *mas_dev)
     controller_timer_insert((void*)mas_dev, sleep_time_in_us , LC_TASK_QUEUE, cmd, 0, NULL);
 }
 
-void lc_mas_add_request(Bt_Dev_Info_t *mas_dev)
+void lc_mas_add_requestXX(Bt_Dev_Info_t *mas_dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)mas_dev->infrastructure;
 
@@ -707,7 +707,7 @@ if(p_adv_dev->event.is_preiodical == TRUE)
 #endif
 }
 
-void lc_mas_connection_event_init(Bt_Dev_Info_t *dev)
+void lc_mas_connection_event_initXX(Bt_Dev_Info_t *dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 #ifdef PLATFORM
@@ -718,7 +718,7 @@ void lc_mas_connection_event_init(Bt_Dev_Info_t *dev)
         ISR_INT00_TABLE[IRQ_LE_CORREL_ERR].isr_entry = LE_ISR_SLA_LE_CORREL_ERR_Handler;
     #endif
 #endif
-    lc_conn_state_rf_buf_set(dev);
+    lc_conn_state_rf_buf_setXX(dev);
 
     LE_PHY_ACCESS_CODE_LLbyte=conn_info->conn_ind_payload.LLData.AA[0];
     LE_PHY_ACCESS_CODE_LHbyte=conn_info->conn_ind_payload.LLData.AA[1];
@@ -741,7 +741,7 @@ void lc_mas_connection_event_init(Bt_Dev_Info_t *dev)
     LE_PHY_CRC24_HL=conn_info->conn_ind_payload.LLData.CRCInit[2];
 }
 
-void lc_mas_connection_event_start(Bt_Dev_Info_t *mas_dev)
+void lc_mas_connection_event_startXX(Bt_Dev_Info_t *mas_dev)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)mas_dev->infrastructure;
 
@@ -763,7 +763,7 @@ void lc_mas_connection_event_start(Bt_Dev_Info_t *mas_dev)
     T0RXENABLE_TIFS;
 }
 
-void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt)
+void lc_mas_conn_state_machineXX(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt)
 {
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)mas_dev->infrastructure;
 #ifdef DFS_SIM_ON
@@ -775,7 +775,7 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             switch (evt)
             {
                 case LC_CONN_STT_EVT_JUST_SENT_CONN_IND: {
-                    lc_mas_set_timer_for_adding_request(mas_dev);
+                    lc_mas_set_timer_for_adding_requestXX(mas_dev);
                     conn_info->state = LC_CONN_STT_SLEEPING_FOR_ADDING_REQUEST;
                 } break;
 
@@ -788,7 +788,7 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             switch (evt)
             {
                 case LC_CONN_STT_EVT_SLEEP_TIMESUP: {
-                    lc_mas_add_request(mas_dev);
+                    lc_mas_add_requestXX(mas_dev);
                     conn_info->state = LC_CONN_STT_WAITING_FOR_1ST_GRANT;
                 } break;
 
@@ -802,8 +802,8 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             {
                 case LC_CONN_STT_EVT_SCH_GRANT: {
                     MASTER_DUMP2(" ENABLE TX & RX_TIFS\n");
-                    lc_mas_connection_event_init(mas_dev);
-                    lc_mas_connection_event_start(mas_dev);
+                    lc_mas_connection_event_initXX(mas_dev);
+                    lc_mas_connection_event_startXX(mas_dev);
                     conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
                 } break;
 
@@ -842,15 +842,15 @@ static Adv_Connect_Ind_Payload_t *lc_mas_extract_conn_ind_from_ini(Bt_Dev_Info_t
 #endif //#ifdef DFS_SIM_ON
 }
 
-void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
+void lc_mas_handle_conn_indXX(Bt_Dev_Info_t *dev_from_ini)
 {
     Bt_Dev_Info_t *new_mas_dev;
     Adv_Connect_Ind_Payload_t *p_conn_ind_from_ini = lc_mas_extract_conn_ind_from_ini(dev_from_ini);
 
-    lc_conn_state_create_dev_by_conn_ind(LE_MASTER, p_conn_ind_from_ini, &new_mas_dev);
-    lc_conn_state_dump_all_dev();
+    lc_conn_state_create_dev_by_conn_indXX(LE_MASTER, p_conn_ind_from_ini, &new_mas_dev);
+    lc_conn_state_dump_all_devXX();
 
-    lc_mas_conn_state_machine(new_mas_dev, LC_CONN_STT_EVT_JUST_SENT_CONN_IND);
+    lc_mas_conn_state_machineXX(new_mas_dev, LC_CONN_STT_EVT_JUST_SENT_CONN_IND);
 
     //Dump_Conn_Info(new_mas_dev);
 }
