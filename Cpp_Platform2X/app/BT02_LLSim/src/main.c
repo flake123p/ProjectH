@@ -14,7 +14,7 @@ void Init_Dump_Files(void)
 
 int main(int argc, char *argv[])
 {
-    SimAir_Log_Enable(false);
+    SimAir_Log_Enable(false, true);
 
     Init_Dump_Files();
 

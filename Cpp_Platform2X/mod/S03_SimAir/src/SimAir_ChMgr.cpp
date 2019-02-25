@@ -8,6 +8,7 @@
 extern LibFileIoClass g_sim_air_log;
 extern bool g_sim_air_log_enable;
 extern bool g_sim_air_log_enable_every_clock_dump;
+extern bool g_sim_air_log_only_dump_tx_rx_done;
 u32 g_sim_air_log_curr_ch;
 extern const char *_SimAir_Handle_ID_String_Get(u32 index);
 const char *g_sim_air_log_tr_condition;
@@ -21,7 +22,7 @@ bool g_sim_air_log___is_in_every_clock;
 do { \
     u32 clk_h, clk_l;\
     SimTimeSlice_TimeStampGet(&clk_h, &clk_l);\
-    if (false == g_sim_air_log_enable)\
+    if (false == g_sim_air_log_enable || g_sim_air_log_only_dump_tx_rx_done)\
         break;\
     if (g_sim_air_log___is_in_every_clock) {\
         if (false == g_sim_air_log_enable_every_clock_dump)\
@@ -72,7 +73,7 @@ u32 g_sim_air_log_accu_power_for_rx;
 do { \
     u32 clk_h, clk_l;\
     SimTimeSlice_TimeStampGet(&clk_h, &clk_l);\
-    if (false == g_sim_air_log_enable)\
+    if (false == g_sim_air_log_enable || g_sim_air_log_only_dump_tx_rx_done)\
         break;\
     if (g_sim_air_log___is_in_every_clock) {\
         if (false == g_sim_air_log_enable_every_clock_dump)\

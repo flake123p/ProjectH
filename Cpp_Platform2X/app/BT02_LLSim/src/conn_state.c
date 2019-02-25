@@ -675,7 +675,7 @@ void lc_mas_connection_event_start(Bt_Dev_Info_t *mas_dev)
     //le_sla_assign_tx_buf(gp_cmn_buf_tx_payload_curr, TX_TOTAL_SIZE);
     
     DIRECT_RFIELD_DISABLE_TIMEOUT = 0;
-    DIRECT_RFIELD_RX_TIMEOUT_VALUE = 300;//conn_info->window_size_in_us;
+    DIRECT_RFIELD_RX_TIMEOUT_VALUE = 100;//conn_info->window_size_in_us;
     T1_SLOT_TIMER_SET(1);
 
     T1TXENABLE;
@@ -743,7 +743,6 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
                     conn_info->channel = (conn_info->channel + conn_info->conn_ind_payload.LLData.Hop) % 37;
                     lc_conn_state_connection_event_init(mas_dev);
                     lc_mas_connection_event_start(mas_dev);
-                    conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
                 } break;
 
                 default: {

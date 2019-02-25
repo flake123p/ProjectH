@@ -7,6 +7,7 @@
 LibFileIoClass g_sim_air_log = LibFileIoClass("sim_air_log.txt", "w+b");
 bool g_sim_air_log_enable = false;
 bool g_sim_air_log_enable_every_clock_dump =false;
+bool g_sim_air_log_only_dump_tx_rx_done =false;
 #endif //SIM_AIR_LOG
 
 typedef enum {
@@ -233,12 +234,13 @@ int SimAir_Uninit(void)
     return 0;
 }
 
-int SimAir_Log_Enable(bool enable_every_clock_dump)
+int SimAir_Log_Enable(bool enable_every_clock_dump, bool only_dump_tx_rx_done)
 {
 #if SIM_AIR_LOG
     g_sim_air_log.FileOpen();
     g_sim_air_log_enable = true;
     g_sim_air_log_enable_every_clock_dump = enable_every_clock_dump;
+    g_sim_air_log_only_dump_tx_rx_done = only_dump_tx_rx_done;
 #endif //SIM_AIR_LOG
     return 0;
 }

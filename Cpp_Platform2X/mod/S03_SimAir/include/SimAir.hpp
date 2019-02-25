@@ -89,7 +89,7 @@ SimAir_Handle_t SimAir_Init_AddDescriptor(SimAir_CB_t wake_up_cb, SimAir_CB_t rx
 SimAir_Handle_t SimAir_Init_AddDescriptor2(SimAir_CB_Set_t *cb_set);
 int SimAir_Start(void);
 int SimAir_Uninit(void);
-int SimAir_Log_Enable(bool enable_every_clock_dump = true);
+int SimAir_Log_Enable(bool enable_every_clock_dump = true, bool only_dump_tx_rx_done = false);
 int SimAir_Log_Disable(void);
 
 int SimAir_Request(SimAir_Info_t *info);
