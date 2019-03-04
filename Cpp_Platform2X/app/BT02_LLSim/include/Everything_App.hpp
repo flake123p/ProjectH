@@ -19,6 +19,7 @@ void Master_Upper_InitTest(void);
 void Peer0_InitSimAir(void);
 void Peer1_InitSimAir(void);
 void Peer0_StartTest(void);
+void Peer1_StartTest(void);
 
 enum
 {

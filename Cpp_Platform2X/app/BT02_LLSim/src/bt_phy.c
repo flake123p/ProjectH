@@ -1,6 +1,8 @@
 
 #include "Everything_App.hpp"
 
+#define SIM_END_CLKN_NUMBER 80
+
 u32 BT_Phy_Start_Tx__Buffer_Copy(SimAir_Info_t *info)
 {
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
@@ -60,7 +62,7 @@ int BT_Phy_Wake_CLKN(SimAir_Info_t *info)
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
     phy_info->clkn++;
-    if (phy_info->clkn >= 40)
+    if (phy_info->clkn >= SIM_END_CLKN_NUMBER)
         phy_info->sim_destroy = true;
 
     if (phy_info->sim_destroy) {
@@ -101,7 +103,9 @@ void BT_Phy_Wake_CLKB__RF_Task_Check(SimAir_Info_t *info)
             BASIC_ASSERT(phy_info->TXENABLE != 1);
             phy_info->RXENABLE = 0;
             //RX
-            MASTER_DUMP2(" common PHY - START RF - rX\n");
+            MASTER_DUMP2(" common PHY - START RF - RX\n");
+
+            BT_Phy_Start_Rx(info);
         }
     }
 }
@@ -133,12 +137,15 @@ int BT_Phy_Wake_Scheduler(SimAir_Info_t *info)
     if (phy_info->sim_destroy)
         return 0;
 
+    if (phy_info->scheduler0_enable == false)
+        return 0;
+
+    (*(Simple_CB_t)(info->upper_cb))();
     if (phy_info->timer0_dev->Role == LE_MASTER) {
-        extern void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
         lc_mas_conn_state_machine(phy_info->scheduler0->dev , LC_CONN_STT_EVT_SCH_GRANT);
     }
     else {
-        //todo:slave state machine
+        lc_sla_conn_state_machine(phy_info->scheduler0->dev , LC_CONN_STT_EVT_SCH_GRANT);
     }
 
     phy_info->air_info[SIM_AIR_TASK_SCH_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
@@ -152,12 +159,12 @@ int BT_Phy_Wake_Timer(SimAir_Info_t *info)
 {
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
+    (*(Simple_CB_t)(info->upper_cb))();
     if (phy_info->timer0_dev->Role == LE_MASTER) {
-        extern void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
         lc_mas_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_SLEEP_TIMESUP);
     }
     else {
-        //todo:slave state machine
+        lc_sla_conn_state_machine(phy_info->timer0_dev , LC_CONN_STT_EVT_SLEEP_TIMESUP);
     }
 
     return 0;
@@ -204,6 +211,7 @@ int BT_Phy_Rx(SimAir_Info_t *info)
 {
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
+    (*(Simple_CB_t)(info->upper_cb))();
     switch (info->response.resp_type)
     {
         case SIM_AIR_RXING: {
@@ -213,11 +221,10 @@ int BT_Phy_Rx(SimAir_Info_t *info)
             if (phy_info->rx_state == BT_PHY_RX_COMPARE_PREAMBLE) {
                 //RX timeout
                 if (phy_info->timer0_dev->Role == LE_MASTER) {
-                    extern void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
                     lc_mas_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_RX_TIMEOUT);
                 }
                 else {
-                    //todo:slave state machine
+                    lc_sla_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_RX_TIMEOUT);
                 }
             } else {
                 BASIC_ASSERT(0);
@@ -246,6 +253,7 @@ void BT_Phy_API_Sch_0_Add_Request(BT_PHY_Info_t *phy_info, Scheduler_Request_T *
 {
     //u32 sch_delay_in_us = 444;//scheduler_simulate_delay_in_us();
     phy_info->scheduler0 = p_sch_requ;
+    phy_info->scheduler0_enable = true;
 
     //DUMPD(g_sch_requ_mas_sch_00->periodical_interval_us);
     phy_info->scheduler0->sim_state = SIM_SCH_STT_WAITING_1ST_WAKUP_TO_GRANT;
@@ -253,5 +261,10 @@ void BT_Phy_API_Sch_0_Add_Request(BT_PHY_Info_t *phy_info, Scheduler_Request_T *
     phy_info->air_info[SIM_AIR_TASK_SCH_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
     phy_info->air_info[SIM_AIR_TASK_SCH_0].next_wake_up_time = sch_delay_in_us * phy_info->air_info[SIM_AIR_TASK_SCH_0].clocks_per_bit;
     SimAir_Request(&(phy_info->air_info[SIM_AIR_TASK_SCH_0]));
+}
+
+void BT_Phy_API_Sch_0_Remove_Request(BT_PHY_Info_t *phy_info)
+{
+    phy_info->scheduler0_enable = false;
 }
 

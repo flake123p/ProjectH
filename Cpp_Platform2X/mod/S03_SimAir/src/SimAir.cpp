@@ -76,10 +76,11 @@ static int SimAir_Dispatcher(SimAir_Descriptor_t* p_des)
         switch (p_des->cb_type) {
             case SIM_AIR_WAKEUP_CB:
                 cb_type_str="wake";
-                fprintf(g_sim_air_log.fp, "[%8d][%4s][------]%s\n", 
+                fprintf(g_sim_air_log.fp, "[%8d][%4s][------]%s ... request at %d\n", 
                     clk_l,
                     cb_type_str,
-                    _SimAir_Handle_ID_String_Get(p_des->sim_air_hdl));
+                    _SimAir_Handle_ID_String_Get(p_des->sim_air_hdl),
+                    p_des->requ_resp_info->request_time_l);
                 break;
             case SIM_AIR_INTERNAL_TRx:
                 cb_type_str="i_TR";
@@ -257,6 +258,10 @@ int SimAir_Log_Disable(void)
 
 int SimAir_Request(SimAir_Info_t *info)
 {
+    BASIC_ASSERT(info != NULL);
+    SimTimeSlice_TimeStampGet(&info->request_time_h, &info->request_time_l);
+    //info->tx_rx_initial_dump_done = false;
+
     //BASIC_ASSERT(gSimAir_Handle_InternalTRx != info->hdl);//upper can't use internal trx function directly
     switch (info->requ_type) {
         case SIM_AIR_WAKEUP_REQUEST:
@@ -277,6 +282,32 @@ int SimAir_Request(SimAir_Info_t *info)
             BASIC_ASSERT(0);
             break;
     }
+
+#if SIM_AIR_LOG
+    if (g_sim_air_log_enable) {
+        u32 clk_h, clk_l;
+        SimTimeSlice_TimeStampGet(&clk_h, &clk_l);
+
+        const char *tx_rx_str;
+        switch (info->requ_type) {
+            case SIM_AIR_RX_REQUEST: tx_rx_str = "RX"; break;
+            case SIM_AIR_TX_REQUEST: tx_rx_str = "TX"; break;
+            default:
+                break;
+        }
+        switch (info->requ_type) {
+            case SIM_AIR_RX_REQUEST:
+            case SIM_AIR_TX_REQUEST:
+                fprintf(g_sim_air_log.fp, "[%8d][i_TR][------]%s ... %s start\n", 
+                    clk_l,
+                    _SimAir_Handle_ID_String_Get(info->hdl),
+                    tx_rx_str);
+                break;
+            default:
+                break;
+        }
+    }
+#endif //SIM_AIR_LOG
 
     return 0;
 }

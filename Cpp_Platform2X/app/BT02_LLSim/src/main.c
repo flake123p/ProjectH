@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
     //Slave_Upper_InitTest();
 
     Peer0_StartTest();
+    Peer1_StartTest();
 
     SimAir_Start();
     SimAir_Uninit();

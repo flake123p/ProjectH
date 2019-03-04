@@ -29,6 +29,11 @@ SimAir_CB_Set_t g_peer0_cb_set[SIM_AIR_TASK_NUMBER] = {
 /* SIM_AIR_TASK_TIFS_1   */ {NULL, NULL, NULL, NULL},
 };
 
+void Peer0_ChangeLLInfo(void)
+{
+    lc_conn_state_ll_info_set(&g_ll_info_peer0);
+}
+
 void Peer0_InitTemplateInfo(SimAir_Info_t *info, SimAir_Handle_t new_sim_air_hdl)
 {
     //init first wake up & set hdl into info
@@ -47,6 +52,7 @@ void Peer0_InitTemplateInfo(SimAir_Info_t *info, SimAir_Handle_t new_sim_air_hdl
 
     info->upper_msg = 0; //peer "0"
     info->upper_hdl = (void *)g_curr_phy_info;
+    info->upper_cb = (void *)Peer0_ChangeLLInfo;
 }
 
 void Peer0_InitSimAir(void)
@@ -68,7 +74,7 @@ void Peer0_InitSimAir(void)
     SimAir_Request(&(g_curr_phy_info->air_info[SIM_AIR_TASK_CLKB]));
 
     g_ll_info_peer0.phy_info = (void *)&g_phy_info_0;
-    lc_conn_state_ll_info_set(&g_ll_info_peer0);
+    Peer0_ChangeLLInfo();//lc_conn_state_ll_info_set(&g_ll_info_peer0);
     lc_conn_state_init();
 
     return;
@@ -99,7 +105,7 @@ void Peer0_StartTest(void)
     Bt_Dev_Info_t temp_dev;
     temp_dev.infrastructure = (void *)&gTestConnInd;
 
-    lc_conn_state_ll_info_set(&g_ll_info_peer0);
+    Peer0_ChangeLLInfo();//lc_conn_state_ll_info_set(&g_ll_info_peer0);
     lc_mas_handle_conn_ind(&temp_dev);
 }
 

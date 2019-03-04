@@ -63,7 +63,12 @@ typedef struct {
 
     u32 upper_msg;
     void *upper_hdl;
-    //void *upper_cb; // = SimAir_CB_t, maybe
+    void *upper_cb; // = SimAir_CB_t, maybe
+
+    //Sim Air Internal Data
+    u32 request_time_h;
+    u32 request_time_l;
+    //bool tx_rx_initial_dump_done;
 }SimAir_Info_t;
 
 typedef int (*SimAir_CB_t)(SimAir_Info_t *info);

@@ -80,6 +80,7 @@ typedef struct {
     u32 window_size_in_us;
     u32 window_widen_size_in_us;
     u32 window_size_remain_in_us; //TODO, remain window size in single connection event
+    u8 timeout_ctr; //supervision timer
 
     //LC:write, LM:read
     u32 tx_ctr;
@@ -107,6 +108,9 @@ typedef struct {
 void lc_conn_state_ll_info_set(LL_Info_t *ll_info);
 void lc_conn_state_init(void);
 void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini);
+void lc_sla_handle_conn_ind(Bt_Dev_Info_t *dev_from_adv);
+void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
+void lc_sla_conn_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t evt);
 
 #endif //#define __CMN_LE_LM_CONN_STATE_H__
 

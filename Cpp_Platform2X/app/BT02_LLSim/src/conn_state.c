@@ -160,6 +160,7 @@ void lc_conn_state_delete_dev_from_list(Bt_Dev_Info_t *dev)
             if (curr_dev == g_ll_info->dev_tail) {
                 g_ll_info->dev_tail = curr_conn_info->prev_dev;
             }
+            break;
         }
         else {
             curr_dev = curr_conn_info->next_dev;
@@ -191,63 +192,63 @@ static void lc_conn_state_dump_all_dev(void)
     while(curr_dev != NULL)
     {
         Conn_State_Info_t *curr_conn_info = (Conn_State_Info_t *)curr_dev->infrastructure;
-        MAS_INT_DUMP2(" -- [[ conn state dev dump %d ]]\n", i);
-        MAS_INT_DUMP2(" -- Type:%d, Role:%d, Up_Conn_Hdl:0x%X\n", curr_dev->Type, curr_dev->Role, curr_dev->connection_handle);
-        MAS_INT_DUMP2(" -- -- state:%d, llid:%d, sn:%d, nesn:%d, md:%d\n", curr_conn_info->state, curr_conn_info->llid, curr_conn_info->sn, curr_conn_info->nesn, curr_conn_info->md);
-        MAS_INT_DUMP2(" -- -- tx_len:%d, last_rx_nesn_is_match:%d, last_tx_is_acked:%d, accu_tx_len:%d\n", curr_conn_info->tx_len, curr_conn_info->last_rx_nesn_is_match, curr_conn_info->last_tx_is_acked, curr_conn_info->accu_tx_len);
-        MAS_INT_DUMP2(" -- -- tx_ctr:%d, rx_ctr:%d, conn_hdl:0x%X\n", curr_conn_info->tx_ctr, curr_conn_info->rx_ctr, curr_conn_info->conn_hdl);
-        MAS_INT_DUMP2(" -- -- tx_max_len:%d, tx_md_enable:%d, rx_md_enable:%d, tx_hold:%d, rx_hold:%d\n", curr_conn_info->tx_max_len, curr_conn_info->tx_md_enable, curr_conn_info->rx_md_enable, curr_conn_info->tx_hold, curr_conn_info->rx_hold);
-        MAS_INT_DUMP2(" -- -- InitA:0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
+        MASTER_DUMP2(" -- [[ conn state dev dump %d ]]\n", i);
+        MASTER_DUMP2(" -- Type:%d, Role:%d, Up_Conn_Hdl:0x%X\n", curr_dev->Type, curr_dev->Role, curr_dev->connection_handle);
+        MASTER_DUMP2(" -- -- state:%d, llid:%d, sn:%d, nesn:%d, md:%d\n", curr_conn_info->state, curr_conn_info->llid, curr_conn_info->sn, curr_conn_info->nesn, curr_conn_info->md);
+        MASTER_DUMP2(" -- -- tx_len:%d, last_rx_nesn_is_match:%d, last_tx_is_acked:%d, accu_tx_len:%d\n", curr_conn_info->tx_len, curr_conn_info->last_rx_nesn_is_match, curr_conn_info->last_tx_is_acked, curr_conn_info->accu_tx_len);
+        MASTER_DUMP2(" -- -- tx_ctr:%d, rx_ctr:%d, conn_hdl:0x%X\n", curr_conn_info->tx_ctr, curr_conn_info->rx_ctr, curr_conn_info->conn_hdl);
+        MASTER_DUMP2(" -- -- tx_max_len:%d, tx_md_enable:%d, rx_md_enable:%d, tx_hold:%d, rx_hold:%d\n", curr_conn_info->tx_max_len, curr_conn_info->tx_md_enable, curr_conn_info->rx_md_enable, curr_conn_info->tx_hold, curr_conn_info->rx_hold);
+        MASTER_DUMP2(" -- -- InitA:0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
                       curr_conn_info->conn_ind_payload.InitA[0], \
                       curr_conn_info->conn_ind_payload.InitA[1], \
                       curr_conn_info->conn_ind_payload.InitA[2], \
                       curr_conn_info->conn_ind_payload.InitA[3], \
                       curr_conn_info->conn_ind_payload.InitA[4], \
                       curr_conn_info->conn_ind_payload.InitA[5]);
-        MAS_INT_DUMP2(" -- -- AdvA :0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
+        MASTER_DUMP2(" -- -- AdvA :0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
                       curr_conn_info->conn_ind_payload.AdvA[0], \
                       curr_conn_info->conn_ind_payload.AdvA[1], \
                       curr_conn_info->conn_ind_payload.AdvA[2], \
                       curr_conn_info->conn_ind_payload.AdvA[3], \
                       curr_conn_info->conn_ind_payload.AdvA[4], \
                       curr_conn_info->conn_ind_payload.AdvA[5]);
-        MAS_INT_DUMP2(" -- -- LLData.AA :0x%X, 0x%X, 0x%X, 0x%X\n", \
+        MASTER_DUMP2(" -- -- LLData.AA :0x%X, 0x%X, 0x%X, 0x%X\n", \
                       curr_conn_info->conn_ind_payload.LLData.AA[0], \
                       curr_conn_info->conn_ind_payload.LLData.AA[1], \
                       curr_conn_info->conn_ind_payload.LLData.AA[2], \
                       curr_conn_info->conn_ind_payload.LLData.AA[3]);
-        MAS_INT_DUMP2(" -- -- LLData.CRCInit :0x%X, 0x%X, 0x%X\n", \
+        MASTER_DUMP2(" -- -- LLData.CRCInit :0x%X, 0x%X, 0x%X\n", \
                       curr_conn_info->conn_ind_payload.LLData.CRCInit[0], \
                       curr_conn_info->conn_ind_payload.LLData.CRCInit[1], \
                       curr_conn_info->conn_ind_payload.LLData.CRCInit[2]);
-        MAS_INT_DUMP2(" -- -- LLData.WinSize:%d  WinOffset:%d  Interval:%d  Latency:%d  Timeout:%d\n", \
+        MASTER_DUMP2(" -- -- LLData.WinSize:%d  WinOffset:%d  Interval:%d  Latency:%d  Timeout:%d\n", \
                       curr_conn_info->conn_ind_payload.LLData.WinSize, \
                       curr_conn_info->conn_ind_payload.LLData.WinOffset, \
                       curr_conn_info->conn_ind_payload.LLData.Interval, \
                       curr_conn_info->conn_ind_payload.LLData.Latency, \
                       curr_conn_info->conn_ind_payload.LLData.Timeout);
-        MAS_INT_DUMP2(" -- -- LLData.ChM :0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
+        MASTER_DUMP2(" -- -- LLData.ChM :0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
                       curr_conn_info->conn_ind_payload.LLData.ChM[0], \
                       curr_conn_info->conn_ind_payload.LLData.ChM[1], \
                       curr_conn_info->conn_ind_payload.LLData.ChM[2], \
                       curr_conn_info->conn_ind_payload.LLData.ChM[3], \
                       curr_conn_info->conn_ind_payload.LLData.ChM[4]);
-        MAS_INT_DUMP2(" -- -- LLData.Hop:%d  SCA:%d\n", \
+        MASTER_DUMP2(" -- -- LLData.Hop:%d  SCA:%d\n", \
                       curr_conn_info->conn_ind_payload.LLData.Hop, \
                       curr_conn_info->conn_ind_payload.LLData.SCA);
 
         u32 j = 0;
-        MAS_INT_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
+        MASTER_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
         Conn_State_Tx_Request_t *curr_tx_request = curr_conn_info->lm_tx_request;
         while (curr_tx_request != NULL) {
-            MAS_INT_DUMP2(" -- -- -- tx_request_active:%d  tx_request_done:%d  tx_len:%d\n",
+            MASTER_DUMP2(" -- -- -- tx_request_active:%d  tx_request_done:%d  tx_len:%d\n",
                           curr_tx_request->tx_request_active, \
                           curr_tx_request->tx_request_done, \
                           curr_tx_request->tx_len);
             curr_tx_request = curr_tx_request->next;
             if (curr_tx_request != NULL) {
                 j++;
-                MAS_INT_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
+                MASTER_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
             }
         }
 
@@ -347,6 +348,7 @@ static u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_I
     new_conn_info->accu_tx_len = 0;
     new_conn_info->window_size_in_us = new_conn_info->conn_ind_payload.LLData.WinSize * 1250;
     new_conn_info->window_widen_size_in_us = lc_conn_state_calculate_window_widen_size_in_us(new_conn_info);
+	new_conn_info->timeout_ctr = 6;
 
     new_conn_info->tx_ctr = 0;
     new_conn_info->rx_ctr = 0;
@@ -548,6 +550,14 @@ void lc_conn_state_connection_event_init(Bt_Dev_Info_t *dev)
     LE_PHY_CRC24_HL=conn_info->conn_ind_payload.LLData.CRCInit[2];
 }
 
+void lc_conn_state_disconnect(Bt_Dev_Info_t *dev)
+{
+    //Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+    lc_conn_state_delete_dev_from_list(dev);
+
+    //TODO: delete device
+}
+
 #define ___MASTER______________________________
 #define ___MASTER_____________________________
 #define ___MASTER____________________________
@@ -661,6 +671,21 @@ if(p_adv_dev->event.is_preiodical == TRUE)
 #endif
 }
 
+void lc_mas_remove_request(Bt_Dev_Info_t *mas_dev)
+{
+#ifdef DFS_SIM_ON
+    {
+        extern void BT_Phy_API_Sch_0_Remove_Request(BT_PHY_Info_t *phy_info);
+        MASTER_DUMP2(" Sch 0 remove request\n");
+        BT_Phy_API_Sch_0_Remove_Request(PHY_INFO);
+    }
+#else
+    //value = (u32)p_requ_addr_list;
+    //Controller_TaskCmd(NULL, (RC_GROUP_SCHEDULER | ADD_REQUEST), 4, (u8*)&value, RC_TASK_QUEUE, 0);
+#endif
+
+}
+
 void lc_mas_connection_event_start(Bt_Dev_Info_t *mas_dev)
 {
     //Conn_State_Info_t *conn_info = (Conn_State_Info_t *)mas_dev->infrastructure;
@@ -695,7 +720,7 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
             switch (evt)
             {
                 case LC_CONN_STT_EVT_JUST_SENT_CONN_IND: {
-                    #define CONPENSATE_SCH_TIME 350
+                    #define CONPENSATE_SCH_TIME (313*3)
                     #define CONPENSATE_MASTER_DELAY 0
                     u32 sleep_time_in_us = 1250 + (1250 * conn_info->conn_ind_payload.LLData.WinOffset) - CONPENSATE_SCH_TIME + CONPENSATE_MASTER_DELAY;
                     lc_conn_state_set_timer_for_adding_sch_request(mas_dev, sleep_time_in_us);
@@ -745,10 +770,26 @@ void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT
                     lc_mas_connection_event_start(mas_dev);
                 } break;
 
+				case LC_CONN_STT_EVT_RX_TIMEOUT: {
+                    MASTER_DUMP2(" RX_TIMEOUT !!!\n");
+                    conn_info->timeout_ctr--;
+                    if (conn_info->timeout_ctr == 0) {
+                        MASTER_DUMP2(" DISCONNECT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+                        lc_mas_remove_request(mas_dev);
+					    //lc_conn_state_disconnect(mas_dev);
+					    conn_info->state = LC_CONN_STT_DISCONNECTED;
+					    lc_conn_state_disconnect(mas_dev);
+					    return;
+					}
+                } break;
+
                 default: {
                 } break;
             }
         } break;
+
+//        case LC_CONN_STT_DISCONNECTED: {
+//        } break;
 
         default: {
             ASSERT_Reboot(0);
@@ -772,6 +813,142 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
     lc_conn_state_dump_all_dev();
 
     lc_mas_conn_state_machine(new_mas_dev, LC_CONN_STT_EVT_JUST_SENT_CONN_IND);
+
+    //Dump_Conn_Info(new_mas_dev);
+}
+
+#define ___SLAVE______________________________
+#define ___SLAVE_____________________________
+#define ___SLAVE____________________________
+
+void lc_sla_connection_event_start(Bt_Dev_Info_t *sla_dev)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)sla_dev->infrastructure;
+
+    //why
+    LET0T1STOP;
+    
+    //why again?
+    //le_sla_assign_rx_buf(gp_cmn_buf_rx_payload_curr, gp_cmn_buf_rx_payload_left_size);
+    
+    //why again?
+    //le_sla_assign_tx_buf(gp_cmn_buf_tx_payload_curr, TX_TOTAL_SIZE);
+    
+    DIRECT_RFIELD_DISABLE_TIMEOUT = 0;
+    //DIRECT_RFIELD_RX_TIMEOUT_VALUE = 100;//conn_info->window_size_in_us;
+    DIRECT_RFIELD_RX_TIMEOUT_VALUE = conn_info->window_size_in_us + conn_info->window_widen_size_in_us;
+    T0_SLOT_TIMER_SET(1);
+    T0RXENABLE;
+    T1TXENABLE_TIFS;
+}
+
+void lc_sla_conn_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t evt)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)sla_dev->infrastructure;
+#ifdef DFS_SIM_ON
+    LC_CONNECTION_STATE_t old_state = conn_info->state;
+#endif
+    switch (conn_info->state)
+    {
+        case LC_CONN_STT_ESTABLISHED: {
+            switch (evt)
+            {
+                case LC_CONN_STT_EVT_JUST_RECEIVED_CONN_IND: {
+                    #undef  CONPENSATE_SCH_TIME
+                    #define CONPENSATE_SCH_TIME (1240)
+                    #undef  CONPENSATE_MASTER_DELAY
+                    #define CONPENSATE_MASTER_DELAY 0
+                    u32 sleep_time_in_us = 1250 + (1250 * conn_info->conn_ind_payload.LLData.WinOffset) - CONPENSATE_SCH_TIME + CONPENSATE_MASTER_DELAY;
+                    lc_conn_state_set_timer_for_adding_sch_request(sla_dev, sleep_time_in_us);
+                    conn_info->state = LC_CONN_STT_SLEEPING_FOR_ADDING_REQUEST;
+                } break;
+
+                default: {
+                } break;
+            }
+        } break;
+
+        case LC_CONN_STT_SLEEPING_FOR_ADDING_REQUEST: {
+            switch (evt)
+            {
+                case LC_CONN_STT_EVT_SLEEP_TIMESUP: {
+                    lc_mas_add_request(sla_dev);
+                    conn_info->state = LC_CONN_STT_WAITING_FOR_1ST_GRANT;
+                } break;
+
+                default: {
+                } break;
+            }
+        } break;
+
+        case LC_CONN_STT_WAITING_FOR_1ST_GRANT: {
+            switch (evt)
+            {
+                case LC_CONN_STT_EVT_SCH_GRANT: {
+                    SLAVE_DUMP2(" 1st ENABLE TX & RX_TIFS\n");
+                    lc_conn_state_connection_event_init(sla_dev);
+                    lc_sla_connection_event_start(sla_dev);
+                    conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
+                } break;
+
+                default: {
+                } break;
+            }
+        } break;
+
+        case LC_CONN_STT_ON_CONNECTION_EVENT: {
+            switch (evt)
+            {
+                case LC_CONN_STT_EVT_SCH_GRANT: {
+                    //MASTER_DUMP2(" xxx ENABLE TX & RX_TIFS\n");
+                    //conn_info->channel = (conn_info->channel + conn_info->conn_ind_payload.LLData.Hop) % 37;
+                    //lc_conn_state_connection_event_init(mas_dev);
+                    //lc_mas_connection_event_start(mas_dev);
+                } break;
+
+				case LC_CONN_STT_EVT_RX_TIMEOUT: {/*
+                    MASTER_DUMP2(" RX_TIMEOUT !!!\n");
+                    conn_info->timeout_ctr--;
+                    if (conn_info->timeout_ctr == 0) {
+                        MASTER_DUMP2(" DISCONNECT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+                        lc_mas_remove_request(mas_dev);
+					    //lc_conn_state_disconnect(mas_dev);
+					    conn_info->state = LC_CONN_STT_DISCONNECTED;
+					    lc_conn_state_disconnect(mas_dev);
+					    return;
+					}*/
+                } break;
+
+                default: {
+                } break;
+            }
+        } break;
+
+//        case LC_CONN_STT_DISCONNECTED: {
+//        } break;
+
+        default: {
+            ASSERT_Reboot(0);
+        } break;
+    }
+#ifdef DFS_SIM_ON
+        printf("%s(), old_state:%d, new_state:%d, evt:%d, time:%d\n", __func__, old_state, conn_info->state, evt, SimAir_TimeStamp_Low_Get());
+        SLAVE_DUMP2(" state machine old:%d, new:%d, evt:%d\n", \
+                    old_state, \
+                    conn_info->state, \
+                    evt);
+#endif
+}
+
+void lc_sla_handle_conn_ind(Bt_Dev_Info_t *dev_from_adv)
+{
+    Bt_Dev_Info_t *new_sla_dev;
+    Adv_Connect_Ind_Payload_t *p_conn_ind_from_adv = (Adv_Connect_Ind_Payload_t *)dev_from_adv->infrastructure;
+
+    lc_conn_state_create_dev_by_conn_ind(LE_SLAVE, p_conn_ind_from_adv, &new_sla_dev);
+    lc_conn_state_dump_all_dev();
+
+    lc_sla_conn_state_machine(new_sla_dev, LC_CONN_STT_EVT_JUST_RECEIVED_CONN_IND);
 
     //Dump_Conn_Info(new_mas_dev);
 }

@@ -26,6 +26,11 @@ SimAir_CB_Set_t g_peer1_cb_set[SIM_AIR_TASK_NUMBER] = {
 /* SIM_AIR_TASK_TIFS_1   */ {NULL, NULL, NULL, NULL},
 };
 
+void Peer1_ChangeLLInfo(void)
+{
+    lc_conn_state_ll_info_set(&g_ll_info_peer1);
+}
+
 void Peer1_InitTemplateInfo(SimAir_Info_t *info, SimAir_Handle_t new_sim_air_hdl)
 {
     //init first wake up & set hdl into info
@@ -44,6 +49,7 @@ void Peer1_InitTemplateInfo(SimAir_Info_t *info, SimAir_Handle_t new_sim_air_hdl
 
     info->upper_msg = 1; //peer "1"
     info->upper_hdl = (void *)g_curr_phy_info;
+    info->upper_cb = (void *)Peer1_ChangeLLInfo;
 }
 
 void Peer1_InitSimAir(void)
@@ -65,10 +71,39 @@ void Peer1_InitSimAir(void)
     SimAir_Request(&(g_curr_phy_info->air_info[SIM_AIR_TASK_CLKB]));
 
     g_ll_info_peer1.phy_info = (void *)&g_phy_info_1;
-    lc_conn_state_ll_info_set(&g_ll_info_peer1);
+    Peer1_ChangeLLInfo();//lc_conn_state_ll_info_set(&g_ll_info_peer1);
     lc_conn_state_init();
 
     return;
 }
 
+extern Adv_Connect_Ind_Payload_t gTestConnInd;
+void Peer1_StartTest(void)
+{
+/*
+    gTestConnInd.LLData.WinSize = 1;
+    gTestConnInd.LLData.WinOffset = 0;
+    gTestConnInd.LLData.AA[0] = 0x11;
+    gTestConnInd.LLData.AA[1] = 0x22;
+    gTestConnInd.LLData.AA[2] = 0x33;
+    gTestConnInd.LLData.AA[3] = 0x45;
+
+    gTestConnInd.LLData.CRCInit[0] = 0x9A;
+    gTestConnInd.LLData.CRCInit[1] = 0x88;
+    gTestConnInd.LLData.CRCInit[2] = 0x77;
+
+    gTestConnInd.LLData.Hop = 7;
+    gTestConnInd.LLData.Interval = 2;
+    SLAVE_DUMP2(" <<< TEST INFO: >>>\n");
+    SLAVE_DUMP2(" <<< WinSize   = %d >>>\n", gTestConnInd.LLData.WinSize);
+    SLAVE_DUMP2(" <<< WinOffset = %d >>>\n", gTestConnInd.LLData.WinOffset);
+    SLAVE_DUMP2(" <<< Hop       = %d >>>\n", gTestConnInd.LLData.Hop);
+    SLAVE_DUMP2(" <<< Interval  = %d >>>\n", gTestConnInd.LLData.Interval);
+*/
+    Bt_Dev_Info_t temp_dev;
+    temp_dev.infrastructure = (void *)&gTestConnInd;
+
+    Peer1_ChangeLLInfo();//lc_conn_state_ll_info_set(&g_ll_info_peer0);
+    lc_sla_handle_conn_ind(&temp_dev);
+}
 

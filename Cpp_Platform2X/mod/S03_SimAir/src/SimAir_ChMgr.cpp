@@ -121,7 +121,7 @@ void _SimAir_Log_Buf_Print(u8 *buf, u32 bits_len)
         }
     }
     if (i!=bits_len) {
-        fprintf(g_sim_air_log.fp, " -- %s", g_sim_air_log_bit_by_bit_string.BitsStringOfOneByte_LittleEndian(buf[bits_len/8], 1+(bits_len%8)));
+        fprintf(g_sim_air_log.fp, " -- %s", g_sim_air_log_bit_by_bit_string.BitsStringOfOneByte_LittleEndian(buf[bits_len/8], /*1+*/(bits_len%8)));
     }
     fprintf(g_sim_air_log.fp, "\n");
     

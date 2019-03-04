@@ -33,6 +33,7 @@ typedef struct {
 
     //scheduler
     Scheduler_Request_T *scheduler0;
+    bool scheduler0_enable;
 
     //Tx Rx
     u8 ACCESS_CODE[4];
@@ -89,7 +90,7 @@ typedef struct {
 #define DIRECT_RFIELD_AGU_TXLE_PLD_SP    PHY_INFO->TXLE_PLD_SP
 #define DIRECT_RFIELD_AGU_TXLE_PLD_CP_RE PHY_INFO->TXLE_PLD_CP_RE
 #define DIRECT_RFIELD_AGU_TXLE_PLD_EP    PHY_INFO->TXLE_PLD_EP
-#define LET0T1STOP /*TODO*/
+#define LET0T1STOP                       PHY_INFO->RXENABLE=0;PHY_INFO->TXENABLE=0;PHY_INFO->is_prepare_rf=0
 #define DIRECT_RFIELD_DISABLE_TIMEOUT    PHY_INFO->DIRECT_RFIELD_DISABLE_TIMEOUTz
 #define DIRECT_RFIELD_RX_TIMEOUT_VALUE   PHY_INFO->DIRECT_RFIELD_RX_TIMEOUT_VALUEz
 
