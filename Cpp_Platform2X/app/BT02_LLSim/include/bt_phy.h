@@ -10,11 +10,11 @@ int BT_Phy_Tx(SimAir_Info_t *info);
 int BT_Phy_Rx(SimAir_Info_t *info);
 
 typedef enum {
-    BT_PHY_RX_COMPARE_PREAMBLE,
-    BT_PHY_RX_COMPARE_ACCESS_CODE, /* done for correlation OK*/
-    BT_PHY_RX_STORE_HEADER,
-    BT_PHY_RX_STORE_PAYLOAD,
-    BT_PHY_RX_COMPARE_CRC,
+    BT_PHY_RX_0_COMPARE_PREAMBLE,
+    BT_PHY_RX_1_COMPARE_ACCESS_CODE, /* done for correlation OK*/
+    BT_PHY_RX_2_STORE_HEADER,
+    BT_PHY_RX_3_STORE_PAYLOAD,
+    BT_PHY_RX_4_COMPARE_CRC,
 }BT_PHY_Rx_State_t;
 
 #define PHY_TR_BUF_SIZE (4000)
@@ -36,6 +36,7 @@ typedef struct {
     bool scheduler0_enable;
 
     //Tx Rx
+    Bt_Dev_Info_t *rf_dev;
     u8 ACCESS_CODE[4];
     u8 LE_Control_Reg_LLbyteZ;
     u8 LE_HOP_CTRL0_Reg_HLbyteZ;
@@ -65,10 +66,14 @@ typedef struct {
 
     //RX
     BT_PHY_Rx_State_t rx_state;
+    u8 rx_work_buf[4];
+    u32 rx_work_buf_ctr;
+    u32 rx_payload_len_in_bits;
 }BT_PHY_Info_t;
 
 #define PHY_INFO ((BT_PHY_Info_t *)g_ll_info->phy_info)
 
+#define SET_RF_DEV(a)              PHY_INFO->rf_dev=a
 #define LE_PHY_ACCESS_CODE_LLbyte  PHY_INFO->ACCESS_CODE[0]
 #define LE_PHY_ACCESS_CODE_LHbyte  PHY_INFO->ACCESS_CODE[1]
 #define LE_PHY_ACCESS_CODE_HLbyte  PHY_INFO->ACCESS_CODE[2]

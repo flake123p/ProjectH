@@ -1,7 +1,7 @@
 
 #include "Everything_App.hpp"
 
-#define SIM_END_CLKN_NUMBER 80
+#define SIM_END_CLKN_NUMBER 120
 
 u32 BT_Phy_Start_Tx__Buffer_Copy(SimAir_Info_t *info)
 {
@@ -48,7 +48,8 @@ void BT_Phy_Start_Rx(SimAir_Info_t *info)
 {
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
-    phy_info->rx_state = BT_PHY_RX_COMPARE_PREAMBLE;
+    phy_info->rx_state = BT_PHY_RX_0_COMPARE_PREAMBLE;
+    phy_info->rx_work_buf_ctr = 0;
 
     phy_info->air_info[SIM_AIR_TASK_0_TRX].requ_type = SIM_AIR_RX_REQUEST;
     phy_info->air_info[SIM_AIR_TASK_0_TRX].clocks_total = phy_info->DIRECT_RFIELD_RX_TIMEOUT_VALUEz * phy_info->air_info[SIM_AIR_TASK_0_TRX].clocks_per_bit;
@@ -141,12 +142,7 @@ int BT_Phy_Wake_Scheduler(SimAir_Info_t *info)
         return 0;
 
     (*(Simple_CB_t)(info->upper_cb))();
-    if (phy_info->timer0_dev->Role == LE_MASTER) {
-        lc_mas_conn_state_machine(phy_info->scheduler0->dev , LC_CONN_STT_EVT_SCH_GRANT);
-    }
-    else {
-        lc_sla_conn_state_machine(phy_info->scheduler0->dev , LC_CONN_STT_EVT_SCH_GRANT);
-    }
+    lc_conn_state_state_machine(phy_info->scheduler0->dev, LC_CONN_STT_EVT_SCH_GRANT);
 
     phy_info->air_info[SIM_AIR_TASK_SCH_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
     phy_info->air_info[SIM_AIR_TASK_SCH_0].next_wake_up_time = phy_info->scheduler0->periodical_interval_us * phy_info->air_info[SIM_AIR_TASK_SCH_0].clocks_per_bit;
@@ -160,12 +156,7 @@ int BT_Phy_Wake_Timer(SimAir_Info_t *info)
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
     (*(Simple_CB_t)(info->upper_cb))();
-    if (phy_info->timer0_dev->Role == LE_MASTER) {
-        lc_mas_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_SLEEP_TIMESUP);
-    }
-    else {
-        lc_sla_conn_state_machine(phy_info->timer0_dev , LC_CONN_STT_EVT_SLEEP_TIMESUP);
-    }
+    lc_conn_state_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_SLEEP_TIMESUP);
 
     return 0;
 }
@@ -211,23 +202,141 @@ int BT_Phy_Rx(SimAir_Info_t *info)
 {
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
-    (*(Simple_CB_t)(info->upper_cb))();
     switch (info->response.resp_type)
     {
-        case SIM_AIR_RXING: {
-        } break;
-
-        case SIM_AIR_RX_DONE: {
-            if (phy_info->rx_state == BT_PHY_RX_COMPARE_PREAMBLE) {
+        case SIM_AIR_RX_DONE:{
+            if (phy_info->rx_state != BT_PHY_RX_4_COMPARE_CRC) {
                 //RX timeout
-                if (phy_info->timer0_dev->Role == LE_MASTER) {
-                    lc_mas_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_RX_TIMEOUT);
-                }
-                else {
-                    lc_sla_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_RX_TIMEOUT);
-                }
-            } else {
-                BASIC_ASSERT(0);
+                (*(Simple_CB_t)(info->upper_cb))();
+                lc_conn_state_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_RX_TIMEOUT);
+                return 0;
+            }
+        } /* FALL THROUGH HERE !!!!! */
+        case SIM_AIR_RXING: {
+            u8 curr_rx_bit;
+            u8 curr_rx_bit_adjusted;
+            u32 index_h = (info->response.rx_done_bits-1) / 8;
+            u32 index_l = (info->response.rx_done_bits-1) % 8;
+            curr_rx_bit = info->rx_buf[index_h];
+            curr_rx_bit = (curr_rx_bit >> index_l) & 0x01;
+            switch (phy_info->rx_state) {
+                case BT_PHY_RX_0_COMPARE_PREAMBLE: {
+                    curr_rx_bit_adjusted = curr_rx_bit ? 0x80 : 0x00;
+                    phy_info->rx_work_buf[0] = (phy_info->rx_work_buf[0] >> 1) | curr_rx_bit_adjusted;
+                    phy_info->rx_work_buf_ctr++;
+                    if (phy_info->rx_work_buf_ctr >= 8) {
+                        if (phy_info->rx_work_buf[0] == 0x55) {
+                            phy_info->rx_state = BT_PHY_RX_1_COMPARE_ACCESS_CODE;
+                            phy_info->rx_work_buf_ctr = 0;
+                        }
+                    }
+                } break;
+                case BT_PHY_RX_1_COMPARE_ACCESS_CODE: {
+                    index_h = phy_info->rx_work_buf_ctr / 8;
+                    index_l = phy_info->rx_work_buf_ctr % 8;
+                    if (index_l == 0)
+                        phy_info->rx_work_buf[index_h] = 0;
+                    curr_rx_bit_adjusted = curr_rx_bit << index_l;
+                    phy_info->rx_work_buf[index_h] |= curr_rx_bit_adjusted;
+                    phy_info->rx_work_buf_ctr++;
+                    if (phy_info->rx_work_buf_ctr == 32) {
+                        bool access_code_is_match = false;
+                        if (phy_info->rx_work_buf[0] == phy_info->ACCESS_CODE[0])
+                        if (phy_info->rx_work_buf[1] == phy_info->ACCESS_CODE[1])
+                        if (phy_info->rx_work_buf[2] == phy_info->ACCESS_CODE[2])
+                        if (phy_info->rx_work_buf[3] == phy_info->ACCESS_CODE[3])
+                            access_code_is_match = true;
+
+                        if (access_code_is_match) {
+                            phy_info->rx_state = BT_PHY_RX_2_STORE_HEADER;
+                            //interrupt : correlation ok
+                            (*(Simple_CB_t)(info->upper_cb))();
+                            lc_conn_state_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_CORR_OK);
+                        } else {
+                            phy_info->rx_state = BT_PHY_RX_0_COMPARE_PREAMBLE;
+                        }
+
+                        phy_info->rx_work_buf_ctr = 0;
+                    }
+                } break;
+                case BT_PHY_RX_2_STORE_HEADER: {
+                    index_h = phy_info->rx_work_buf_ctr / 8;
+                    index_l = phy_info->rx_work_buf_ctr % 8;
+                    if (index_l == 0)
+                        phy_info->RXLE_PLH_CP[index_h] = 0;
+                    curr_rx_bit_adjusted = curr_rx_bit << index_l;
+                    phy_info->RXLE_PLH_CP[index_h] |= curr_rx_bit_adjusted;
+                    phy_info->rx_work_buf_ctr++;
+
+                    if (phy_info->rx_work_buf_ctr == 16) {
+                        u32 rest_len = phy_info->RXLE_PLH_CP[1] + 3/*CRC*/;
+                        //adjust rx total time
+                        info->clocks_total = info->response.clocks_elapsed + (rest_len * 8 * info->clocks_per_bit);
+
+                        phy_info->rx_payload_len_in_bits = phy_info->RXLE_PLH_CP[1] * 8;
+
+                        if (phy_info->rx_payload_len_in_bits != 0)
+                            phy_info->rx_state = BT_PHY_RX_3_STORE_PAYLOAD;
+                        else
+                            phy_info->rx_state = BT_PHY_RX_4_COMPARE_CRC;
+                        phy_info->rx_work_buf_ctr = 0;
+                        phy_info->RXLE_PLH_CP += 2;
+                    }
+                } break;
+                case BT_PHY_RX_3_STORE_PAYLOAD: {
+                    index_h = phy_info->rx_work_buf_ctr / 8;
+                    index_l = phy_info->rx_work_buf_ctr % 8;
+                    if (index_l == 0)
+                        phy_info->RXLE_PLD_CP[index_h] = 0;
+                    curr_rx_bit_adjusted = curr_rx_bit << index_l;
+                    phy_info->RXLE_PLD_CP[index_h] |= curr_rx_bit_adjusted;
+                    phy_info->rx_work_buf_ctr++;
+
+                    if (phy_info->rx_work_buf_ctr == phy_info->rx_payload_len_in_bits) {
+                        phy_info->rx_state = BT_PHY_RX_4_COMPARE_CRC;
+                        phy_info->rx_work_buf_ctr = 0;
+                        phy_info->RXLE_PLD_CP += (phy_info->rx_payload_len_in_bits/8);
+                    }
+                } break;
+                case BT_PHY_RX_4_COMPARE_CRC: {
+                    index_h = phy_info->rx_work_buf_ctr / 8;
+                    index_l = phy_info->rx_work_buf_ctr % 8;
+                    if (index_l == 0)
+                        phy_info->rx_work_buf[index_h] = 0;
+                    curr_rx_bit_adjusted = curr_rx_bit << index_l;
+                    phy_info->rx_work_buf[index_h] |= curr_rx_bit_adjusted;
+                    phy_info->rx_work_buf_ctr++;
+                    if (phy_info->rx_work_buf_ctr == 24) {
+                        bool crc24_is_match = false;
+                        if (phy_info->rx_work_buf[0] == phy_info->LE_PHY_CRC24[0])
+                        if (phy_info->rx_work_buf[1] == phy_info->LE_PHY_CRC24[1])
+                        if (phy_info->rx_work_buf[2] == phy_info->LE_PHY_CRC24[2])
+                            crc24_is_match = true;
+
+                        BASIC_ASSERT(info->response.resp_type == SIM_AIR_RX_DONE);
+
+                        LC_CONNECTION_STATE_EVENT_t evt = LC_CONN_STT_EVT_PL_RCV_ERR;
+                        if (crc24_is_match) {
+                            evt = LC_CONN_STT_EVT_PL_RCV_OK;
+                        }
+
+                        (*(Simple_CB_t)(info->upper_cb))();
+                        lc_conn_state_state_machine(phy_info->rf_dev, evt);
+
+                        if (crc24_is_match) {
+                            //TIFS TX check
+                            if (phy_info->TXENABLE == 2)
+                            {
+                                phy_info->air_info[SIM_AIR_TASK_TIFS_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
+                                phy_info->air_info[SIM_AIR_TASK_TIFS_0].next_wake_up_time = 150 * phy_info->air_info[SIM_AIR_TASK_TIFS_0].clocks_per_bit;
+                                SimAir_Request(&(phy_info->air_info[SIM_AIR_TASK_TIFS_0]));
+                            }
+                        }
+                    }
+                    BASIC_ASSERT(phy_info->rx_work_buf_ctr <= 24);
+                } break;
+                default:
+                    break;
             }
         } break;
 

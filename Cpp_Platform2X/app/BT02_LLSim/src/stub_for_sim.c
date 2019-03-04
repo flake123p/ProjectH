@@ -18,8 +18,8 @@ void Dump_Conn_Info(Bt_Dev_Info_t *dev)
 
 
     Conn_State_Info_t *info = (Conn_State_Info_t *)dev->infrastructure;
-    DUMPD(info->sn);
-    DUMPD(info->nesn);
+    DUMPD(info->tx_sn);
+    DUMPD(info->tx_nesn);
     DUMPD(info->conn_hdl);
     DUMPD(info->state);
 

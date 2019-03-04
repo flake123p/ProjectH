@@ -61,6 +61,8 @@ typedef struct Conn_State_Tx_Request_t{
     Conn_State_Tx_Request_t *next;
 } Conn_State_Tx_Request_t;
 
+#define SN_FIRST_FLAG   0x08
+#define NESN_FIRST_FLAG 0x08
 typedef struct {
     Adv_Connect_Ind_Payload_t conn_ind_payload; //Packet payload from advertiser
 
@@ -69,8 +71,8 @@ typedef struct {
     LC_CONNECTION_STATE_t state;
     u8 channel;
     u8 llid;
-    u8 sn; //S1 for slave,
-    u8 nesn; //N1 for slave,
+    u8 tx_sn;   //0 or 1, S1 for slave,
+    u8 tx_nesn; //0 or 1, N1 for slave,
     u8 md;
     u8 tx_len;
     u8 *tx_buf;
@@ -109,8 +111,9 @@ void lc_conn_state_ll_info_set(LL_Info_t *ll_info);
 void lc_conn_state_init(void);
 void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini);
 void lc_sla_handle_conn_ind(Bt_Dev_Info_t *dev_from_adv);
-void lc_mas_conn_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
-void lc_sla_conn_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t evt);
+void lc_mas_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
+void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t evt);
+void lc_conn_state_state_machine(Bt_Dev_Info_t *dev, LC_CONNECTION_STATE_EVENT_t evt);
 
 #endif //#define __CMN_LE_LM_CONN_STATE_H__
 
