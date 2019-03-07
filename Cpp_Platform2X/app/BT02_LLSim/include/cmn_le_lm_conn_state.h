@@ -40,6 +40,22 @@ typedef enum{
     LC_CONN_STT_EVT_TX_DONE,
 }LC_CONNECTION_STATE_EVENT_t;
 
+typedef enum{
+    LC_CONN_STT_TX_ACT_EMPTY_PACKET,
+    LC_CONN_STT_TX_ACT_OLD_DATA,
+    LC_CONN_STT_TX_ACT_NEW_DATA,
+
+    LC_CONN_STT_TX_ACT__INVALID,
+}LC_CONNECTION_STATE_TX_ACT_t;
+
+typedef enum{
+    LC_CONN_STT_RX_ACT_KEEP_BUF_SETTING,
+    LC_CONN_STT_RX_ACT_NEW_BUF_SETTING,
+
+    LC_CONN_STT_RX_ACT__INVALID,
+}LC_CONNECTION_STATE_RX_ACT_t;
+
+
 #define LL_TX_BUF_SIZE (10)
 typedef struct {
     Bt_Dev_Info_t *dev_head;
@@ -61,8 +77,6 @@ typedef struct Conn_State_Tx_Request_t{
     Conn_State_Tx_Request_t *next;
 } Conn_State_Tx_Request_t;
 
-#define SN_FIRST_FLAG   0x08
-#define NESN_FIRST_FLAG 0x08
 typedef struct {
     Adv_Connect_Ind_Payload_t conn_ind_payload; //Packet payload from advertiser
 
@@ -70,19 +84,27 @@ typedef struct {
     LC_CONNECTION_ROLE_t role;
     LC_CONNECTION_STATE_t state;
     u8 channel;
-    u8 llid;
+    u8 rx_llid;
+    u8 rx_sn;
+    u8 rx_nesn;
+    u8 rx_md;
+    u8 rx_len;
+    u8 tx_llid;
     u8 tx_sn;   //0 or 1, S1 for slave,
     u8 tx_nesn; //0 or 1, N1 for slave,
-    u8 md;
+    u8 tx_md;
     u8 tx_len;
     u8 *tx_buf;
-    u8 last_rx_nesn_is_match;
-    u8 last_tx_is_acked; //init to 1, set to 0 before new tx
+    u8 now_is_new_data;                  //used in prepare stage 0
+    u8 last_tx_is_acked;                 //used in prepare stage 0
+    LC_CONNECTION_STATE_TX_ACT_t tx_act; //used in prepare stage 1
+    LC_CONNECTION_STATE_RX_ACT_t rx_act; //used in prepare stage 1
     u32 accu_tx_len; //accumulate
     u32 window_size_in_us;
     u32 window_widen_size_in_us;
     u32 window_size_remain_in_us; //TODO, remain window size in single connection event
-    u8 timeout_ctr; //supervision timer
+    u32 timeout_ctr; //supervision timer
+    u32 latency_ctr;
 
     //LC:write, LM:read
     u32 tx_ctr;
@@ -113,7 +135,7 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini);
 void lc_sla_handle_conn_ind(Bt_Dev_Info_t *dev_from_adv);
 void lc_mas_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t evt);
 void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t evt);
-void lc_conn_state_state_machine(Bt_Dev_Info_t *dev, LC_CONNECTION_STATE_EVENT_t evt);
+void lc_conn_state_machine(Bt_Dev_Info_t *dev, LC_CONNECTION_STATE_EVENT_t evt);
 
 #endif //#define __CMN_LE_LM_CONN_STATE_H__
 

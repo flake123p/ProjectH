@@ -1,7 +1,10 @@
 
 #include "Everything_App.hpp"
 
-LL_Info_t g_ll_info_peer1;
+LL_Info_t g_ll_info_peer1 = {
+    .dev_head = NULL,
+    .dev_tail = NULL,
+};
 BT_PHY_Info_t g_phy_info_1 = {
     .sim_destroy = false,
     .clkn = 0,

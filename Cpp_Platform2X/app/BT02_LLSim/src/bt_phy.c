@@ -81,12 +81,6 @@ void BT_Phy_Wake_CLKB__RF_Task_Check(SimAir_Info_t *info)
 {
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
-    if (phy_info->clkb == phy_info->T0_SLOT_TIMER && (phy_info->TXENABLE==1||phy_info->RXENABLE==1)) {
-        MASTER_DUMP2(" common PHY - PREPARE RF\n");
-        phy_info->is_prepare_rf = 1;
-        return;
-    }
-
     if (phy_info->is_prepare_rf) {
         phy_info->is_prepare_rf = 0; //prepare done
 
@@ -108,6 +102,13 @@ void BT_Phy_Wake_CLKB__RF_Task_Check(SimAir_Info_t *info)
 
             BT_Phy_Start_Rx(info);
         }
+    }
+
+    if (phy_info->clkb == phy_info->T0_SLOT_TIMER && (phy_info->TXENABLE==1||phy_info->RXENABLE==1)) {
+        MASTER_DUMP2(" common PHY - PREPARE RF\n");
+        phy_info->T0_SLOT_TIMER = 0;
+        phy_info->is_prepare_rf = 1;
+        return;
     }
 }
 
@@ -141,8 +142,8 @@ int BT_Phy_Wake_Scheduler(SimAir_Info_t *info)
     if (phy_info->scheduler0_enable == false)
         return 0;
 
-    (*(Simple_CB_t)(info->upper_cb))();
-    lc_conn_state_state_machine(phy_info->scheduler0->dev, LC_CONN_STT_EVT_SCH_GRANT);
+    (*(Void_CB_t)(info->upper_cb))();
+    lc_conn_state_machine(phy_info->scheduler0->dev, LC_CONN_STT_EVT_SCH_GRANT);
 
     phy_info->air_info[SIM_AIR_TASK_SCH_0].requ_type = SIM_AIR_WAKEUP_REQUEST;
     phy_info->air_info[SIM_AIR_TASK_SCH_0].next_wake_up_time = phy_info->scheduler0->periodical_interval_us * phy_info->air_info[SIM_AIR_TASK_SCH_0].clocks_per_bit;
@@ -155,8 +156,8 @@ int BT_Phy_Wake_Timer(SimAir_Info_t *info)
 {
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
-    (*(Simple_CB_t)(info->upper_cb))();
-    lc_conn_state_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_SLEEP_TIMESUP);
+    (*(Void_CB_t)(info->upper_cb))();
+    lc_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_SLEEP_TIMESUP);
 
     return 0;
 }
@@ -169,11 +170,14 @@ int BT_Phy_Wake_TIFS_Timer(SimAir_Info_t *info)
     {
         phy_info->RXENABLE = 0;
         BT_Phy_Start_Rx(info);
+        BASIC_ASSERT(phy_info->TXENABLE != 2);
     }
-    else if (phy_info->TXENABLE == 2)
+
+    if (phy_info->TXENABLE == 2)
     {
         phy_info->TXENABLE = 0;
         BT_Phy_Start_Tx(info);
+        BASIC_ASSERT(phy_info->RXENABLE != 2);
     }
 
     return 0;
@@ -207,8 +211,8 @@ int BT_Phy_Rx(SimAir_Info_t *info)
         case SIM_AIR_RX_DONE:{
             if (phy_info->rx_state != BT_PHY_RX_4_COMPARE_CRC) {
                 //RX timeout
-                (*(Simple_CB_t)(info->upper_cb))();
-                lc_conn_state_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_RX_TIMEOUT);
+                (*(Void_CB_t)(info->upper_cb))();
+                lc_conn_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_RX_TIMEOUT);
                 return 0;
             }
         } /* FALL THROUGH HERE !!!!! */
@@ -250,8 +254,8 @@ int BT_Phy_Rx(SimAir_Info_t *info)
                         if (access_code_is_match) {
                             phy_info->rx_state = BT_PHY_RX_2_STORE_HEADER;
                             //interrupt : correlation ok
-                            (*(Simple_CB_t)(info->upper_cb))();
-                            lc_conn_state_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_CORR_OK);
+                            (*(Void_CB_t)(info->upper_cb))();
+                            lc_conn_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_CORR_OK);
                         } else {
                             phy_info->rx_state = BT_PHY_RX_0_COMPARE_PREAMBLE;
                         }
@@ -320,8 +324,8 @@ int BT_Phy_Rx(SimAir_Info_t *info)
                             evt = LC_CONN_STT_EVT_PL_RCV_OK;
                         }
 
-                        (*(Simple_CB_t)(info->upper_cb))();
-                        lc_conn_state_state_machine(phy_info->rf_dev, evt);
+                        (*(Void_CB_t)(info->upper_cb))();
+                        lc_conn_state_machine(phy_info->rf_dev, evt);
 
                         if (crc24_is_match) {
                             //TIFS TX check
