@@ -15,22 +15,12 @@ void Init_Dump_Files(void)
 int main(int argc, char *argv[])
 {
     SimAir_Log_Enable(false, true);
+    BT_Phy_Log_Enable();
 
     Init_Dump_Files();
 
-    //Master_Upper_InitSimAir();
-    //Slave_Upper_InitSimAir();
-
     Peer0_InitSimAir();
     Peer1_InitSimAir();
-
-    {
-        extern void lc_conn_state_initXX(void);
-        //lc_conn_state_initXX();
-    }
-
-    //Master_Upper_InitTest();
-    //Slave_Upper_InitTest();
 
     Peer0_StartTest();
     Peer1_StartTest();
@@ -39,6 +29,6 @@ int main(int argc, char *argv[])
     SimAir_Uninit();
 
     SimAir_Log_Disable();
-
+    BT_Phy_Log_Disable();
     return 0;
 }

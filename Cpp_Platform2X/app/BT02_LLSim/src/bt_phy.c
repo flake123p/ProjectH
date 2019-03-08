@@ -1,7 +1,22 @@
 
 #include "Everything_App.hpp"
 
+LibFileIoClass g_log_bt_phy = LibFileIoClass("log_bt_phy.txt", "w+b");
+bool g_log_bt_phy_enable = false;
+
 #define SIM_END_CLKN_NUMBER 120
+
+int BT_Phy_Log_Enable(void)
+{
+    g_log_bt_phy_enable = true;
+    return g_log_bt_phy.FileOpen();
+}
+
+int BT_Phy_Log_Disable(void)
+{
+    g_log_bt_phy_enable = false;
+    return g_log_bt_phy.FileClose();
+}
 
 u32 BT_Phy_Start_Tx__Buffer_Copy(SimAir_Info_t *info)
 {
@@ -57,6 +72,84 @@ void BT_Phy_Start_Rx(SimAir_Info_t *info)
     SimAir_Request(&(phy_info->air_info[SIM_AIR_TASK_0_TRX]));
 }
 
+void BT_Phy_Wake_CLKB__RF_Task_Check(SimAir_Info_t *info)
+{
+    u32 log_condition = 0;
+    BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
+
+    do {
+        if (phy_info->clkb == phy_info->T0_SLOT_TIMER && (phy_info->TXENABLE==1||phy_info->RXENABLE==1)) {
+            phy_info->T0_SLOT_TIMER = 0;
+            phy_info->is_prepare_rf = 1;
+            log_condition = 1;
+            break;
+        }
+
+        if (phy_info->is_prepare_rf) {
+            phy_info->is_prepare_rf = 0; //prepare done
+
+            if (phy_info->TXENABLE == 1)
+            {
+                BASIC_ASSERT(phy_info->RXENABLE != 1);
+                phy_info->TXENABLE = 0;
+                //TX
+                BT_Phy_Start_Tx(info);
+                log_condition = 2;
+            }
+            else if (phy_info->RXENABLE == 1)
+            {
+                BASIC_ASSERT(phy_info->TXENABLE != 1);
+                phy_info->RXENABLE = 0;
+                //RX
+                BT_Phy_Start_Rx(info);
+                log_condition = 3;
+            }
+        }
+    } while (0);
+
+    if (g_log_bt_phy_enable) {
+        if (log_condition == 1) {
+            fprintf(g_log_bt_phy.fp, "[%8d][CLKB_RF][%s] PREPARE RF, tx:%d, rx:%d\n", 
+                info->response.ref_clock_L,
+                SimAir_Handle_ID_String_Get(info->hdl),
+                phy_info->TXENABLE,
+                phy_info->RXENABLE);
+        } else if (log_condition == 2) {
+            fprintf(g_log_bt_phy.fp, "[%8d][CLKB_RF][%s] TX START, tx:%d, rx:%d\n", 
+                info->response.ref_clock_L,
+                SimAir_Handle_ID_String_Get(info->hdl),
+                phy_info->TXENABLE,
+                phy_info->RXENABLE);
+        } else if (log_condition == 3) {
+            fprintf(g_log_bt_phy.fp, "[%8d][CLKB_RF][%s] RX START, tx:%d, rx:%d\n", 
+                info->response.ref_clock_L,
+                SimAir_Handle_ID_String_Get(info->hdl),
+                phy_info->TXENABLE,
+                phy_info->RXENABLE);
+        }
+    }
+}
+
+int BT_Phy_Wake_CLKB(SimAir_Info_t *info)
+{
+    BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
+
+    phy_info->clkb++;
+
+    if (phy_info->sim_destroy) {
+        (*(Void_CB_t)(info->upper_cb))();
+        lc_conn_state_machine(phy_info->timer0_dev, LC_CONN_STT_EVT_SCH_ABORT);
+        return 0;
+    }
+    else {
+        BT_Phy_Wake_CLKB__RF_Task_Check(info);
+        
+        info->requ_type = SIM_AIR_WAKEUP_REQUEST;
+        info->next_wake_up_time = 3125;
+        SimAir_Request(info);
+    }
+    return 0;
+}
 
 int BT_Phy_Wake_CLKN(SimAir_Info_t *info)
 {
@@ -76,61 +169,6 @@ int BT_Phy_Wake_CLKN(SimAir_Info_t *info)
     }
     return 0;
 }
-
-void BT_Phy_Wake_CLKB__RF_Task_Check(SimAir_Info_t *info)
-{
-    BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
-
-    if (phy_info->is_prepare_rf) {
-        phy_info->is_prepare_rf = 0; //prepare done
-
-        if (phy_info->TXENABLE == 1)
-        {
-            BASIC_ASSERT(phy_info->RXENABLE != 1);
-            phy_info->TXENABLE = 0;
-            //TX
-            MASTER_DUMP2(" common PHY - START RF - TX\n");
-
-            BT_Phy_Start_Tx(info);
-        }
-        else if (phy_info->RXENABLE == 1)
-        {
-            BASIC_ASSERT(phy_info->TXENABLE != 1);
-            phy_info->RXENABLE = 0;
-            //RX
-            MASTER_DUMP2(" common PHY - START RF - RX\n");
-
-            BT_Phy_Start_Rx(info);
-        }
-    }
-
-    if (phy_info->clkb == phy_info->T0_SLOT_TIMER && (phy_info->TXENABLE==1||phy_info->RXENABLE==1)) {
-        MASTER_DUMP2(" common PHY - PREPARE RF\n");
-        phy_info->T0_SLOT_TIMER = 0;
-        phy_info->is_prepare_rf = 1;
-        return;
-    }
-}
-
-int BT_Phy_Wake_CLKB(SimAir_Info_t *info)
-{
-    BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
-
-    phy_info->clkb++;
-
-    if (phy_info->sim_destroy) {
-        return 0;
-    }
-    else {
-        BT_Phy_Wake_CLKB__RF_Task_Check(info);
-        
-        info->requ_type = SIM_AIR_WAKEUP_REQUEST;
-        info->next_wake_up_time = 3125;
-        SimAir_Request(info);
-    }
-    return 0;
-}
-
 
 int BT_Phy_Wake_Scheduler(SimAir_Info_t *info)
 {

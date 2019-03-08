@@ -1,6 +1,8 @@
 #ifndef __BT_PHY_H__
 #define __BT_PHY_H__
 
+int BT_Phy_Log_Enable(void);
+int BT_Phy_Log_Disable(void);
 int BT_Phy_Wake_CLKN(SimAir_Info_t *info);
 int BT_Phy_Wake_CLKB(SimAir_Info_t *info);
 int BT_Phy_Wake_Scheduler(SimAir_Info_t *info);

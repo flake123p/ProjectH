@@ -4,7 +4,7 @@
 #include <vector>
 
 #if SIM_AIR_LOG
-LibFileIoClass g_sim_air_log = LibFileIoClass("sim_air_log.txt", "w+b");
+LibFileIoClass g_sim_air_log = LibFileIoClass("log_sim_air.txt", "w+b");
 bool g_sim_air_log_enable = false;
 bool g_sim_air_log_enable_every_clock_dump =false;
 bool g_sim_air_log_only_dump_tx_rx_done =false;
@@ -32,7 +32,7 @@ static SimAir_Handle_t gSimAir_Handle_Ctr = 0;
 static SimAir_Handle_t gSimAir_Handle_InternalTRx = 0;
 //static Time_Slice_Descriptor2 *gSimAir_Descriptor2_Last = NULL;
 
-const char *_SimAir_Handle_ID_String_Get(u32 index)
+const char *SimAir_Handle_ID_String_Get(u32 index)
 {
     BASIC_ASSERT(index < gSimAirDes_Vector.size());
     if (gSimAirDes_Vector[index]->sim_air_id_str == NULL)
@@ -79,7 +79,7 @@ static int SimAir_Dispatcher(SimAir_Descriptor_t* p_des)
                 fprintf(g_sim_air_log.fp, "[%8d][%4s][------]%s ... request at %d\n", 
                     clk_l,
                     cb_type_str,
-                    _SimAir_Handle_ID_String_Get(p_des->sim_air_hdl),
+                    SimAir_Handle_ID_String_Get(p_des->sim_air_hdl),
                     p_des->requ_resp_info->request_time_l);
                 break;
             case SIM_AIR_INTERNAL_TRx:
@@ -300,7 +300,7 @@ int SimAir_Request(SimAir_Info_t *info)
             case SIM_AIR_TX_REQUEST:
                 fprintf(g_sim_air_log.fp, "[%8d][i_TR][------]%s ... %s start\n", 
                     clk_l,
-                    _SimAir_Handle_ID_String_Get(info->hdl),
+                    SimAir_Handle_ID_String_Get(info->hdl),
                     tx_rx_str);
                 break;
             default:

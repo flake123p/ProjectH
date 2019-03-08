@@ -17,6 +17,11 @@
 
 #define LC_CONN_STATE_RX_BUF_LEN 4096
 
+#define CONPENSATE_SCH_TIME_MASTER (313*3)
+#define CONPENSATE_MASTER_DELAY 0
+#define CONPENSATE_SCH_TIME_SLAVE (1240)
+#define CONPENSATE_SLAVE_DELAY 0
+
 LL_Info_t g_ll_info_body;
 LL_Info_t *g_ll_info = &g_ll_info_body;
 
@@ -203,7 +208,7 @@ void lc_conn_state_dump_all_dev(void)
         MASTER_DUMP2(" -- [[ conn state dev dump %d ]]\n", i);
         MASTER_DUMP2(" -- Type:%d, Role:%d, Up_Conn_Hdl:0x%X\n", curr_dev->Type, curr_dev->Role, curr_dev->connection_handle);
         MASTER_DUMP2(" -- -- state:%d, tx_llid:%d, tx_sn:%d, tx_nesn:%d, tx_md:%d\n", curr_conn_info->state, curr_conn_info->tx_llid, curr_conn_info->tx_sn, curr_conn_info->tx_nesn, curr_conn_info->tx_md);
-        MASTER_DUMP2(" -- -- tx_len:%d, now_is_new_data:%d, last_tx_is_acked:%d, accu_tx_len:%d\n", curr_conn_info->tx_len, curr_conn_info->now_is_new_data, curr_conn_info->last_tx_is_acked, curr_conn_info->accu_tx_len);
+        MASTER_DUMP2(" -- -- tx_len:%d, now_is_new_data:%d, last_tx_is_acked:%d\n", curr_conn_info->tx_len, curr_conn_info->now_is_new_data, curr_conn_info->last_tx_is_acked);
         MASTER_DUMP2(" -- -- tx_ctr:%d, rx_ctr:%d, conn_hdl:0x%X\n", curr_conn_info->tx_ctr, curr_conn_info->rx_ctr, curr_conn_info->conn_hdl);
         MASTER_DUMP2(" -- -- tx_max_len:%d, tx_md_enable:%d, rx_md_enable:%d, tx_hold:%d, rx_hold:%d\n", curr_conn_info->tx_max_len, curr_conn_info->tx_md_enable, curr_conn_info->rx_md_enable, curr_conn_info->tx_hold, curr_conn_info->rx_hold);
         MASTER_DUMP2(" -- -- InitA:0x%X, 0x%X, 0x%X, 0x%X, 0x%X, 0x%X\n", \
@@ -249,10 +254,11 @@ void lc_conn_state_dump_all_dev(void)
         MASTER_DUMP2(" -- -- -- [[ tx_request dump start : %d ]]\n", j);
         Conn_State_Tx_Request_t *curr_tx_request = curr_conn_info->lm_tx_request;
         while (curr_tx_request != NULL) {
-            MASTER_DUMP2(" -- -- -- tx_request_active:%d  tx_request_done:%d  tx_len:%d\n",
+            MASTER_DUMP2(" -- -- -- -- tx_request_active:%d  tx_request_done:%d  tx_len:%d  tx_done_len:%d\n",
                           curr_tx_request->tx_request_active, \
                           curr_tx_request->tx_request_done, \
-                          curr_tx_request->tx_len);
+                          curr_tx_request->tx_len, \
+                          curr_tx_request->tx_done_len);
             curr_tx_request = curr_tx_request->next;
             if (curr_tx_request != NULL) {
                 j++;
@@ -366,7 +372,7 @@ u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_Ind_Payl
     new_conn_info->now_is_new_data = 0xFF; //dummy
     new_conn_info->last_tx_is_acked = 0xFF; //dummy
 #endif
-    new_conn_info->accu_tx_len = 0;
+//    new_conn_info->accu_tx_len = 0;
     new_conn_info->window_size_in_us = new_conn_info->conn_ind_payload.LLData.WinSize * 1250;
     new_conn_info->window_widen_size_in_us = lc_conn_state_calculate_window_widen_size_in_us(new_conn_info);
     new_conn_info->timeout_ctr = 6;
@@ -429,8 +435,8 @@ void lc_conn_state_tx_request_update(Conn_State_Info_t *conn_info)
                 if (scan_tx_request->tx_request_done == 0)
                 {
                     conn_info->curr_tx_request = scan_tx_request;
-                    DUMPA(scan_tx_request->tx_buf);
-                    DUMPA(conn_info->role);
+                    //DUMPA(scan_tx_request->tx_buf);
+                    //DUMPA(conn_info->role);
                     break;
                 }
                 else
@@ -612,21 +618,21 @@ void lc_conn_state_tx_prepare_1_data_update(Conn_State_Info_t *conn_info)
 
         case LC_CONN_STT_TX_ACT_NEW_DATA: {
             u32 is_remain_tx_data = 0;
-            u32 tx_len_this_ll_packet = conn_info->curr_tx_request->tx_len - conn_info->accu_tx_len;
-            if (conn_info->accu_tx_len == 0) {
+            u32 tx_len_this_ll_packet = conn_info->curr_tx_request->tx_len - conn_info->curr_tx_request->tx_done_len;
+            if (conn_info->curr_tx_request->tx_done_len == 0) { /* first segment */
                 conn_info->tx_llid = 2; //10b = LL Data PDU: Start of an L2CAP message or a complete L2CAP message with no fragmentation.
             }
             else {
                 //continue packet
                 conn_info->tx_llid = 1; //01b = LL Data PDU: Continuation fragment of an L2CAP message, or an Empty PDU
             }
-            conn_info->tx_buf = &(conn_info->curr_tx_request->tx_buf[conn_info->accu_tx_len]);
+            conn_info->tx_buf = &(conn_info->curr_tx_request->tx_buf[conn_info->curr_tx_request->tx_done_len]);
             if (tx_len_this_ll_packet > conn_info->tx_max_len) {
                 tx_len_this_ll_packet = conn_info->tx_max_len;
                 is_remain_tx_data = 1;
             }
             conn_info->tx_len = tx_len_this_ll_packet;
-            conn_info->accu_tx_len += tx_len_this_ll_packet;
+            conn_info->curr_tx_request->tx_done_len += tx_len_this_ll_packet;
             // more data calculate
             if (0 == conn_info->tx_md_enable) {
                 conn_info->tx_md = 0;
@@ -842,7 +848,7 @@ if(p_adv_dev->event.is_preiodical == TRUE)
     free(p_requ_addr);
     {
         extern void BT_Phy_API_Sch_0_Add_Request(BT_PHY_Info_t *phy_info, Scheduler_Request_T *p_sch_requ, u32 sch_delay_in_us);
-        MASTER_DUMP2(" Sch 0 add request\n");
+        MASTER_DUMP2(" Sch 0 add request ... interval:%d\n", p_sch_requ->periodical_interval_us);
         BT_Phy_API_Sch_0_Add_Request(PHY_INFO, p_sch_requ, 447 /*scheduler_simulate_delay_in_us()*/);
     }
 #else
@@ -901,9 +907,7 @@ void lc_mas_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t ev
             switch (evt)
             {
                 case LC_CONN_STT_EVT_JUST_SENT_CONN_IND: {
-                    #define CONPENSATE_SCH_TIME (313*3)
-                    #define CONPENSATE_MASTER_DELAY 0
-                    u32 sleep_time_in_us = 1250 + (1250 * conn_info->conn_ind_payload.LLData.WinOffset) - CONPENSATE_SCH_TIME + CONPENSATE_MASTER_DELAY;
+                    u32 sleep_time_in_us = 1250 + (1250 * conn_info->conn_ind_payload.LLData.WinOffset) - CONPENSATE_SCH_TIME_MASTER + CONPENSATE_MASTER_DELAY;
                     lc_conn_state_set_timer_for_adding_sch_request(mas_dev, sleep_time_in_us);
                     conn_info->state = LC_CONN_STT_SLEEPING_FOR_ADDING_REQUEST;
                 } break;
@@ -947,6 +951,10 @@ void lc_mas_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t ev
         case LC_CONN_STT_ON_CONNECTION_EVENT: {
             switch (evt)
             {
+                case LC_CONN_STT_EVT_SCH_ABORT: {
+                    lc_conn_state_dump_all_dev();
+                } break;
+
                 case LC_CONN_STT_EVT_SCH_GRANT: {
                     MASTER_DUMP2(" xxx ENABLE TX & RX_TIFS\n");
                     conn_info->channel = (conn_info->channel + conn_info->conn_ind_payload.LLData.Hop) % 37;
@@ -1025,7 +1033,8 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
         static Conn_State_Tx_Request_t tx_request;
         tx_request.tx_request_active = 1;
         tx_request.tx_request_done = 0;
-        tx_request.tx_len = 300;
+        tx_request.tx_done_len = 0;
+        tx_request.tx_len = 16;
         tx_request.tx_buf = tx_buf;
         tx_request.next = NULL;
         for (u32 i=0; i<tx_request.tx_len; i++) {
@@ -1033,7 +1042,28 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
         }
         int ret = lc_conn_state_tx_request_add(conn_hdl, &tx_request);
         BASIC_ASSERT(ret == 0);
-        MASTER_DUMP2("============ tx request add ============\n");
+        MASTER_DUMP2("============ tx_request_add ============\n");
+        lc_conn_state_dump_all_dev();
+        //DUMPA(tx_buf);
+        //ARRAYDUMPX3(tx_buf, 300);
+    }
+    //test
+    {
+        u16 conn_hdl = new_mas_dev->connection_handle;
+        static u8 tx_buf[300];
+        static Conn_State_Tx_Request_t tx_request;
+        tx_request.tx_request_active = 1;
+        tx_request.tx_request_done = 0;
+        tx_request.tx_done_len = 0;
+        tx_request.tx_len = 32;
+        tx_request.tx_buf = tx_buf;
+        tx_request.next = NULL;
+        for (u32 i=0; i<tx_request.tx_len; i++) {
+            tx_request.tx_buf[i] = 0xFF - i / 8;
+        }
+        int ret = lc_conn_state_tx_request_add(conn_hdl, &tx_request);
+        BASIC_ASSERT(ret == 0);
+        MASTER_DUMP2("============ tx_request_add ============\n");
         lc_conn_state_dump_all_dev();
         //DUMPA(tx_buf);
         //ARRAYDUMPX3(tx_buf, 300);
@@ -1078,11 +1108,7 @@ void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t ev
             switch (evt)
             {
                 case LC_CONN_STT_EVT_JUST_RECEIVED_CONN_IND: {
-                    #undef  CONPENSATE_SCH_TIME
-                    #define CONPENSATE_SCH_TIME (1240)
-                    #undef  CONPENSATE_MASTER_DELAY
-                    #define CONPENSATE_MASTER_DELAY 0
-                    u32 sleep_time_in_us = 1250 + (1250 * conn_info->conn_ind_payload.LLData.WinOffset) - CONPENSATE_SCH_TIME + CONPENSATE_MASTER_DELAY;
+                    u32 sleep_time_in_us = 1250 + (1250 * conn_info->conn_ind_payload.LLData.WinOffset) - CONPENSATE_SCH_TIME_SLAVE + CONPENSATE_SLAVE_DELAY;
                     lc_conn_state_set_timer_for_adding_sch_request(sla_dev, sleep_time_in_us);
                     conn_info->state = LC_CONN_STT_SLEEPING_FOR_ADDING_REQUEST;
                 } break;

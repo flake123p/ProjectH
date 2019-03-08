@@ -96,6 +96,7 @@ int SimAir_Start(void);
 int SimAir_Uninit(void);
 int SimAir_Log_Enable(bool enable_every_clock_dump = true, bool only_dump_tx_rx_done = false);
 int SimAir_Log_Disable(void);
+const char *SimAir_Handle_ID_String_Get(u32 index);
 
 int SimAir_Request(SimAir_Info_t *info);
 

@@ -10,7 +10,7 @@ extern bool g_sim_air_log_enable;
 extern bool g_sim_air_log_enable_every_clock_dump;
 extern bool g_sim_air_log_only_dump_tx_rx_done;
 u32 g_sim_air_log_curr_ch;
-extern const char *_SimAir_Handle_ID_String_Get(u32 index);
+extern const char *SimAir_Handle_ID_String_Get(u32 index);
 const char *g_sim_air_log_tr_condition;
 LibStringClass g_sim_air_log_bit_by_bit_string;
 bool g_sim_air_log___is_in_every_clock;
@@ -32,7 +32,7 @@ do { \
             "[%8d][i_TR][ch:%3d]%s - tx_bit:%d, final_power_in_air:%4d - %s (byte:%d/bit:%d/0x%02X->%8s)\n",\
             clk_l,\
             g_sim_air_log_curr_ch,\
-            _SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
+            SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
             bit_for_tx,\
             final_power_in_air,\
             g_sim_air_log_tr_condition,\
@@ -51,7 +51,7 @@ do {\
             "[%8d][i_TR][ch:%3d]%s - tx_bit:X, final_power_in_air:%4d - %s\n",\
             clk_l,\
             g_sim_air_log_curr_ch,\
-            _SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
+            SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
             final_power_in_air,\
             g_sim_air_log_tr_condition);\
     _SimAir_Log_Buf_Print(p_curr_info->tx_buf, p_curr_info->response.tx_done_bits);\
@@ -83,7 +83,7 @@ do { \
             "[%8d][i_TR][ch:%3d]%s - rx_bit:%s, accu_power_for_rx :%4d - %s\n",\
             clk_l,\
             g_sim_air_log_curr_ch,\
-            _SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
+            SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
             g_sim_air_log_rx_bit,\
             g_sim_air_log_accu_power_for_rx,\
             g_sim_air_log_tr_condition);\
@@ -98,7 +98,7 @@ do {\
             "[%8d][i_TR][ch:%3d]%s - rx_bit:%s, accu_power_for_rx :%4d - %s\n",\
             clk_l,\
             g_sim_air_log_curr_ch,\
-            _SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
+            SimAir_Handle_ID_String_Get(p_curr_info->hdl),\
             g_sim_air_log_rx_bit,\
             g_sim_air_log_accu_power_for_rx,\
             g_sim_air_log_tr_condition);\

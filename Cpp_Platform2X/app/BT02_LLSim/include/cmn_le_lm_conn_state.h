@@ -27,17 +27,19 @@ typedef enum{
 }LC_CONNECTION_STATE_t;
 typedef enum{
     LC_CONN_STT_EVT_JUST_RECEIVED_CONN_IND = 0,
-    LC_CONN_STT_EVT_JUST_SENT_CONN_IND,
-    LC_CONN_STT_EVT_SLEEP_TIMESUP,
-    LC_CONN_STT_EVT_SCH_GRANT,
-    LC_CONN_STT_EVT_SCH_NACK,
-    LC_CONN_STT_EVT_SCH_ABORT,
-    LC_CONN_STT_EVT_SCH_CLEAR_REQUEST,
-    LC_CONN_STT_EVT_CORR_OK,
-    LC_CONN_STT_EVT_PL_RCV_OK,
-    LC_CONN_STT_EVT_PL_RCV_ERR,
-    LC_CONN_STT_EVT_RX_TIMEOUT,
-    LC_CONN_STT_EVT_TX_DONE,
+    LC_CONN_STT_EVT_JUST_SENT_CONN_IND     = 1,
+    LC_CONN_STT_EVT_SLEEP_TIMESUP          = 2,
+
+    LC_CONN_STT_EVT_SCH_GRANT              = 10,
+    LC_CONN_STT_EVT_SCH_NACK               = 11,
+    LC_CONN_STT_EVT_SCH_ABORT              = 12,
+    LC_CONN_STT_EVT_SCH_CLEAR_REQUEST      = 13,
+
+    LC_CONN_STT_EVT_CORR_OK                = 20,
+    LC_CONN_STT_EVT_PL_RCV_OK              = 21,
+    LC_CONN_STT_EVT_PL_RCV_ERR             = 22,
+    LC_CONN_STT_EVT_RX_TIMEOUT             = 23,
+    LC_CONN_STT_EVT_TX_DONE                = 24,
 }LC_CONNECTION_STATE_EVENT_t;
 
 typedef enum{
@@ -72,6 +74,7 @@ typedef struct {
 typedef struct Conn_State_Tx_Request_t{
     u8 tx_request_active; // upper set 1 to enable lc to send tx
     u8 tx_request_done; // upper shall set 0 as initial value
+    u32 tx_done_len;
     u32 tx_len;
     u8 *tx_buf;
     Conn_State_Tx_Request_t *next;
@@ -99,7 +102,7 @@ typedef struct {
     u8 last_tx_is_acked;                 //used in prepare stage 0
     LC_CONNECTION_STATE_TX_ACT_t tx_act; //used in prepare stage 1
     LC_CONNECTION_STATE_RX_ACT_t rx_act; //used in prepare stage 1
-    u32 accu_tx_len; //accumulate
+//    u32 accu_tx_len; //accumulate
     u32 window_size_in_us;
     u32 window_widen_size_in_us;
     u32 window_size_remain_in_us; //TODO, remain window size in single connection event
