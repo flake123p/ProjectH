@@ -228,6 +228,10 @@ int BT_Phy_Tx(SimAir_Info_t *info)
 
     if (info->response.resp_type == SIM_AIR_TX_DONE)
     {
+        printf("LC_CONN_STT_EVT_TX_DONE\n");
+        (*(Void_CB_t)(info->upper_cb))();
+        lc_conn_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_TX_DONE);
+
         //TIFS RX check
         if (phy_info->RXENABLE == 2)
         {

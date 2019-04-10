@@ -1,5 +1,5 @@
-#ifndef __CMN_LE_LM_CONN_STATE_H__
-#define __CMN_LE_LM_CONN_STATE_H__
+#ifndef __CMN_LE_LM_CONN_H__
+#define __CMN_LE_LM_CONN_H__
 
 #ifdef DFS_SIM_ON
   #include "stub_for_sim.h"
@@ -20,6 +20,8 @@ typedef enum{
     LC_CONN_STT_SLEEPING_FOR_ADDING_REQUEST,
     LC_CONN_STT_WAITING_FOR_1ST_GRANT,
     LC_CONN_STT_ON_CONNECTION_EVENT,
+    LC_CONN_STT_ON_CONNECTION_EVENT_MD,
+    LC_CONN_STT_OFF_CONNECTION_EVENT,
     LC_CONN_STT_WAITING_CONNECTION_EVENT,
     LC_CONN_STT_DISCONNECTED,
 
@@ -77,7 +79,7 @@ typedef struct Conn_State_Tx_Request_t{
     u32 tx_done_len;
     u32 tx_len;
     u8 *tx_buf;
-    Conn_State_Tx_Request_t *next;
+    struct Conn_State_Tx_Request_t *next;
 } Conn_State_Tx_Request_t;
 
 typedef struct {
@@ -140,5 +142,5 @@ void lc_mas_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t ev
 void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t evt);
 void lc_conn_state_machine(Bt_Dev_Info_t *dev, LC_CONNECTION_STATE_EVENT_t evt);
 
-#endif //#define __CMN_LE_LM_CONN_STATE_H__
+#endif //#define __CMN_LE_LM_CONN_H__
 

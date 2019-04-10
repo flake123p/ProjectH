@@ -381,7 +381,11 @@ u8 lc_conn_state_create_dev_by_conn_ind(BT_DEV_ROLE_t role, Adv_Connect_Ind_Payl
     new_conn_info->tx_ctr = 0;
     new_conn_info->rx_ctr = 0;
     new_conn_info->conn_hdl = lc_conn_state_calculate_new_conn_handle();
-    new_conn_info->tx_max_len = 255;
+    if (new_conn_info->conn_ind_payload.LLData.Interval < 6) {
+        new_conn_info->tx_max_len = 50 * new_conn_info->conn_ind_payload.LLData.Interval;
+    } else {
+        new_conn_info->tx_max_len = 255;
+    }
     new_conn_info->tx_md_enable = 0; //disable md for now
     new_conn_info->rx_md_enable = 0; //disable md for now
     new_conn_info->tx_hold = 0;
@@ -424,9 +428,73 @@ void lc_conn_state_set_timer_for_adding_sch_request(Bt_Dev_Info_t *dev, u32 slee
 #endif //#ifdef DFS_SIM_ON
 }
 
+int lc_conn_state_tx_request_add_from_upper(u16 conn_hdl, Conn_State_Tx_Request_t *lm_tx_request)
+{
+    Bt_Dev_Info_t *dev = lc_conn_state_get_dev_by_conn_handle(conn_hdl);
+
+    if (dev == NULL)
+        return 1;
+
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    Conn_State_Tx_Request_t **curr_tx_request = &(conn_info->lm_tx_request);
+    while (1) {
+        if (*curr_tx_request == NULL)
+        {
+            *curr_tx_request = lm_tx_request;
+            break;
+        }
+        else
+        {
+            curr_tx_request = &((*curr_tx_request)->next);
+        }
+    }
+
+    return 0;
+}
+
+int lc_conn_state_tx_request_clear_from_upper(Bt_Dev_Info_t *dev)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    Conn_State_Tx_Request_t *last_tx_request = conn_info->lm_tx_request;
+    while (1) {
+        if (last_tx_request == NULL)
+            break;
+
+        if (last_tx_request->tx_request_done)
+            last_tx_request = last_tx_request->next;
+        else
+            break;
+    }
+
+    conn_info->lm_tx_request = last_tx_request;
+
+    return 0;
+}
+
+
+int lc_conn_state_tx_request_done_to_upper(Bt_Dev_Info_t *dev, Conn_State_Tx_Request_t *complete_tx_request)
+{
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
+    printf("[TX ACK] 02 %02X %02X %02X %02X ", (u8)conn_info->conn_hdl, (u8)conn_info->conn_hdl>>8, (u8)complete_tx_request->tx_len, (u8)complete_tx_request->tx_len>>8);
+    for (u32 i=0; i<complete_tx_request->tx_len; i++) {
+        printf("%02X ", complete_tx_request->tx_buf[i]);
+    }
+    printf("\n");
+
+    //demo
+    lc_conn_state_tx_request_clear_from_upper(dev);
+
+    return 0;
+}
+
 void lc_conn_state_tx_request_update(Conn_State_Info_t *conn_info)
 {
-    Conn_State_Tx_Request_t *scan_tx_request = conn_info->lm_tx_request;
+    Conn_State_Tx_Request_t *scan_tx_request = conn_info->curr_tx_request;
+    if (scan_tx_request == NULL)
+        scan_tx_request = conn_info->lm_tx_request;
     while (1) {
         if (scan_tx_request != NULL)
         {
@@ -451,35 +519,28 @@ void lc_conn_state_tx_request_update(Conn_State_Info_t *conn_info)
         }
         else
         {
+            conn_info->curr_tx_request = NULL;
             break;
         }
     }
-
 }
 
-int lc_conn_state_tx_request_add(u16 conn_hdl, Conn_State_Tx_Request_t *lm_tx_request)
+void lc_conn_state_tx_request_ack_check(Bt_Dev_Info_t *dev)
 {
-    Bt_Dev_Info_t *dev = lc_conn_state_get_dev_by_conn_handle(conn_hdl);
-
-    if (dev == NULL)
-        return 1;
-
     Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
 
-    Conn_State_Tx_Request_t **curr_tx_request = &(conn_info->lm_tx_request);
-    while (1) {
-        if (*curr_tx_request == NULL)
-        {
-            *curr_tx_request = lm_tx_request;
-            break;
-        }
-        else
-        {
-            curr_tx_request = &((*curr_tx_request)->next);
+    if (conn_info->last_tx_is_acked) {
+        if (conn_info->curr_tx_request != NULL) {
+            if (conn_info->curr_tx_request->tx_done_len == conn_info->curr_tx_request->tx_len) {
+                conn_info->curr_tx_request->tx_request_done = 1;
+                Conn_State_Tx_Request_t *complete_tx_request = conn_info->curr_tx_request;
+                //renew curr_tx_request
+                lc_conn_state_tx_request_update(conn_info);
+
+                lc_conn_state_tx_request_done_to_upper(dev, complete_tx_request);
+            }
         }
     }
-
-    return 0;
 }
 
 static void lc_conn_state_assign_tx_buf(u8 *tx_plh, u32 tx_plh_len, u8 *tx_pld, u32 tx_pld_len)
@@ -513,8 +574,10 @@ void lc_conn_state_rx_timeout_check(Conn_State_Info_t *conn_info)
     conn_info->last_tx_is_acked = 0;
 }
 
-void lc_conn_state_rx_ack_check(Conn_State_Info_t *conn_info)
+void lc_conn_state_rx_ack_check(Bt_Dev_Info_t *dev)
 {
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+
     u8 rx_header = g_ll_info->rx_hdr_buf[0];
     u8 rx_length = g_ll_info->rx_hdr_buf[1];
     conn_info->rx_sn = rx_header & 0x08 ? 1 : 0;
@@ -536,10 +599,12 @@ void lc_conn_state_rx_ack_check(Conn_State_Info_t *conn_info)
         conn_info->now_is_new_data = 0;
     }
 
-    if (conn_info->tx_sn != conn_info->rx_nesn)
+    if (conn_info->tx_sn != conn_info->rx_nesn) {
         conn_info->last_tx_is_acked = 1;
-    else
+        lc_conn_state_tx_request_ack_check(dev);
+    } else {
         conn_info->last_tx_is_acked = 0;
+    }
 }
 
 //only used in master
@@ -984,12 +1049,12 @@ void lc_mas_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t ev
                     #ifdef DFS_SIM_ON
                     {
                         u32 len = g_ll_info->rx_hdr_buf[1];
-                        u8 *mas_rx_payload = &(g_ll_info->rx_hdr_buf[g_ll_info->rx_pld_buf_curr_index]);
+                        u8 *mas_rx_payload = &(g_ll_info->rx_pld_buf[g_ll_info->rx_pld_buf_curr_index]);
                         printf("[MAS][Header] : 0x%02X, 0x%02X\n", g_ll_info->rx_hdr_buf[0], g_ll_info->rx_hdr_buf[1]);
                         ARRAYDUMPX3(mas_rx_payload, len);
                     }
                     #endif
-                    lc_conn_state_rx_ack_check(conn_info);
+                    lc_conn_state_rx_ack_check(mas_dev);
                 } break;
 
                 default: {
@@ -997,10 +1062,11 @@ void lc_mas_state_machine(Bt_Dev_Info_t *mas_dev, LC_CONNECTION_STATE_EVENT_t ev
             }
         } break;
 
-//        case LC_CONN_STT_DISCONNECTED: {
-//        } break;
+        case LC_CONN_STT_DISCONNECTED: {
+        } break;
 
         default: {
+            printf("conn_info->state = %d\n", conn_info->state);
             ASSERT_Reboot(0);
         } break;
     }
@@ -1034,13 +1100,13 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
         tx_request.tx_request_active = 1;
         tx_request.tx_request_done = 0;
         tx_request.tx_done_len = 0;
-        tx_request.tx_len = 16;
+        tx_request.tx_len = 300;
         tx_request.tx_buf = tx_buf;
         tx_request.next = NULL;
         for (u32 i=0; i<tx_request.tx_len; i++) {
             tx_request.tx_buf[i] = i / 8;
         }
-        int ret = lc_conn_state_tx_request_add(conn_hdl, &tx_request);
+        int ret = lc_conn_state_tx_request_add_from_upper(conn_hdl, &tx_request);
         BASIC_ASSERT(ret == 0);
         MASTER_DUMP2("============ tx_request_add ============\n");
         lc_conn_state_dump_all_dev();
@@ -1061,7 +1127,7 @@ void lc_mas_handle_conn_ind(Bt_Dev_Info_t *dev_from_ini)
         for (u32 i=0; i<tx_request.tx_len; i++) {
             tx_request.tx_buf[i] = 0xFF - i / 8;
         }
-        int ret = lc_conn_state_tx_request_add(conn_hdl, &tx_request);
+        int ret = lc_conn_state_tx_request_add_from_upper(conn_hdl, &tx_request);
         BASIC_ASSERT(ret == 0);
         MASTER_DUMP2("============ tx_request_add ============\n");
         lc_conn_state_dump_all_dev();
@@ -1147,6 +1213,33 @@ void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t ev
             }
         } break;
 
+        case LC_CONN_STT_OFF_CONNECTION_EVENT: {
+            switch (evt)
+            {
+                case LC_CONN_STT_EVT_SCH_GRANT: {
+                    SLAVE_DUMP2(" xxx ENABLE TX & RX_TIFS, latency_ctr=%d\n", conn_info->latency_ctr);
+                    //Skip check : Latency
+                    // If there is payload receive ok
+                    if (conn_info->rx_ctr) {
+                        conn_info->latency_ctr++;
+                        if (conn_info->latency_ctr -1 != conn_info->conn_ind_payload.LLData.Latency) {
+                            break;
+                        } else {
+                            conn_info->latency_ctr = 0;
+                        }
+                    }
+                    conn_info->channel = (conn_info->channel + conn_info->conn_ind_payload.LLData.Hop) % 37;
+                    lc_conn_state_connection_event_init(sla_dev);
+                    lc_conn_state_rx_prepare(conn_info);
+                    lc_sla_connection_event_start(sla_dev);
+                    conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
+                } break;
+
+                default:
+                    break;
+            }
+        } break;
+
         case LC_CONN_STT_ON_CONNECTION_EVENT: {
             switch (evt)
             {
@@ -1166,6 +1259,7 @@ void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t ev
                     lc_conn_state_connection_event_init(sla_dev);
                     lc_conn_state_rx_prepare(conn_info);
                     lc_sla_connection_event_start(sla_dev);
+                    conn_info->state = LC_CONN_STT_ON_CONNECTION_EVENT;
                 } break;
 
                 case LC_CONN_STT_EVT_PL_RCV_ERR:
@@ -1181,6 +1275,7 @@ void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t ev
                         lc_conn_state_disconnect(sla_dev);
                         return;
                     }
+                    //conn_info->state = LC_CONN_STT_OFF_CONNECTION_EVENT;
                 } break;
 
                 case LC_CONN_STT_EVT_PL_RCV_OK: {
@@ -1192,16 +1287,22 @@ void lc_sla_state_machine(Bt_Dev_Info_t *sla_dev, LC_CONNECTION_STATE_EVENT_t ev
                         ARRAYDUMPX3(sla_rx_payload, len);
                     }
                     #endif
-                    // TODO: use CLKB as timout anchor
-                    conn_info->timeout_ctr = conn_info->conn_ind_payload.LLData.Timeout;
-                    lc_conn_state_rx_ack_check(conn_info);
+                    conn_info->timeout_ctr = (conn_info->conn_ind_payload.LLData.Timeout * 8 / conn_info->conn_ind_payload.LLData.Interval) + 1;
+                    lc_conn_state_rx_ack_check(sla_dev);
                     lc_conn_state_tx_prepare_0_sn_update(conn_info);
                     lc_conn_state_tx_prepare_1_data_update(conn_info);
+                } break;
+
+                case LC_CONN_STT_EVT_TX_DONE: {
+                    //conn_info->state = LC_CONN_STT_OFF_CONNECTION_EVENT;
                 } break;
 
                 default: {
                 } break;
             }
+        } break;
+
+        case LC_CONN_STT_ON_CONNECTION_EVENT_MD: {
         } break;
 
 //        case LC_CONN_STT_DISCONNECTED: {
@@ -1232,5 +1333,31 @@ void lc_sla_handle_conn_ind(Bt_Dev_Info_t *dev_from_adv)
 
     DUMPX(new_sla_dev->connection_handle);
     //Dump_Conn_Info(new_mas_dev);
+
+    //test
+    {
+        u16 conn_hdl = new_sla_dev->connection_handle;
+        static u8 tx_buf[300];
+        static Conn_State_Tx_Request_t tx_request;
+        tx_request.tx_request_active = 1;
+        tx_request.tx_request_done = 0;
+        tx_request.tx_done_len = 0;
+        tx_request.tx_len = 300;
+        tx_request.tx_buf = tx_buf;
+        tx_request.next = NULL;
+        for (u32 i=0; i<tx_request.tx_len; i++) {
+            if (i<tx_request.tx_len/2)
+                tx_request.tx_buf[i] = i % 8 + 0x80;
+            else
+                tx_request.tx_buf[i] = i % 8 + 0x90;
+        }
+        int ret = lc_conn_state_tx_request_add_from_upper(conn_hdl, &tx_request);
+        BASIC_ASSERT(ret == 0);
+        SLAVE_DUMP2("============ tx_request_add ============\n");
+        lc_conn_state_dump_all_dev();
+        //DUMPA(tx_buf);
+        //ARRAYDUMPX3(tx_buf, 300);
+    }
+
 }
 
