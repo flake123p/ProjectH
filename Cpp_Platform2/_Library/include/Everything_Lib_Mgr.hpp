@@ -45,7 +45,7 @@
 #include "LibSimpleFS.hpp"
 #include "LibEncrypt.hpp"
 #include "LibPacket.hpp"
-
+#include "LibMsg.hpp"
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_
 #endif//_EVERYTHING_LIB_MGR_HPP_INCLUDED_
