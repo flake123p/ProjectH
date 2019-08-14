@@ -1,0 +1,408 @@
+
+#include "Everything_Lib_Mgr.hpp"
+
+#if 1
+#define THREAD_SAFE_PROTECT_CODE_BLOCK_S(option)
+#define THREAD_SAFE_PROTECT_START(option)
+#define THREAD_SAFE_PROTECT_END(option)
+#define THREAD_SAFE_PROTECT_CODE_BLOCK_E(option)
+#else
+#define THREAD_SAFE_PROTECT_CODE_BLOCK_S(option) {UBaseType_t  uxSavedInterruptStatus;
+#define THREAD_SAFE_PROTECT_START(option)        uxSavedInterruptStatus = OSAL_CRIT_Enter(OSAL_CRIT_TYPE_HIGH);
+#define THREAD_SAFE_PROTECT_END(option)          OSAL_CRIT_Leave(OSAL_CRIT_TYPE_HIGH, uxSavedInterruptStatus);
+#define THREAD_SAFE_PROTECT_CODE_BLOCK_E(option) }
+#endif
+
+#define __________SINGLY_LINKED_LIST__________
+#define __________SINGLY_LINKED_LIST_________
+
+void UTL_SListHeadInit(SLList_Head_t *head)
+{
+    SLLIST_HEAD_RESET(head);
+}
+
+void UTL_SListInsertLast(SLList_Head_t *head, void *node)
+{
+    SLLIST_INSERT_LAST(head, node);
+}
+
+void UTL_SListInsertLastSafely(SLList_Head_t *head, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_SListInsertLast(head, node);
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void UTL_SListInsertLastSafelyEx(SLList_Head_t *head, u32 *nodeCtr, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_SListInsertLast(head, node);
+    *nodeCtr += 1;
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void UTL_SListInsertFirst(SLList_Head_t *head, void *node)
+{
+    SLLIST_INSERT_AFTER(head, head, node);
+}
+
+void UTL_SListInsertFirstSafely(SLList_Head_t *head, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_SListInsertFirst(head, node);
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void UTL_SListInsertFirstSafelyEx(SLList_Head_t *head, u32 *nodeCtr, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_SListInsertFirst(head, node);
+    *nodeCtr += 1;
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void *UTL_SListPopFirst(SLList_Head_t *head)
+{
+    void *node;
+    if (SLLIST_IS_EMPTY(head))
+        return NULL;
+
+    node = SLLIST_FIRST(head);
+    SLLIST_REMOVE_FIRST(head);
+    return node;
+}
+
+void *UTL_SListPopFirstSafely(SLList_Head_t *head)
+{
+    void *node;
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    node = UTL_SListPopFirst(head);
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+    return node;
+}
+
+void *UTL_SListPopFirstSafelyEx(SLList_Head_t *head, u32 *nodeCtr)
+{
+    void *node;
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    if (*nodeCtr == 0) {
+        THREAD_SAFE_PROTECT_END(1);
+        return NULL;
+    }
+    node = UTL_SListPopFirst(head);
+    *nodeCtr -= 1;
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+    return node;
+}
+
+int UTL_SListScanAndRemove(SLList_Head_t *head, Node_CB_t node_cb, Node_CB_t post_remove_cb, void *cb_argu)
+{
+    u32 curr_index = 0;
+    SLList_Entry_t *curr, *prev;
+    NODE_CB_RC_t node_cb_rc;
+
+    prev = (SLList_Entry_t *)head;
+    SLLIST_FOREACH(head, curr, SLList_Entry_t)
+    {
+        node_cb_rc = (*node_cb)(curr, cb_argu, curr_index);
+        switch (node_cb_rc)
+        {
+            case NODE_CB_RC__DO_NOTHING:
+                break;
+
+            case NODE_CB_RC__REMOVE:
+                SLLIST_REMOVE_NEXT(head, prev);
+                (*post_remove_cb)(curr, cb_argu, curr_index);
+                break;
+
+            case NODE_CB_RC__STOP_SCAN:
+                return 1;
+
+            default:
+                BASIC_ASSERT(0);
+                break;
+        }
+
+        prev = curr;
+        curr_index += 1;
+    }
+
+    return 0;
+}
+
+#define __________DOUBLY_LINKED_LIST__________
+#define __________DOUBLY_LINKED_LIST_________
+
+void UTL_DListHeadInit(DLList_Head_t *head)
+{
+    DLLIST_HEAD_RESET(head);
+}
+
+void UTL_DListInsertLast(DLList_Head_t *head, void *node)
+{
+    DLLIST_INSERT_LAST(head, node);
+}
+
+void UTL_DListInsertLastSafely(DLList_Head_t *head, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_DListInsertLast(head, node);
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void UTL_DListInsertLastSafelyEx(DLList_Head_t *head, u32 *nodeCtr, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_DListInsertLast(head, node);
+    *nodeCtr += 1;
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void UTL_DListInsertFirst(DLList_Head_t *head, void *node)
+{
+    DLLIST_INSERT_AFTER(head, head, node);
+}
+
+void UTL_DListInsertFirstSafely(DLList_Head_t *head, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_DListInsertFirst(head, node);
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void UTL_DListInsertFirstSafelyEx(DLList_Head_t *head, u32 *nodeCtr, void *node)
+{
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    UTL_DListInsertFirst(head, node);
+    *nodeCtr += 1;
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+}
+
+void *UTL_DListPopFirst(DLList_Head_t *head)
+{
+    void *node;
+    if (DLLIST_IS_EMPTY(head))
+        return NULL;
+
+    node = DLLIST_FIRST(head);
+    DLLIST_REMOVE_FIRST(head);
+    return node;
+}
+
+void *UTL_DListPopFirstSafely(DLList_Head_t *head)
+{
+    void *node;
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    node = UTL_DListPopFirst(head);
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+    return node;
+}
+
+void *UTL_DListPopFirstSafelyEx(DLList_Head_t *head, u32 *nodeCtr)
+{
+    void *node;
+
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    if (*nodeCtr == 0) {
+        THREAD_SAFE_PROTECT_END(1);
+        return NULL;
+    }
+    node = UTL_DListPopFirst(head);
+    *nodeCtr -= 1;
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+
+    return node;
+}
+
+void *UTL_DListPopLast(DLList_Head_t *head)
+{
+    void *node;
+    if (DLLIST_IS_EMPTY(head))
+        return NULL;
+
+    node = DLLIST_LAST(head);
+    DLLIST_REMOVE_LAST(head);
+    return node;
+}
+
+void *UTL_DListPopLastSafely(DLList_Head_t *head)
+{
+    void *node;
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    node = UTL_DListPopLast(head);
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+    return node;
+}
+
+void *UTL_DListPopLastSafelyEx(DLList_Head_t *head, u32 *nodeCtr)
+{
+    void *node;
+
+    THREAD_SAFE_PROTECT_CODE_BLOCK_S(1);
+    THREAD_SAFE_PROTECT_START(1);
+
+    if (*nodeCtr == 0) {
+        THREAD_SAFE_PROTECT_END(1);
+        return NULL;
+    }
+    node = UTL_DListPopLast(head);
+    *nodeCtr -= 1;
+
+    THREAD_SAFE_PROTECT_END(1);
+    THREAD_SAFE_PROTECT_CODE_BLOCK_E(1);
+
+    return node;
+}
+
+#define __________CMN_DESC__________
+#define __________CMN_DESC_________
+
+int cmn_desc_push_new(Cmn_Desc_Info_t **head, Cmn_Desc_Info_t *new_node)
+{
+    CMN_DESC_DBG_LOOP_CTR_INIT();
+
+    while (1)
+    {
+        if (*head == NULL)
+        {
+            *head = new_node;
+            break;
+        }
+        else
+        {
+            head = (Cmn_Desc_Info_t **)*head;
+        }
+        CMN_DESC_DBG_LOOP_CTR_ADD_N_CHECK(1,100);
+    }
+
+    return 0;
+}
+
+Cmn_Desc_Info_t *cmn_desc_search_incomplete(Cmn_Desc_Info_t *curr)
+{
+    CMN_DESC_DBG_LOOP_CTR_INIT();
+
+    if (curr == NULL)
+        return NULL;
+
+    while (1)
+    {
+        if (curr != NULL)
+        {
+            if (curr->done == 0)
+                break;
+            else
+                curr = curr->next;
+        }
+        else
+        {
+            break;
+        }
+
+        CMN_DESC_DBG_LOOP_CTR_ADD_N_CHECK(1,100);
+    }
+
+    return curr;
+}
+
+u32 cmn_desc_pop_all_complete(Cmn_Desc_Info_t **p_head, Cmn_Desc_CB release_cb, void *cb_argu, int enable_force_pop)
+{
+    CMN_DESC_DBG_LOOP_CTR_INIT();
+
+    u32 num_of_popped_desc = 0;
+    Cmn_Desc_Info_t **p_prev = p_head;
+    Cmn_Desc_Info_t *curr;
+
+    for (curr = *p_head; curr != NULL;)
+    {
+        if (enable_force_pop || curr->done)
+        {
+            Cmn_Desc_Info_t *popped_desc = curr;
+
+            num_of_popped_desc++;
+            curr = curr->next;
+            *p_prev = curr;
+
+            if (release_cb != NULL)
+                (*release_cb)(popped_desc, cb_argu);
+        }
+        else
+        {
+            p_prev = &curr;
+            curr = curr->next;
+        }
+
+        CMN_DESC_DBG_LOOP_CTR_ADD_N_CHECK(1,100);
+    }
+
+    return num_of_popped_desc;
+}
+
+Cmn_Desc_Info_t *cmn_desc_pop_first_complete(Cmn_Desc_Info_t **p_head)
+{
+    Cmn_Desc_Info_t *curr = *p_head;
+
+    if (curr != NULL)
+    {
+        if (curr->done)
+        {
+            *p_head = curr->next;
+            return curr;
+        }
+    }
+
+    return NULL;
+}
+

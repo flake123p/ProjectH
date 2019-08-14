@@ -28,6 +28,19 @@ log(fmt, ...) printf(("[%d] %s(): " fmt), __LINE__, __FUNCTION__, ##__VA_ARGS__)
 
 
 
+// Aligns the supplied size to the specified PowerOfTwo
+#define ALIGN_SIZE( sizeToAlign, PowerOfTwo )       \
+                (((sizeToAlign) + (PowerOfTwo) - 1) & ~((PowerOfTwo) - 1))
+
+// Checks whether the supplied size is aligned to the specified PowerOfTwo
+#define IS_SIZE_ALIGNED( sizeToTest, PowerOfTwo )  \
+                (((sizeToTest) & ((PowerOfTwo) - 1)) == 0)
+
+#define STRUCT_ENTRY(ptr,type,member) ((type *)((char *)(ptr) - (unsigned long)(&((type *)0)->member)))
+#define STRUCT_ENTRY2(ptr,type,member) ((type *)((char *)(ptr) - offsetof(type, member)))
+
+
+
 //
 // More descriptive for '!' operator
 //
