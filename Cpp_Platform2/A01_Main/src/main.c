@@ -172,7 +172,7 @@ typedef struct {
 
 typedef struct {
     SLList_Entry_t sll_entry;
-    u8 is_active;
+    u8 done;
     u8 is_dynamic;
     u8 is_need_to_free_data; //Default is 0, do nothing. Setting to 1 will use bbm_heap_free() to free it.
     u8 opCode;
@@ -341,6 +341,7 @@ void BT_LM_LmpInstantDescInit(void)
 
     for (i=0; i<LM_TOTAL_LMP_INSTANT_DESC; i++) {
         Lmp_Instant_Desc_t *p_lmp_instant_desc = GET_LMP_INSTANT_DESC_HANDLE(i);
+        p_lmp_instant_desc->done = 0;
         p_lmp_instant_desc->is_dynamic = 0;
         UTL_SListInsertLast(HEAD_LMP_INSTANT_DESC, (void *)p_lmp_instant_desc);
     }
@@ -618,8 +619,10 @@ Lmp_Instant_Desc_t *BT_LM_InstantDescGet(void)
         if (p_lmp_instant_desc == NULL)
             return NULL;
         p_lmp_instant_desc->is_dynamic = 1;
-        p_lmp_instant_desc->data = NULL;
     }
+    p_lmp_instant_desc->done = 0;
+    p_lmp_instant_desc->is_need_to_free_data = 0;
+    p_lmp_instant_desc->data = NULL;
     return p_lmp_instant_desc;
 }
 
@@ -641,6 +644,26 @@ void BT_LM_InstantDescRelease(Lmp_Instant_Desc_t *p_lmp_instant_desc)
     {
         UTL_SListInsertLastSafely(HEAD_LMP_INSTANT_DESC, (void *)p_lmp_instant_desc);
     }
+}
+
+int BT_LM_InstantDescReleaseCB(Cmn_Desc_Info_t *desc_info, void *argu)
+{
+    BT_LM_InstantDescRelease((Lmp_Instant_Desc_t *)desc_info);
+    return 0;
+}
+
+void BT_LM_InstantDescReleaseByHead(SLList_Head_t *head)
+{
+    UTL_CmnDescPopAllComplete((Cmn_Desc_Info_t *)head, BT_LM_InstantDescReleaseCB, NULL, 0);
+}
+
+void BT_LM_InstantDescReleaseByDev(Bt_Dev_Info_t *dev)
+{
+#if 0
+    Conn_State_Info_t *conn_info = (Conn_State_Info_t *)dev->infrastructure;
+    SLList_Head_t *head = &conn_info->cmn_lm_info.head_instant_list;
+    Lmp_Instant_Desc_t *curr, *prev;
+#endif
 }
 
 void BT_LM_InstantDescInsertLast(SLList_Head_t *p_head, Lmp_Instant_Desc_t *p_lmp_instant_desc)
@@ -771,10 +794,68 @@ void Dump_Tx_Buf_ListsX(void)
     }
 }
 
+void Dump_Instant_Lists(void)
+{
+    {
+        Lmp_Instant_Desc_t *cp;
+
+        printf("INSTANT\n");
+        SLLIST_FOREACH(HEAD_LMP_INSTANT_DESC, cp, Lmp_Instant_Desc_t)
+        {
+            printf("%d/%d - ", cp->done, (u32)cp->is_dynamic);
+        }
+        printf("\n");
+    }
+}
+
+void Dump_Instant_Lists2(SLList_Head_t *head)
+{
+    {
+        Lmp_Instant_Desc_t *cp;
+
+        printf("INSTANT 2\n");
+        SLLIST_FOREACH(head, cp, Lmp_Instant_Desc_t)
+        {
+            printf("%d/%d - ", cp->done, (u32)cp->is_dynamic);
+        }
+        printf("\n");
+    }
+}
+
+
 void Chimera_TestX(void)
 {
     BT_LM_HeadsInit();
     BT_LM_TotalBufInit();
+
+    Dump_Instant_Lists();
+
+    SLList_Head_t head_using_instant;
+    SLLIST_HEAD_RESET(&head_using_instant);
+
+    Lmp_Instant_Desc_t *cp;
+    cp = BT_LM_InstantDescGet();
+    BT_LM_InstantDescInsertLast(&head_using_instant, cp);
+    cp = BT_LM_InstantDescGet();
+    BT_LM_InstantDescInsertLast(&head_using_instant, cp); cp->done = 2;
+    cp = BT_LM_InstantDescGet();
+    BT_LM_InstantDescInsertLast(&head_using_instant, cp);
+    cp = BT_LM_InstantDescGet();
+    BT_LM_InstantDescInsertLast(&head_using_instant, cp); cp->done = 3;
+    cp = BT_LM_InstantDescGet();
+    BT_LM_InstantDescInsertLast(&head_using_instant, cp);
+    cp = BT_LM_InstantDescGet();
+    BT_LM_InstantDescInsertLast(&head_using_instant, cp); cp->done = 4;
+
+
+
+    Dump_Instant_Lists();
+    Dump_Instant_Lists2(&head_using_instant);
+
+    BT_LM_InstantDescReleaseByHead(&head_using_instant);
+    Dump_Instant_Lists();
+    Dump_Instant_Lists2(&head_using_instant);
+    return;
 
     u8 *buf;
     buf = BT_LM_AclTxBufferGet();

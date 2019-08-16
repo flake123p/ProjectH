@@ -309,7 +309,7 @@ void *UTL_DListPopLastSafelyEx(DLList_Head_t *head, u32 *nodeCtr)
 #define __________CMN_DESC__________
 #define __________CMN_DESC_________
 
-int cmn_desc_push_new(Cmn_Desc_Info_t **head, Cmn_Desc_Info_t *new_node)
+int UTL_CmnDescPushNew(Cmn_Desc_Info_t **head, Cmn_Desc_Info_t *new_node)
 {
     CMN_DESC_DBG_LOOP_CTR_INIT();
 
@@ -330,7 +330,7 @@ int cmn_desc_push_new(Cmn_Desc_Info_t **head, Cmn_Desc_Info_t *new_node)
     return 0;
 }
 
-Cmn_Desc_Info_t *cmn_desc_search_incomplete(Cmn_Desc_Info_t *curr)
+Cmn_Desc_Info_t *UTL_CmnDescSearchIncomplete(Cmn_Desc_Info_t *curr)
 {
     CMN_DESC_DBG_LOOP_CTR_INIT();
 
@@ -357,15 +357,15 @@ Cmn_Desc_Info_t *cmn_desc_search_incomplete(Cmn_Desc_Info_t *curr)
     return curr;
 }
 
-u32 cmn_desc_pop_all_complete(Cmn_Desc_Info_t **p_head, Cmn_Desc_CB release_cb, void *cb_argu, int enable_force_pop)
+u32 UTL_CmnDescPopAllComplete(Cmn_Desc_Info_t *head, Cmn_Desc_CB release_cb, void *cb_argu, int enable_force_pop)
 {
     CMN_DESC_DBG_LOOP_CTR_INIT();
 
     u32 num_of_popped_desc = 0;
-    Cmn_Desc_Info_t **p_prev = p_head;
+    Cmn_Desc_Info_t *prev = head;
     Cmn_Desc_Info_t *curr;
 
-    for (curr = *p_head; curr != NULL;)
+    for (curr = head->next; curr != NULL;)
     {
         if (enable_force_pop || curr->done)
         {
@@ -373,14 +373,14 @@ u32 cmn_desc_pop_all_complete(Cmn_Desc_Info_t **p_head, Cmn_Desc_CB release_cb, 
 
             num_of_popped_desc++;
             curr = curr->next;
-            *p_prev = curr;
+            prev->next = curr;
 
             if (release_cb != NULL)
                 (*release_cb)(popped_desc, cb_argu);
         }
         else
         {
-            p_prev = &curr;
+            prev = curr;
             curr = curr->next;
         }
 
@@ -390,7 +390,7 @@ u32 cmn_desc_pop_all_complete(Cmn_Desc_Info_t **p_head, Cmn_Desc_CB release_cb, 
     return num_of_popped_desc;
 }
 
-Cmn_Desc_Info_t *cmn_desc_pop_first_complete(Cmn_Desc_Info_t **p_head)
+Cmn_Desc_Info_t *UTL_CmnDescPopFirstComplete(Cmn_Desc_Info_t **p_head)
 {
     Cmn_Desc_Info_t *curr = *p_head;
 

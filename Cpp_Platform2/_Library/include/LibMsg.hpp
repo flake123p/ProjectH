@@ -203,6 +203,11 @@ typedef struct Cmn_Desc_Info_t{
 } Cmn_Desc_Info_t;
 typedef int (*Cmn_Desc_CB)(Cmn_Desc_Info_t *desc_info, void *argu);
 
+int UTL_CmnDescPushNew(Cmn_Desc_Info_t **head, Cmn_Desc_Info_t *new_node);
+Cmn_Desc_Info_t *UTL_CmnDescSearchIncomplete(Cmn_Desc_Info_t *curr);
+u32 UTL_CmnDescPopAllComplete(Cmn_Desc_Info_t *head, Cmn_Desc_CB release_cb, void *cb_argu, int enable_force_pop);
+Cmn_Desc_Info_t *UTL_CmnDescPopFirstComplete(Cmn_Desc_Info_t **p_head);
+
 #define _LIB_MSG_HPP_INCLUDED_
 #endif//_LIB_MSG_HPP_INCLUDED_
 
