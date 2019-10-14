@@ -28,6 +28,7 @@
 #include "_LibError.hpp"
 #include "_LibSyntex.hpp"
 #include "_LibDesc.hpp"
+#include "_LibModule.hpp"
 #include "LibUart.hpp"
 #include "LibTime.hpp"
 #include "LibFileIO.hpp"

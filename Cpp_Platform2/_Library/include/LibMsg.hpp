@@ -8,7 +8,9 @@
 
 // ============================== Library: Cross-Platform (Manager) ==============================
 #include "My_Types.h"
+#include "_LibLinkedList.hpp"
 
+#if 0
 typedef struct {
     void *next;
 } SLList_Entry_t;
@@ -143,6 +145,7 @@ typedef struct {
             DLLIST_REMOVE_NODE(head);\
         }\
     }
+#endif
 
 typedef enum {
     NODE_CB_RC__DO_NOTHING,

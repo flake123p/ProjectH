@@ -2,30 +2,27 @@
 #ifndef __LIB_DESC_HPP_INCLUDED_
 
 #include "My_Types.h"
+#include "_LibLinkedList.hpp"
 
 // ============================== Debug ==============================
 
 // ============================== Define ==============================
 typedef struct {
-    void *head_of_used_desc_list;
-    void *tail_of_used_desc_list;
-    void *head_of_unused_desc_list; //pre-allocate pool
-    void *tail_of_unused_desc_list; //pre-allocate pool
-    u32 size_of_desc;
-} Cmn_Module_Instance_t;
+    DLList_Head_t head_of_using;
+    DLList_Head_t head_of_pool; //pre-allocate pool
+    size_t size_of_desc;
+} Lib_Desc_Head_t;
 
 typedef struct {
-    void *prev;
-    void *next;
-    Cmn_Module_Instance_t *mod_instance;
-    int is_pre_allocate_desc;
-} Cmn_Desc_t;
+    DLList_Entry_t entry;
+    int is_pre_allocate;
+} Lib_Desc_Info_t;
 
-Cmn_Module_Instance_t *LibDesc_InitNewModule(u32 size_of_mod_instance, u32 num_of_preallocate_desc, u32 size_of_desc);
-int LibDesc_UninitModule(Cmn_Module_Instance_t *mod_instance);
-Cmn_Desc_t *LibDesc_GetDesc(Cmn_Module_Instance_t *mod_instance);
-int LibDesc_ReleaseDesc(Cmn_Desc_t *desc);
-int LibDesc_Dump(Cmn_Module_Instance_t *mod_instance);
+Lib_Desc_Head_t *LibDesc_CreateList(size_t size_of_head, u32 num_of_preallocate_desc, size_t size_of_desc);
+int LibDesc_DestroyList(Lib_Desc_Head_t *desc_head, int do_free_head);
+Lib_Desc_Info_t *LibDesc_GetDesc(Lib_Desc_Head_t *desc_head);
+int LibDesc_ReleaseDesc(Lib_Desc_Head_t *desc_head, Lib_Desc_Info_t *desc);
+int LibDesc_Dump(Lib_Desc_Head_t *desc_head);
 
 void LibDesc_Demo(void);
 
