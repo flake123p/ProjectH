@@ -294,3 +294,91 @@ s32 LibUtil_MaxMinMgr_GetMin(void)
 {
 	return gLibUtil_Min;
 }
+
+int LibUtil_GetTrueBitIndexOfU4(u8 in)
+{
+    BASIC_ASSERT((in & 0xF0) == 0);
+
+    // 1101
+    // 3210
+    switch (in)
+    {
+        case  0: return -1;
+        case  1: return 0;
+        case  2: return 1;
+        case  3: return 0;
+        case  4: return 2;
+        case  5: return 0;
+        case  6: return 1;
+        case  7: return 0;
+        case  8: return 3;
+        case  9: return 0;
+        case 10: return 1;
+        case 11: return 0;
+        case 12: return 2;
+        case 13: return 0;
+        case 14: return 1;
+        case 15: return 0;
+    }
+    return -2;
+}
+
+int LibUtil_GetFalseBitIndexOfU4(u8 in)
+{
+    BASIC_ASSERT((in & 0xF0) == 0);
+
+    // 1101
+    // 3210
+    switch (in)
+    {
+        case  0: return 0;
+        case  1: return 1;
+        case  2: return 0;
+        case  3: return 2;
+        case  4: return 0;
+        case  5: return 1;
+        case  6: return 0;
+        case  7: return 3;
+        case  8: return 0;
+        case  9: return 1;
+        case 10: return 0;
+        case 11: return 2;
+        case 12: return 0;
+        case 13: return 1;
+        case 14: return 0;
+        case 15: return -1;
+    }
+    return -2;
+}
+
+int LibUtil_GetTrueBitIndexOfU8(u8 in)
+{
+    int ret;
+
+    ret = LibUtil_GetTrueBitIndexOfU4(in & 0x0F);
+    if(ret < 0) {
+        ret = LibUtil_GetTrueBitIndexOfU4(in >> 4);
+        if(ret < 0)
+            return ret;
+        else
+            ret = ret + 4;
+    }
+
+    return ret;
+}
+
+int LibUtil_GetFalseBitIndexOfU8(u8 in)
+{
+    int ret;
+
+    ret = LibUtil_GetFalseBitIndexOfU4(in & 0x0F);
+    if(ret < 0) {
+        ret = LibUtil_GetFalseBitIndexOfU4(in >> 4);
+        if(ret < 0)
+            return ret;
+        else
+            ret = ret + 4;
+    }
+
+    return ret;
+}

@@ -52,5 +52,14 @@ int LibUtil_MaxMinMgr_Input(s32 inVal);
 s32 LibUtil_MaxMinMgr_GetMax(void);
 s32 LibUtil_MaxMinMgr_GetMin(void);
 
+
+
+int LibUtil_GetTrueBitIndexOfU4(u8 in);
+int LibUtil_GetFalseBitIndexOfU4(u8 in);
+int LibUtil_GetTrueBitIndexOfU8(u8 in);
+int LibUtil_GetFalseBitIndexOfU8(u8 in);
+
+
+
 #define _LIB_UTILITY_HPP_INCLUDED_
 #endif//_LIB_UTILITY_HPP_INCLUDED_
