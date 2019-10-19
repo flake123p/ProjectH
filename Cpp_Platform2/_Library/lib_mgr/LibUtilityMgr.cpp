@@ -367,6 +367,19 @@ int LibUtil_GetTrueBitIndexOfU8(u8 in)
     return ret;
 }
 
+int LibUtil_GetTrueBitIndexOfU8_2(u8 in)
+{
+    int ret;
+
+    ret = LibUtil_GetTrueBitIndexOfU4(in >> 4);
+    if(ret < 0) {
+        ret = LibUtil_GetTrueBitIndexOfU4(in & 0x0F);
+        return ret;
+    }
+
+    return ret = ret + 4;;
+}
+
 int LibUtil_GetFalseBitIndexOfU8(u8 in)
 {
     int ret;
@@ -381,4 +394,34 @@ int LibUtil_GetFalseBitIndexOfU8(u8 in)
     }
 
     return ret;
+}
+
+void LibUtile_Demo(void)
+{
+    int ret;
+    u8 map = 0xFF;
+
+    FOREACH(9)
+    {
+        ret = LibUtil_GetTrueBitIndexOfU8_2(map);
+        DUMPD(ret);DUMPND(i);
+        if (ret >= 0) {
+            CLEAR_BIT(map, ret);
+        } else {
+            printf("FULL\n");
+            break;
+        }
+    }
+    map = 0x10;
+    FOREACH(9)
+    {
+        ret = LibUtil_GetTrueBitIndexOfU8_2(map);
+        DUMPD(ret);DUMPND(i);
+        if (ret >= 0) {
+            CLEAR_BIT(map, ret);
+        } else {
+            printf("FULL\n");
+            break;
+        }
+    }
 }

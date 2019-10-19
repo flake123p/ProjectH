@@ -46,6 +46,8 @@ void dump(void)
 }
 int main(int argc, char *argv[])
 {
+    LibUtile_Demo();
+    return 111;
     LibDesc_Demo();
 
     for(int i=0; i<8; i++)

@@ -30,18 +30,32 @@
 #define CALLER_ASSERT2(...)
 #endif
 
+
+
+#define FOREACH(max) for(int i=0;i<max;i++)
+
+
+
 #include <stdint.h>
 // uintptr_t is defined in C++11 and later standards.
 #define POINTER_TO_INT(ptr) ((uintptr_t)ptr)
 #define POINTER_TO_U32(ptr) ((u32)POINTER_TO_INT(ptr))
 
-#define DUMPC(a) printf(#a " = %c\n", a)
-#define DUMPS(a) printf(#a " = %s\n", a)
-#define DUMPD(a) printf(#a " = %d\n", (int)(a))
-#define DUMPU(a) printf(#a " = %u\n", a)
-#define DUMPX(a) printf(#a " = 0x%X\n", (u32)(a))
-#define DUMPP(a) printf(#a " = %p\n", (void *)(a))
-#define DUMPA(a) printf(#a " = 0x%08X\n", POINTER_TO_U32(a))
+#define DUMPNC(a) printf(#a " = %c\n", a)
+#define DUMPNS(a) printf(#a " = %s\n", a)
+#define DUMPND(a) printf(#a " = %d\n", (int)(a))
+#define DUMPNU(a) printf(#a " = %u\n", a)
+#define DUMPNX(a) printf(#a " = 0x%X\n", (u32)(a))
+#define DUMPNP(a) printf(#a " = %p\n", (void *)(a))
+#define DUMPNA(a) printf(#a " = 0x%08X\n", POINTER_TO_U32(a))
+
+#define DUMPC(a) printf(#a " = %c, ", a)
+#define DUMPS(a) printf(#a " = %s, ", a)
+#define DUMPD(a) printf(#a " = %d, ", (int)(a))
+#define DUMPU(a) printf(#a " = %u, ", a)
+#define DUMPX(a) printf(#a " = 0x%X, ", (u32)(a))
+#define DUMPP(a) printf(#a " = %p, ", (void *)(a))
+#define DUMPA(a) printf(#a " = 0x%08X, ", POINTER_TO_U32(a))
 
 #define ARRAYDUMPC(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %c\n", xi, (a)[xi]);}
 #define ARRAYDUMPS(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = %s\n", xi, (a)[xi]);}

@@ -61,5 +61,9 @@ int LibUtil_GetFalseBitIndexOfU8(u8 in);
 
 
 
+void LibUtile_Demo(void);
+
+
+
 #define _LIB_UTILITY_HPP_INCLUDED_
 #endif//_LIB_UTILITY_HPP_INCLUDED_

@@ -130,6 +130,7 @@ void LibDesc_Demo(void)
     printf("%s()\n", __func__);
 
     Demo_Desc_t *desc1 = (Demo_Desc_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
+    desc1 = desc1;
     Demo_Desc_t *desc2 = (Demo_Desc_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
     Demo_Desc_t *desc3 = (Demo_Desc_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
 
