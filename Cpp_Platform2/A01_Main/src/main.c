@@ -46,6 +46,8 @@ void dump(void)
 }
 int main(int argc, char *argv[])
 {
+    LibMsg_Demo();
+    return 0;
     LibUtile_Demo();
     return 111;
     LibDesc_Demo();

@@ -32,7 +32,7 @@
 
 
 
-#define FOREACH(max) for(int i=0;i<max;i++)
+#define FOREACH_I(max) for(int i=0;i<max;i++)
 
 
 

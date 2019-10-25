@@ -401,7 +401,7 @@ void LibUtile_Demo(void)
     int ret;
     u8 map = 0xFF;
 
-    FOREACH(9)
+    FOREACH_I(9)
     {
         ret = LibUtil_GetTrueBitIndexOfU8_2(map);
         DUMPD(ret);DUMPND(i);
@@ -413,7 +413,7 @@ void LibUtile_Demo(void)
         }
     }
     map = 0x10;
-    FOREACH(9)
+    FOREACH_I(9)
     {
         ret = LibUtil_GetTrueBitIndexOfU8_2(map);
         DUMPD(ret);DUMPND(i);

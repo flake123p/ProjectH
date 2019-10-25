@@ -406,3 +406,143 @@ Cmn_Desc_Info_t *UTL_CmnDescPopFirstComplete(Cmn_Desc_Info_t **p_head)
     return NULL;
 }
 
+void LibMsg_QueueAryMsg_Init(LibMsg_QueueAryMsg *ary_msg, u32 max)
+{
+    ary_msg->max = max;
+    ary_msg->send_index = 0;
+    ary_msg->receive_index = max - 1;
+}
+
+int LibMsg_QueueAryMsg_IsAryMsgFull(LibMsg_QueueAryMsg *ary_msg)
+{
+    return ary_msg->send_index == ary_msg->receive_index;
+}
+
+int LibMsg_QueueAryMsg_GetNextSendIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_send_index) //return 0 for success
+{
+    if (ary_msg->send_index != ary_msg->receive_index)
+    {
+        if (out_send_index != NULL)
+        {
+            *out_send_index = ary_msg->send_index;
+        }
+        return 0;
+    }
+
+    return 1;
+}
+
+int LibMsg_QueueAryMsg_IncreaseSendIndex(LibMsg_QueueAryMsg *ary_msg) //return 0 for success
+{
+    if (ary_msg->send_index != ary_msg->receive_index)
+    {
+        ary_msg->send_index = (ary_msg->send_index + 1 == ary_msg->max) ? 0 : ary_msg->send_index + 1;
+        return 0;
+    }
+
+    return 1;
+}
+
+int LibMsg_QueueAryMsg_GetNewReceiveIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_receive_index) //return 0 for success
+{
+    u32 next = (ary_msg->receive_index + 1 == ary_msg->max) ? 0 : ary_msg->receive_index + 1;
+
+    if (next != ary_msg->send_index)
+    {
+        if (out_receive_index != NULL)
+        {
+            *out_receive_index = next;
+        }
+        return 0;
+    }
+
+    return 1;
+}
+int LibMsg_QueueAryMsg_IncreaseReceiveIndex(LibMsg_QueueAryMsg *ary_msg) //return 0 for success
+{
+    u32 next = (ary_msg->receive_index + 1 == ary_msg->max) ? 0 : ary_msg->receive_index + 1;
+
+    if (next != ary_msg->send_index)
+    {
+        ary_msg->receive_index = next;
+        return 0;
+    }
+
+    return 1;
+}
+
+void LibMsg_QueueAryMsg_Dump(LibMsg_QueueAryMsg *ary_msg)
+{
+    DUMPD(ary_msg->max);DUMPD(ary_msg->send_index);DUMPND(ary_msg->receive_index);
+}
+
+
+LibMsg_QueueAryMsg g_demo_q_ary_msg;
+
+void LibMsg_Demo(void)
+{
+    int ret;
+    int isFull;
+    u32 send_index = 99;
+    u32 receive_index = 88;
+
+    LibMsg_QueueAryMsg_Init(&g_demo_q_ary_msg, 4);
+    LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);
+
+    FOREACH_I(6)
+    {
+        isFull = LibMsg_QueueAryMsg_IsAryMsgFull(&g_demo_q_ary_msg);
+        DUMPD(i);DUMPND(isFull);
+        ret = LibMsg_QueueAryMsg_GetNextSendIndex(&g_demo_q_ary_msg, &send_index);
+        DUMPD(ret);DUMPND(send_index);
+        send_index = 99;
+        ret = LibMsg_QueueAryMsg_IncreaseSendIndex(&g_demo_q_ary_msg);
+        LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);
+    }
+
+    ret = LibMsg_QueueAryMsg_GetNewReceiveIndex(&g_demo_q_ary_msg, &receive_index);
+    DUMPD(ret);DUMPND(receive_index);
+    LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);
+    PRINT_LINE;
+    LibMsg_QueueAryMsg_GetNewReceiveIndex(&g_demo_q_ary_msg, &receive_index);
+    ret = LibMsg_QueueAryMsg_IncreaseReceiveIndex(&g_demo_q_ary_msg);
+    LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);DUMPD(ret);DUMPND(receive_index);
+
+    ret = LibMsg_QueueAryMsg_IncreaseReceiveIndex(&g_demo_q_ary_msg);
+    FOREACH_I(6)
+    {
+        isFull = LibMsg_QueueAryMsg_IsAryMsgFull(&g_demo_q_ary_msg);
+        DUMPD(i);DUMPND(isFull);
+        ret = LibMsg_QueueAryMsg_GetNextSendIndex(&g_demo_q_ary_msg, &send_index);
+        DUMPD(ret);DUMPND(send_index);
+        send_index = 99;
+        ret = LibMsg_QueueAryMsg_IncreaseSendIndex(&g_demo_q_ary_msg);
+        LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);
+    }
+
+    PRINT_LINE;
+    LibMsg_QueueAryMsg_GetNewReceiveIndex(&g_demo_q_ary_msg, &receive_index);
+    ret = LibMsg_QueueAryMsg_IncreaseReceiveIndex(&g_demo_q_ary_msg);
+    LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);DUMPD(ret);DUMPND(receive_index);
+    LibMsg_QueueAryMsg_GetNewReceiveIndex(&g_demo_q_ary_msg, &receive_index);
+    ret = LibMsg_QueueAryMsg_IncreaseReceiveIndex(&g_demo_q_ary_msg);
+    LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);DUMPD(ret);DUMPND(receive_index);
+    LibMsg_QueueAryMsg_GetNewReceiveIndex(&g_demo_q_ary_msg, &receive_index);
+    ret = LibMsg_QueueAryMsg_IncreaseReceiveIndex(&g_demo_q_ary_msg);
+    LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);DUMPD(ret);DUMPND(receive_index);
+    LibMsg_QueueAryMsg_GetNewReceiveIndex(&g_demo_q_ary_msg, &receive_index);
+    ret = LibMsg_QueueAryMsg_IncreaseReceiveIndex(&g_demo_q_ary_msg);
+    LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);DUMPD(ret);DUMPND(receive_index);
+
+    FOREACH_I(0)
+    {
+        isFull = LibMsg_QueueAryMsg_IsAryMsgFull(&g_demo_q_ary_msg);
+        DUMPD(i);DUMPND(isFull);
+        ret = LibMsg_QueueAryMsg_GetNextSendIndex(&g_demo_q_ary_msg, &send_index);
+        DUMPD(ret);DUMPND(send_index);
+        send_index = 99;
+        ret = LibMsg_QueueAryMsg_IncreaseSendIndex(&g_demo_q_ary_msg);
+        LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);
+    }
+
+}

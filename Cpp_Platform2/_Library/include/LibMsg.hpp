@@ -211,6 +211,39 @@ Cmn_Desc_Info_t *UTL_CmnDescSearchIncomplete(Cmn_Desc_Info_t *curr);
 u32 UTL_CmnDescPopAllComplete(Cmn_Desc_Info_t *head, Cmn_Desc_CB release_cb, void *cb_argu, int enable_force_pop);
 Cmn_Desc_Info_t *UTL_CmnDescPopFirstComplete(Cmn_Desc_Info_t **p_head);
 
+/*
+    QueueAryMsg module: (THREAD SAFE)
+        send_index:    task 1 write, task 2 read
+        receive_index: task 2 write, task 1 read
+*/
+typedef struct {
+    u32 max;
+    u32 send_index;
+    u32 receive_index;
+} LibMsg_QueueAryMsg;
+int LibMsg_QueueAryMsg_IsAryMsgFull(LibMsg_QueueAryMsg *ary_msg, u32 max);
+int LibMsg_QueueAryMsg_IsOkToSend(LibMsg_QueueAryMsg *ary_msg);
+int LibMsg_QueueAryMsg_GetNextSendIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_send_index); //return 0 for success
+int LibMsg_QueueAryMsg_IncreaseSendIndex(LibMsg_QueueAryMsg *ary_msg); //return 0 for success
+int LibMsg_QueueAryMsg_GetNewReceiveIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_receive_index); //return 0 for success
+int LibMsg_QueueAryMsg_IncreaseReceiveIndex(LibMsg_QueueAryMsg *ary_msg); //return 0 for success
+void LibMsg_QueueAryMsg_Dump(LibMsg_QueueAryMsg *ary_msg);
+
+/*
+    RandomAryMsg module: (THREAD SAFE)
+        send flag: (make sure it's atom variable, like u32 in 32bit cpu)
+            task 1: only write it to 1 from 0
+            task 2: only write it to 0 from 1
+*/
+typedef struct {
+    u32 send_flag;
+    u32 dummy_in_64bit_cpu;
+} LibMsg_RandomAryMsg;
+
+
+
+void LibMsg_Demo(void);
+
 #define _LIB_MSG_HPP_INCLUDED_
 #endif//_LIB_MSG_HPP_INCLUDED_
 
