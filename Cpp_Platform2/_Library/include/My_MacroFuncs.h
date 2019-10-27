@@ -32,7 +32,7 @@
 
 
 
-#define FOREACH_I(max) for(int i=0;i<max;i++)
+#define FOREACH_I(max) for(unsigned int i=0;i<max;i++)
 
 
 
@@ -68,6 +68,8 @@
 #define ARRAYDUMPA(a,length) for(unsigned int xi=0; xi<(unsigned int)(length); xi++){printf(#a"[%d] = 0x%08X\n", xi, POINTER_TO_U32((a)[xi]));}
 
 #define PRINT_NEXT_LINE printf("\n");
+#define NEWLINE         PRINT_NEXT_LINE
+
 #define PRINT_FUNC      printf("%s\n",__func__);
 #define PRINT_LINE      printf("%d\n",__LINE__);
 #define PRINT_FILE      printf("%s\n",__FILE__);

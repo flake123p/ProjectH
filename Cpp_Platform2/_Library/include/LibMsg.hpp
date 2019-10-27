@@ -220,14 +220,15 @@ typedef struct {
     u32 max;
     u32 send_index;
     u32 receive_index;
-} LibMsg_QueueAryMsg;
-int LibMsg_QueueAryMsg_IsAryMsgFull(LibMsg_QueueAryMsg *ary_msg, u32 max);
-int LibMsg_QueueAryMsg_IsOkToSend(LibMsg_QueueAryMsg *ary_msg);
-int LibMsg_QueueAryMsg_GetNextSendIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_send_index); //return 0 for success
-int LibMsg_QueueAryMsg_IncreaseSendIndex(LibMsg_QueueAryMsg *ary_msg); //return 0 for success
-int LibMsg_QueueAryMsg_GetNewReceiveIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_receive_index); //return 0 for success
-int LibMsg_QueueAryMsg_IncreaseReceiveIndex(LibMsg_QueueAryMsg *ary_msg); //return 0 for success
-void LibMsg_QueueAryMsg_Dump(LibMsg_QueueAryMsg *ary_msg);
+} LibMsg_QueueAryMsgInfo;
+int LibMsg_QueueAryMsg_Init(LibMsg_QueueAryMsgInfo *msg_info, u32 max);
+int LibMsg_QueueAryMsg_IsAryMsgFull(LibMsg_QueueAryMsgInfo *msg_info, u32 max);
+int LibMsg_QueueAryMsg_IsOkToSend(LibMsg_QueueAryMsgInfo *msg_info);
+int LibMsg_QueueAryMsg_GetNextSendIndex(LibMsg_QueueAryMsgInfo *msg_info, u32 *out_send_index); //return 0 for success
+int LibMsg_QueueAryMsg_IncreaseSendIndex(LibMsg_QueueAryMsgInfo *msg_info); //return 0 for success
+int LibMsg_QueueAryMsg_GetNewReceiveIndex(LibMsg_QueueAryMsgInfo *msg_info, u32 *out_receive_index); //return 0 for success
+int LibMsg_QueueAryMsg_IncreaseReceiveIndex(LibMsg_QueueAryMsgInfo *msg_info); //return 0 for success
+void LibMsg_QueueAryMsg_Dump(LibMsg_QueueAryMsgInfo *msg_info);
 
 /*
     RandomAryMsg module: (THREAD SAFE)
@@ -238,11 +239,41 @@ void LibMsg_QueueAryMsg_Dump(LibMsg_QueueAryMsg *ary_msg);
 typedef struct {
     u32 send_flag;
     u32 dummy_in_64bit_cpu;
-} LibMsg_RandomAryMsg;
+} LibMsg_RandomAryMsg_Flag;
+typedef struct {
+    u32 max;
+    u32 search_ctr;
+    u32 size_of_msg; // equal to or bigger than LibMsg_RandomAryMsg_Flag
+    u32 size_of_msg_aligned;
+    u8 *start_ptr;
+} LibMsg_RandomAryMsgInfo;
+int LibMsg_RandomAryMsg_Init(LibMsg_RandomAryMsgInfo *msg_info, u32 max, u32 size_of_msg);
+int LibMsg_RandomAryMsg_Uninit(LibMsg_RandomAryMsgInfo *msg_info);
+LibMsg_RandomAryMsg_Flag *LibMsg_RandomAryMsg_GetMsgToSend(LibMsg_RandomAryMsgInfo *msg_info);
+void LibMsg_RandomAryMsg_Dump(LibMsg_RandomAryMsgInfo *msg_info);
+#define RANDOM_ARY_MSG_DATA_SIZE (16)
+typedef struct {
+    u32 send_flag;
+    u32 dummy_in_64bit_cpu;
+    u8 data[RANDOM_ARY_MSG_DATA_SIZE];
+} LibMsg_RandomAryMsg2_Flag;
+typedef struct {
+    u32 max;
+    u32 search_ctr;
+    LibMsg_RandomAryMsg2_Flag *start_ptr;
+} LibMsg_RandomAryMsg2Info;
+int LibMsg_RandomAryMsg2_Init(LibMsg_RandomAryMsg2Info *msg_info, u32 max);
+int LibMsg_RandomAryMsg2_Uninit(LibMsg_RandomAryMsg2Info *msg_info);
+LibMsg_RandomAryMsg2_Flag *LibMsg_RandomAryMsg2_GetMsgToSend(LibMsg_RandomAryMsg2Info *msg_info);
+void LibMsg_RandomAryMsg2_Dump(LibMsg_RandomAryMsg2Info *msg_info);
 
 
 
 void LibMsg_Demo(void);
+void LibMsg_Demo2(void);
+void LibMsg_Demo3(void);
+
+
 
 #define _LIB_MSG_HPP_INCLUDED_
 #endif//_LIB_MSG_HPP_INCLUDED_

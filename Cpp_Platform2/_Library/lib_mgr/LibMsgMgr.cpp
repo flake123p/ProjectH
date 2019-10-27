@@ -406,25 +406,26 @@ Cmn_Desc_Info_t *UTL_CmnDescPopFirstComplete(Cmn_Desc_Info_t **p_head)
     return NULL;
 }
 
-void LibMsg_QueueAryMsg_Init(LibMsg_QueueAryMsg *ary_msg, u32 max)
+int LibMsg_QueueAryMsg_Init(LibMsg_QueueAryMsgInfo *msg_info, u32 max)
 {
-    ary_msg->max = max;
-    ary_msg->send_index = 0;
-    ary_msg->receive_index = max - 1;
+    msg_info->max = max;
+    msg_info->send_index = 0;
+    msg_info->receive_index = max - 1;
+    return 0;
 }
 
-int LibMsg_QueueAryMsg_IsAryMsgFull(LibMsg_QueueAryMsg *ary_msg)
+int LibMsg_QueueAryMsg_IsAryMsgFull(LibMsg_QueueAryMsgInfo *msg_info)
 {
-    return ary_msg->send_index == ary_msg->receive_index;
+    return msg_info->send_index == msg_info->receive_index;
 }
 
-int LibMsg_QueueAryMsg_GetNextSendIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_send_index) //return 0 for success
+int LibMsg_QueueAryMsg_GetNextSendIndex(LibMsg_QueueAryMsgInfo *msg_info, u32 *out_send_index) //return 0 for success
 {
-    if (ary_msg->send_index != ary_msg->receive_index)
+    if (msg_info->send_index != msg_info->receive_index)
     {
         if (out_send_index != NULL)
         {
-            *out_send_index = ary_msg->send_index;
+            *out_send_index = msg_info->send_index;
         }
         return 0;
     }
@@ -432,22 +433,22 @@ int LibMsg_QueueAryMsg_GetNextSendIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_se
     return 1;
 }
 
-int LibMsg_QueueAryMsg_IncreaseSendIndex(LibMsg_QueueAryMsg *ary_msg) //return 0 for success
+int LibMsg_QueueAryMsg_IncreaseSendIndex(LibMsg_QueueAryMsgInfo *msg_info) //return 0 for success
 {
-    if (ary_msg->send_index != ary_msg->receive_index)
+    if (msg_info->send_index != msg_info->receive_index)
     {
-        ary_msg->send_index = (ary_msg->send_index + 1 == ary_msg->max) ? 0 : ary_msg->send_index + 1;
+        msg_info->send_index = (msg_info->send_index + 1 == msg_info->max) ? 0 : msg_info->send_index + 1;
         return 0;
     }
 
     return 1;
 }
 
-int LibMsg_QueueAryMsg_GetNewReceiveIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_receive_index) //return 0 for success
+int LibMsg_QueueAryMsg_GetNewReceiveIndex(LibMsg_QueueAryMsgInfo *msg_info, u32 *out_receive_index) //return 0 for success
 {
-    u32 next = (ary_msg->receive_index + 1 == ary_msg->max) ? 0 : ary_msg->receive_index + 1;
+    u32 next = (msg_info->receive_index + 1 == msg_info->max) ? 0 : msg_info->receive_index + 1;
 
-    if (next != ary_msg->send_index)
+    if (next != msg_info->send_index)
     {
         if (out_receive_index != NULL)
         {
@@ -458,26 +459,26 @@ int LibMsg_QueueAryMsg_GetNewReceiveIndex(LibMsg_QueueAryMsg *ary_msg, u32 *out_
 
     return 1;
 }
-int LibMsg_QueueAryMsg_IncreaseReceiveIndex(LibMsg_QueueAryMsg *ary_msg) //return 0 for success
+int LibMsg_QueueAryMsg_IncreaseReceiveIndex(LibMsg_QueueAryMsgInfo *msg_info) //return 0 for success
 {
-    u32 next = (ary_msg->receive_index + 1 == ary_msg->max) ? 0 : ary_msg->receive_index + 1;
+    u32 next = (msg_info->receive_index + 1 == msg_info->max) ? 0 : msg_info->receive_index + 1;
 
-    if (next != ary_msg->send_index)
+    if (next != msg_info->send_index)
     {
-        ary_msg->receive_index = next;
+        msg_info->receive_index = next;
         return 0;
     }
 
     return 1;
 }
 
-void LibMsg_QueueAryMsg_Dump(LibMsg_QueueAryMsg *ary_msg)
+void LibMsg_QueueAryMsg_Dump(LibMsg_QueueAryMsgInfo *msg_info)
 {
-    DUMPD(ary_msg->max);DUMPD(ary_msg->send_index);DUMPND(ary_msg->receive_index);
+    DUMPD(msg_info->max);DUMPD(msg_info->send_index);DUMPND(msg_info->receive_index);
 }
 
 
-LibMsg_QueueAryMsg g_demo_q_ary_msg;
+LibMsg_QueueAryMsgInfo g_demo_q_ary_msg;
 
 void LibMsg_Demo(void)
 {
@@ -545,4 +546,159 @@ void LibMsg_Demo(void)
         LibMsg_QueueAryMsg_Dump(&g_demo_q_ary_msg);
     }
 
+}
+
+int LibMsg_RandomAryMsg_Init(LibMsg_RandomAryMsgInfo *msg_info, u32 max, u32 size_of_msg)
+{
+    LibMsg_RandomAryMsg_Flag *curr_msg;
+
+    BASIC_ASSERT(size_of_msg >= sizeof(LibMsg_RandomAryMsg_Flag));
+    msg_info->size_of_msg = size_of_msg;
+    msg_info->size_of_msg_aligned = ALIGN_SIZE(size_of_msg, 8);
+    
+    msg_info->max = max;
+    msg_info->search_ctr = 0;
+    msg_info->start_ptr = (u8 *)malloc(max * msg_info->size_of_msg_aligned);
+    FOREACH_I(max)
+    {
+        curr_msg = (LibMsg_RandomAryMsg_Flag *)(msg_info->start_ptr + (i * msg_info->size_of_msg_aligned));
+        curr_msg->send_flag = 0;
+    }
+    return 0;
+}
+
+int LibMsg_RandomAryMsg_Uninit(LibMsg_RandomAryMsgInfo *msg_info)
+{
+    free(msg_info->start_ptr);
+    return 0;
+}
+
+LibMsg_RandomAryMsg_Flag *LibMsg_RandomAryMsg_GetMsgToSend(LibMsg_RandomAryMsgInfo *msg_info)
+{
+    LibMsg_RandomAryMsg_Flag *curr_msg;
+
+    FOREACH_I(msg_info->max)
+    {
+        if (msg_info->search_ctr == msg_info->max)
+        {
+            msg_info->search_ctr = 0;
+        }
+        curr_msg = (LibMsg_RandomAryMsg_Flag *)(msg_info->start_ptr + (msg_info->search_ctr * msg_info->size_of_msg_aligned));
+        if (curr_msg->send_flag == 0)
+        {
+            msg_info->search_ctr++;
+            return curr_msg;
+        }
+        msg_info->search_ctr++;
+    }
+    return NULL;
+}
+
+void LibMsg_RandomAryMsg_Dump(LibMsg_RandomAryMsgInfo *msg_info)
+{
+    LibMsg_RandomAryMsg_Flag *curr_msg;
+
+    DUMPND(msg_info->max);
+    DUMPND(msg_info->search_ctr);
+    printf("send flag : ");
+    FOREACH_I(msg_info->max)
+    {
+        curr_msg = (LibMsg_RandomAryMsg_Flag *)(msg_info->start_ptr + (i * msg_info->size_of_msg_aligned));
+        printf("%d ", curr_msg->send_flag);
+    }
+    NEWLINE;
+}
+
+LibMsg_RandomAryMsgInfo g_demo_random_ary_msg;
+
+void LibMsg_Demo2(void)
+{
+    LibMsg_RandomAryMsg_Flag *curr_msg;
+
+    LibMsg_RandomAryMsg_Init(&g_demo_random_ary_msg, 4, 40);
+    LibMsg_RandomAryMsg_Dump(&g_demo_random_ary_msg);
+
+    curr_msg = LibMsg_RandomAryMsg_GetMsgToSend(&g_demo_random_ary_msg);
+    curr_msg = LibMsg_RandomAryMsg_GetMsgToSend(&g_demo_random_ary_msg);
+    curr_msg = LibMsg_RandomAryMsg_GetMsgToSend(&g_demo_random_ary_msg);curr_msg->send_flag = 1;
+    curr_msg = LibMsg_RandomAryMsg_GetMsgToSend(&g_demo_random_ary_msg);curr_msg->send_flag = 2;
+    curr_msg = LibMsg_RandomAryMsg_GetMsgToSend(&g_demo_random_ary_msg);curr_msg->send_flag = 3;
+    curr_msg = LibMsg_RandomAryMsg_GetMsgToSend(&g_demo_random_ary_msg);curr_msg->send_flag = 4;
+
+    LibMsg_RandomAryMsg_Dump(&g_demo_random_ary_msg);
+
+    LibMsg_RandomAryMsg_Uninit(&g_demo_random_ary_msg);
+}
+
+int LibMsg_RandomAryMsg2_Init(LibMsg_RandomAryMsg2Info *msg_info, u32 max)
+{
+    BASIC_ASSERT(IS_SIZE_ALIGNED(sizeof(LibMsg_RandomAryMsg2_Flag), 8));
+
+    msg_info->max = max;
+    msg_info->search_ctr = 0;
+    msg_info->start_ptr = (LibMsg_RandomAryMsg2_Flag *)malloc(max * sizeof(LibMsg_RandomAryMsg2_Flag));
+    FOREACH_I(max)
+    {
+        msg_info->start_ptr[i].send_flag = 0;
+    }
+    return 0;
+}
+
+int LibMsg_RandomAryMsg2_Uninit(LibMsg_RandomAryMsg2Info *msg_info)
+{
+    free(msg_info->start_ptr);
+    return 0;
+}
+
+LibMsg_RandomAryMsg2_Flag *LibMsg_RandomAryMsg2_GetMsgToSend(LibMsg_RandomAryMsg2Info *msg_info)
+{
+    LibMsg_RandomAryMsg2_Flag *curr_msg;
+
+    FOREACH_I(msg_info->max)
+    {
+        if (msg_info->search_ctr == msg_info->max)
+        {
+            msg_info->search_ctr = 0;
+        }
+        curr_msg = &(msg_info->start_ptr[msg_info->search_ctr]);
+        if (curr_msg->send_flag == 0)
+        {
+            msg_info->search_ctr++;
+            return curr_msg;
+        }
+        msg_info->search_ctr++;
+    }
+    return NULL;
+}
+
+void LibMsg_RandomAryMsg2_Dump(LibMsg_RandomAryMsg2Info *msg_info)
+{
+    DUMPND(msg_info->max);
+    DUMPND(msg_info->search_ctr);
+    printf("send flag : ");
+    FOREACH_I(msg_info->max)
+    {
+        printf("%d ", msg_info->start_ptr[i].send_flag);
+    }
+    NEWLINE;
+}
+
+LibMsg_RandomAryMsg2Info g_demo_random_ary_msg2;
+
+void LibMsg_Demo3(void)
+{
+    LibMsg_RandomAryMsg2_Flag *curr_msg;
+
+    LibMsg_RandomAryMsg2_Init(&g_demo_random_ary_msg2, 4);
+    LibMsg_RandomAryMsg2_Dump(&g_demo_random_ary_msg2);
+
+    curr_msg = LibMsg_RandomAryMsg2_GetMsgToSend(&g_demo_random_ary_msg2);
+    curr_msg = LibMsg_RandomAryMsg2_GetMsgToSend(&g_demo_random_ary_msg2);curr_msg->send_flag = 1;
+    curr_msg = LibMsg_RandomAryMsg2_GetMsgToSend(&g_demo_random_ary_msg2);curr_msg->send_flag = 2;
+    curr_msg = LibMsg_RandomAryMsg2_GetMsgToSend(&g_demo_random_ary_msg2);curr_msg->send_flag = 3;
+    curr_msg = LibMsg_RandomAryMsg2_GetMsgToSend(&g_demo_random_ary_msg2);curr_msg->send_flag = 4;
+
+    LibMsg_RandomAryMsg2_Dump(&g_demo_random_ary_msg2);
+
+    LibMsg_RandomAryMsg2_Uninit(&g_demo_random_ary_msg2);
 }
