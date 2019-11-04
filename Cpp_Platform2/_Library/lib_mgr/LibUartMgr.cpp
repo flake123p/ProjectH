@@ -27,7 +27,7 @@ int LibUartMgr_DemoTxRx(void)
 	LibUart_Receive(gRxBuffer, &receivedLegnth);
 	LibThreadMgr_Freeze_WatchDog();
 	UART_LOG_MSG(">>> receivedLegnth = %d\n", receivedLegnth);
-	
+
 	LibUart_UninitComPort();
 	return 0;
 }
@@ -35,7 +35,7 @@ int LibUartMgr_DemoTxRx(void)
 int LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate /* = NULL */)
 {
 	int retVal;
-	
+
 	LibFileIoClass file_ComPortName(comPortNameFile, "r");
 
 	retVal = file_ComPortName.FileOpen();
@@ -63,9 +63,9 @@ int LibUartMgr_GetComPortConfigFromFile(const char *comPortNameFile, OUT char *s
 int LibUartMgr_GetComPortConfigFrom_INI_File(const char *comPortNameFile, OUT char *strComPortName, OUT uint32_t *baudRate /* = NULL */)
 {
 	int retVal;
-	
+
 	LibFile_INI file_ComPortName(comPortNameFile, "r+b");
-	
+
 	EXIT_CHK( retVal, file_ComPortName.StartParse() );
 	//file_ComPortName.Dump();
 
@@ -99,17 +99,17 @@ int LibUartMgr_Receive_WaitData(uint8_t *buffer, uint32_t *receivedLength, uint3
 	if (miliSeconds) {
 		retryLoop = (miliSeconds / 50) + 1;
 	}
-	
+
 	retVal = LibUart_Receive(buffer, receivedLength);
-	if (retVal) 
+	if (retVal)
 		return retVal;
 
 	while (*receivedLength == 0) {
 		UART_LOG_MSG("\n%s() Keep waiting the receiving data.\n", __func__);
 		retVal = LibUart_Receive(buffer, receivedLength);
-		if (retVal) 
+		if (retVal)
 			return retVal;
-		
+
 		if (retryLoop == 0) {
 			break;
 		} else {
@@ -172,13 +172,13 @@ int LibUartClass::InitRxBuffer(u32 rx_buf_len)
 	if (rxBuf != NULL) {
 		BASIC_ASSERT(0);
 	}
-	
+
 	rxBufLen = rx_buf_len;
 
 	if (rxBufLen != 0) {
 		rxBuf = (u8 *)malloc(rxBufLen);
 	}
-	
+
 	return 0;
 }
 
@@ -222,11 +222,28 @@ int LibUartClass::ReceiveWithLength(u32 maxRxLen, u32 singleReadlength /* = 80 *
 
 	while (totalReceivedLen < maxRxLen) {
 		RETURN_CHK( retVal, this->ReceiveEx(singleReadlength, totalReceivedLen) );
-		
+
 		totalReceivedLen += this->receivedLen;
 	}
 
 	this->receivedLen = totalReceivedLen;
-	
+
 	return 0;
+}
+
+void UartRx_Simple_Demo(void)
+{
+	LibUart_SniffSetting(1);
+
+	LibUartClass uart(NULL, 8000);
+	uart.comPortName = "COM26";
+	uart.baudRate = 115200;
+	uart.InitComPort(3);
+	//
+	//uart.ReceiveWithLength(2, 2000);
+	//
+    u8 sendBuf[] = {0x01, 0x03, 0x0C, 0x00};
+	uart.Send(sendBuf, sizeof(sendBuf));
+	uart.ReceiveWithLength(2, 2000);
+	uart.UninitComPort();
 }

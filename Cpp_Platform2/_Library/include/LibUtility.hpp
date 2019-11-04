@@ -58,11 +58,32 @@ int LibUtil_GetTrueBitIndexOfU4(u8 in);
 int LibUtil_GetFalseBitIndexOfU4(u8 in);
 int LibUtil_GetTrueBitIndexOfU8(u8 in);
 int LibUtil_GetFalseBitIndexOfU8(u8 in);
+int LibUtil_GetTrueBitIndexOfU16(u16 in);
+int LibUtil_GetFalseBitIndexOfU16(u16 in);
+
+
+
+typedef struct {
+    u16 unique_id;
+    void *handle;
+} LibUtil_UniqueID_Cell_t;
+typedef struct LibUtil_UniqueID_Info_t {
+    int recycle_ctr;
+    u32 flag;
+    u32 flag2;
+    LibUtil_UniqueID_Cell_t *start_ptr[4];
+} LibUtil_UniqueID_Info_t;
+int LibUtil_UniqueID_Init(LibUtil_UniqueID_Info_t *info);
+int LibUtil_UniqueID_Uninit(LibUtil_UniqueID_Info_t *info);
+u16 LibUtil_UniqueID_GetID(LibUtil_UniqueID_Info_t *info, void *handle);
+void *LibUtil_UniqueID_GetHandle(LibUtil_UniqueID_Info_t *info, u16 id);
+int LibUtil_UniqueID_ReleaseID(LibUtil_UniqueID_Info_t *info, u16 id);
+void LibUtil_UniqueID_Dump(LibUtil_UniqueID_Info_t *info);
 
 
 
 void LibUtile_Demo(void);
-
+void LibUtile_Demo2(void);
 
 
 #define _LIB_UTILITY_HPP_INCLUDED_

@@ -67,7 +67,7 @@ public:
 	u32 rxBufLen;
 	u8 *rxBuf;
 	u32 receivedLen;
-	
+
 	LibUartClass(const char *comPortNameFile = NULL, u32 rx_buf_len = 0);
 	~LibUartClass(void);
 	int GetComPortConfigFromFile(const char *comPortNameFile);
@@ -81,6 +81,8 @@ public:
 	int ReceiveEx(u32 singleReadlength, u32 bufOffset = 0);
 	int ReceiveWithLength(u32 maxRxLen, u32 singleReadlength = 80);
 };
+
+void UartRx_Simple_Demo(void);
 
 #define _LIB_UART_HPP_INCLUDED_
 #endif//_LIB_UART_HPP_INCLUDED_

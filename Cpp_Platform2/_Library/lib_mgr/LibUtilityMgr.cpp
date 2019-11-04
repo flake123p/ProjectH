@@ -164,7 +164,7 @@ int LibUtil_IntSwapCopy(u8 *dst, u8 *src, u32 len, bool swap)
 				dst[3] = src[3];
 			}
 		} break;
-		
+
 		default: {
 			BASIC_ASSERT(0);
 		} break;
@@ -380,6 +380,22 @@ int LibUtil_GetTrueBitIndexOfU8_2(u8 in)
     return ret = ret + 4;;
 }
 
+int LibUtil_GetTrueBitIndexOfU16(u16 in)
+{
+    int ret;
+
+    ret = LibUtil_GetTrueBitIndexOfU8(in & 0x00FF);
+    if(ret < 0) {
+        ret = LibUtil_GetTrueBitIndexOfU8(in >> 8);
+        if(ret < 0)
+            return ret;
+        else
+            ret = ret + 8;
+    }
+
+    return ret;
+}
+
 int LibUtil_GetFalseBitIndexOfU8(u8 in)
 {
     int ret;
@@ -394,6 +410,199 @@ int LibUtil_GetFalseBitIndexOfU8(u8 in)
     }
 
     return ret;
+}
+
+int LibUtil_GetFalseBitIndexOfU16(u16 in)
+{
+    int ret;
+
+    ret = LibUtil_GetFalseBitIndexOfU8(in & 0x00FF);
+    if(ret < 0) {
+        ret = LibUtil_GetFalseBitIndexOfU8(in >> 8);
+        if(ret < 0)
+            return ret;
+        else
+            ret = ret + 8;
+    }
+
+    return ret;
+}
+
+int LibUtil_UniqueID_Init(LibUtil_UniqueID_Info_t *info)
+{
+    info->recycle_ctr = 0;
+    info->flag = 0xFFFFFFFF;
+    info->flag2 = 0xFFFFFFFF;
+    info->start_ptr[0] = (LibUtil_UniqueID_Cell_t *)malloc(16 * sizeof(LibUtil_UniqueID_Cell_t));
+    if (NULL == info->start_ptr[0]) {
+        return 1;
+    }
+    FOREACH_I(16)
+    {
+        info->start_ptr[0][i].unique_id = 0x8EFF; //0~0x0EFF
+    }
+    info->start_ptr[1] = NULL;
+    info->start_ptr[2] = NULL;
+    info->start_ptr[3] = NULL;
+    return 0;
+}
+
+int LibUtil_UniqueID_Uninit(LibUtil_UniqueID_Info_t *info)
+{
+    FOREACH_I(4)
+    {
+        if (NULL != info->start_ptr[i]) {
+            free(info->start_ptr[i]);
+        }
+    }
+    return 0;
+}
+
+u16 LibUtil_UniqueID_GetID(LibUtil_UniqueID_Info_t *info, void *handle)
+{
+    int ary_index;
+    int bitmap_index;
+    u16 hash_index;
+    u16 counter_index;
+
+    //1.check flags & index
+    do {
+        if (info->flag & 0x0000FFFF) {
+            bitmap_index = LibUtil_GetTrueBitIndexOfU16((u16)info->flag);
+            ary_index = 0;
+            CLEAR_BIT(info->flag, bitmap_index);
+            break;
+        }
+        if (info->flag & 0xFFFF0000) {
+            bitmap_index = LibUtil_GetTrueBitIndexOfU16((u16)(info->flag>>16));
+            ary_index = 1;
+            CLEAR_BIT(info->flag, bitmap_index+16);
+            break;
+        }
+        if (info->flag2 & 0x0000FFFF) {
+            bitmap_index = LibUtil_GetTrueBitIndexOfU16((u16)info->flag2);
+            ary_index = 2;
+            CLEAR_BIT(info->flag2, bitmap_index);
+            break;
+        }
+        if (info->flag2 & 0xFFFF0000) {
+            bitmap_index = LibUtil_GetTrueBitIndexOfU16((u16)(info->flag2>>16));
+            ary_index = 3;
+            CLEAR_BIT(info->flag2, bitmap_index+16);
+            break;
+        }
+        return 0xFFF0;
+    } while(0);
+
+    if (info->start_ptr[ary_index] == NULL)
+    {
+        info->start_ptr[ary_index] = (LibUtil_UniqueID_Cell_t *)malloc(16 * sizeof(LibUtil_UniqueID_Cell_t));
+        if (NULL == info->start_ptr[ary_index]) {
+            return 0xFFF1;
+        }
+        FOREACH_I(16)
+        {
+            info->start_ptr[ary_index][i].unique_id = 0x8EFF; //0~0x0EFF
+        }
+    }
+
+    hash_index = bitmap_index + (ary_index << 4);
+    counter_index = info->start_ptr[ary_index][bitmap_index].unique_id & 0x0FC0;
+    if (counter_index == 0x0EC0) {
+        counter_index = 0;
+    } else {
+        counter_index += 0x40;
+    }
+
+    info->start_ptr[ary_index][bitmap_index].unique_id = counter_index | hash_index;
+    info->start_ptr[ary_index][bitmap_index].handle = handle;
+
+    return info->start_ptr[ary_index][bitmap_index].unique_id;
+}
+
+void *LibUtil_UniqueID_GetHandle(LibUtil_UniqueID_Info_t *info, u16 id)
+{
+    u16 ary_index = (id & 0x0030 ) >> 4;
+    u16 cell_index = id & 0x000F;
+
+    if (id == info->start_ptr[ary_index][cell_index].unique_id) {
+        return info->start_ptr[ary_index][cell_index].handle;
+    } else {
+        return NULL;
+    }
+}
+
+int LibUtil_UniqueID_ReleaseID(LibUtil_UniqueID_Info_t *info, u16 id)
+{
+    u16 ary_index = (id & 0x0030 ) >> 4;
+    u16 cell_index = id & 0x000F;
+
+    if (id != info->start_ptr[ary_index][cell_index].unique_id) {
+        return 1;
+    }
+
+    info->start_ptr[ary_index][cell_index].unique_id |= 0x8000;
+
+    switch (ary_index)
+    {
+        case 0: SET_BIT(info->flag, cell_index); break;
+        case 1: SET_BIT(info->flag, cell_index + 16); break;
+        case 2: SET_BIT(info->flag2, cell_index); break;
+        case 3: SET_BIT(info->flag2, cell_index + 16); break;
+    }
+
+    info->recycle_ctr++;
+    if (info->recycle_ctr == 10)
+    {
+        info->recycle_ctr = 0;
+        if(info->flag & 0x0000FFFF)
+        {
+            if((info->flag & 0xFFFF0000) == 0xFFFF0000 && info->start_ptr[1] != NULL) {
+                free(info->start_ptr[1]);
+                info->start_ptr[1] = NULL;
+            }
+            if((info->flag2 & 0x0000FFFF) == 0x0000FFFF && info->start_ptr[2] != NULL) {
+                free(info->start_ptr[2]);
+                info->start_ptr[2] = NULL;
+            }
+            if((info->flag2 & 0xFFFF0000) == 0xFFFF0000 && info->start_ptr[3] != NULL) {
+                free(info->start_ptr[3]);
+                info->start_ptr[3] = NULL;
+            }
+        }
+    }
+
+    return 0;
+}
+
+void LibUtil_UniqueID_Dump(LibUtil_UniqueID_Info_t *info)
+{
+    printf("flag = 0x%08X, flag2 = 0x%08X\n", info->flag, info->flag2);
+    FOREACH_I(16)
+    {
+        DUMPNX(info->start_ptr[0][i].unique_id);
+    }
+    if (info->start_ptr[1] != NULL)
+    {
+        FOREACH_I(16)
+        {
+            DUMPNX(info->start_ptr[1][i].unique_id);
+        }
+    }
+    if (info->start_ptr[2] != NULL)
+    {
+        FOREACH_I(16)
+        {
+            DUMPNX(info->start_ptr[2][i].unique_id);
+        }
+    }
+    if (info->start_ptr[3] != NULL)
+    {
+        FOREACH_I(16)
+        {
+            DUMPNX(info->start_ptr[3][i].unique_id);
+        }
+    }
 }
 
 void LibUtile_Demo(void)
@@ -424,4 +633,33 @@ void LibUtile_Demo(void)
             break;
         }
     }
+}
+
+void LibUtile_Demo2(void)
+{
+    LibUtil_UniqueID_Info_t demo_uniqueID_info;
+    int ret = 0;
+    u16 id = 0;
+    LibUtil_UniqueID_Init(&demo_uniqueID_info);
+
+    //id = LibUtil_UniqueID_GetID(&demo_uniqueID_info, NULL);
+    FOREACH_I(0x11) {
+        //ret = LibUtil_UniqueID_ReleaseID(&demo_uniqueID_info, id);
+        //BASIC_ASSERT(ret == 0);
+        id = LibUtil_UniqueID_GetID(&demo_uniqueID_info, ((u8 *)0) + i + 1);
+    }
+    ret = LibUtil_UniqueID_ReleaseID(&demo_uniqueID_info, 0x0010);
+    BASIC_ASSERT(ret == 0);
+
+    FOREACH_I(0x09) {
+        LibUtil_UniqueID_ReleaseID(&demo_uniqueID_info, i);
+    }
+
+    LibUtil_UniqueID_Dump(&demo_uniqueID_info);
+
+    //u8 *x = (u8 *)LibUtil_UniqueID_GetHandle(&demo_uniqueID_info, 0x0020);
+    //DUMPNA(x);
+    LibUtil_UniqueID_Uninit(&demo_uniqueID_info);
+
+    id=id;ret=ret;
 }
