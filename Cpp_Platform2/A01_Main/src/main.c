@@ -2,12 +2,74 @@
 #include "Everything_App.hpp"
 //#include "unix_sys_queue.h"
 
+static int gLibUtil_GetUniqueU32_Inited = 0;
+static u32 gLibUtil_GetUniqueU32_Base = 0;
+static u32 gLibUtil_GetUniqueU32_Increment = 0;
+u32 LibUtil_GetUniqueU32(void)
+{
+    if (0 == gLibUtil_GetUniqueU32_Inited)
+    {
+        gLibUtil_GetUniqueU32_Inited = 1;
 
+        LibUtil_InitRand();
+        gLibUtil_GetUniqueU32_Base = (u32)LibUtil_GetRand();
+        gLibUtil_GetUniqueU32_Increment = (u32)LibUtil_GetRand();
+        gLibUtil_GetUniqueU32_Increment |= 0x00000001;
+    }
+
+    gLibUtil_GetUniqueU32_Base += gLibUtil_GetUniqueU32_Increment;
+    if (gLibUtil_GetUniqueU32_Base == 0)
+        gLibUtil_GetUniqueU32_Base += gLibUtil_GetUniqueU32_Increment;
+
+    return gLibUtil_GetUniqueU32_Base;
+}
+
+static int gLibUtil_GetUniqueU16_Inited = 0;
+static u16 gLibUtil_GetUniqueU16_Base = 0;
+static u16 gLibUtil_GetUniqueU16_Increment = 0;
+u16 LibUtil_GetUniqueU16(void)
+{
+    if (0 == gLibUtil_GetUniqueU16_Inited)
+    {
+        gLibUtil_GetUniqueU16_Inited = 1;
+
+        LibUtil_InitRand();
+        gLibUtil_GetUniqueU16_Base = (u16)LibUtil_GetRand();
+        gLibUtil_GetUniqueU16_Increment = (u16)LibUtil_GetRand();
+        gLibUtil_GetUniqueU16_Increment |= 0x0001;
+    }
+
+    gLibUtil_GetUniqueU16_Base += gLibUtil_GetUniqueU16_Increment;
+    if (gLibUtil_GetUniqueU16_Base == 0)
+        gLibUtil_GetUniqueU16_Base += gLibUtil_GetUniqueU16_Increment;
+
+    return gLibUtil_GetUniqueU16_Base;
+}
+
+#define LIB_MEM_ASSERT_ENABLE ( 1 )
 #define LIB_MEM_HEAD (&gLibMemHead)
 #define LIB_MEM_CURR (gLibMemCurr)
-#define LIB_MEM_DATA(cell) (&(cell->data))
+#define LIB_MEM_DATA(cell) ((u8 *)(&(cell->data)))
 #define LIB_MEM_FLAG(cell) (((u8 *)&(cell->data))+cell->size_with_padding)
 #define LIB_MEM_ALLOC(size) LibMem_MallocEx(size,__FILE__,__LINE__)
+#define LIB_MEM_FREE(ptr)
+
+typedef enum {
+    LIB_MEM_READ_PROTECT_OFF  = 0x10,
+    LIB_MEM_WRITE_PROTECT_OFF = 0x20,
+    LIB_MEM_READ_PROTECT_ON   = 0x40, /* used in flag array */
+    LIB_MEM_WRITE_PROTECT_ON  = 0x80, /* used in flag array */
+} LIB_MEM_FLAG_t;
+
+typedef enum {
+    LIB_MEM_RC_SUCCESS = 0,
+    LIB_MEM_RC_CANT_FIND_CELL,
+    LIB_MEM_RC_DUPLICAT_KEY_INIT,
+    LIB_MEM_RC_KEY_IS_NOT_INITED,
+    LIB_MEM_RC_KEY_IS_NOT_MATCH,
+    LIB_MEM_RC_READ_PROTECT_VIOLATION,
+    LIB_MEM_RC_WRITE_PROTECT_VIOLATION,
+} LIB_MEM_RETURN_CODE_t;
 
 typedef struct {
     DLList_Entry_t entry;
@@ -22,6 +84,19 @@ DLList_Head_t gLibMemHead = DLLIST_HEAD_INIT(LIB_MEM_HEAD);
 LibMem_Cell_t *gLibMemCurr = NULL;
 int gLibMemInitiated = 0;
 MUTEX_HANDLE_t gLibMemMutexHdl = NULL;
+
+static const char *_LibMem_ErrorCodeString(int errorCode)
+{
+    switch (errorCode) {
+        case LIB_MEM_RC_CANT_FIND_CELL: return "LIB_MEM_RC_CANT_FIND_CELL";
+        case LIB_MEM_RC_DUPLICAT_KEY_INIT: return "LIB_MEM_RC_DUPLICAT_KEY_INIT";
+        case LIB_MEM_RC_KEY_IS_NOT_INITED: return "LIB_MEM_RC_KEY_IS_NOT_INITED";
+        case LIB_MEM_RC_KEY_IS_NOT_MATCH: return "LIB_MEM_RC_KEY_IS_NOT_MATCH";
+        case LIB_MEM_RC_READ_PROTECT_VIOLATION: return "LIB_MEM_RC_READ_PROTECT_VIOLATION";
+        case LIB_MEM_RC_WRITE_PROTECT_VIOLATION: return "LIB_MEM_RC_WRITE_PROTECT_VIOLATION";
+    }
+    return "NULL";
+}
 
 static void _LibMem_Mutex_Lock(void)
 {
@@ -53,7 +128,7 @@ static void _LibMem_Mutex_Destroy(void)
     gLibMemMutexHdl = NULL;
 }
 
-static LibMem_Cell_t *_LibMem_FindCellEntry(void *data_addr)
+static LibMem_Cell_t *_LibMem_FindCellEntry(u8 *data_addr)
 {
     if (gLibMemCurr == NULL)
         return NULL;
@@ -63,14 +138,17 @@ static LibMem_Cell_t *_LibMem_FindCellEntry(void *data_addr)
     while (1)
     {
         if (LIB_MEM_DATA(curr_cell) == data_addr) {
+            gLibMemCurr = curr_cell;
             return curr_cell;
         }
-        if (curr_cell->entry.next == NULL)
+        if (curr_cell->entry.next == NULL) {
             break;
-        else
+        } else {
             curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+        }
     }
 
+    curr_cell = gLibMemCurr;
     while (1)
     {
         if (curr_cell->entry.prev == LIB_MEM_HEAD)
@@ -79,6 +157,52 @@ static LibMem_Cell_t *_LibMem_FindCellEntry(void *data_addr)
         curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
 
         if (LIB_MEM_DATA(curr_cell) == data_addr) {
+            gLibMemCurr = curr_cell;
+            return curr_cell;
+        }
+    }
+
+    return NULL;
+}
+
+static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
+{
+    if (gLibMemCurr == NULL)
+        return NULL;
+
+    LibMem_Cell_t *curr_cell = gLibMemCurr;
+    u8 *cell_addr_start = LIB_MEM_DATA(curr_cell);
+    u8 *cell_addr_end = cell_addr_start + curr_cell->size;
+    u8 *target_addr_start = any_addr;
+    u8 *target_addr_end = any_addr + len;
+
+    while (1)
+    {
+        if (cell_addr_start <= target_addr_start && cell_addr_end >= target_addr_end) {
+            gLibMemCurr = curr_cell;
+            return curr_cell;
+        }
+        if (curr_cell->entry.next == NULL) {
+            break;
+        } else {
+            curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+            cell_addr_start = LIB_MEM_DATA(curr_cell);
+            cell_addr_end = cell_addr_start + curr_cell->size;
+        }
+    }
+
+    curr_cell = gLibMemCurr;
+    while (1)
+    {
+        if (curr_cell->entry.prev == LIB_MEM_HEAD)
+            break;
+
+        curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
+        cell_addr_start = LIB_MEM_DATA(curr_cell);
+        cell_addr_end = cell_addr_start + curr_cell->size;
+
+        if (cell_addr_start <= target_addr_start && cell_addr_end >= target_addr_end) {
+            gLibMemCurr = curr_cell;
             return curr_cell;
         }
     }
@@ -150,6 +274,22 @@ void *LibMem_MallocEx(size_t size, const char *file_str, int line)
     return ret;
 }
 
+int LibMem_Free(void *ptr)
+{
+    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntry((u8 *)ptr);
+
+    if (curr_cell == NULL)
+        return LIB_MEM_RC_CANT_FIND_CELL;
+
+    _LibMem_Mutex_Lock();
+    DLLIST_REMOVE_NODE(LIB_MEM_HEAD, curr_cell);
+    _LibMem_Mutex_Unlock();
+
+    free(curr_cell);
+
+    return 0;
+}
+
 int LibMem_RangeCheck(u8 *addr, u32 size, int do_read_check)
 {
     // 1 range check
@@ -157,20 +297,157 @@ int LibMem_RangeCheck(u8 *addr, u32 size, int do_read_check)
     return 0;
 }
 
-int LibMem_KeyInit(void *data_addr, u32 key)
+int LibMem_KeyInit(u8 *cell_data_addr, u32 key)
 {
-    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntry(data_addr);
+    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntry(cell_data_addr);
 
     if (curr_cell == NULL)
-        return 1;
+        return LIB_MEM_RC_CANT_FIND_CELL;
 
     if (curr_cell->key != 0)
-        return 2;
+        return LIB_MEM_RC_DUPLICAT_KEY_INIT;
 
     curr_cell->key = key;
     return 0;
 }
 
+int LibMem_ConfigureProtection(u8 *any_addr, u32 len, u32 key, u8 act_flags/*LIB_MEM_FLAG_t*/)
+{
+    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntryByAnyAddr(any_addr, len);
+
+    if (curr_cell == NULL)
+        return LIB_MEM_RC_CANT_FIND_CELL;
+
+    if (curr_cell->key == 0)
+        return LIB_MEM_RC_KEY_IS_NOT_INITED;
+
+    if (curr_cell->key != key)
+        return LIB_MEM_RC_KEY_IS_NOT_MATCH;
+
+    {
+        u8 *flag_start = any_addr + curr_cell->size_with_padding;
+
+        if (act_flags & LIB_MEM_READ_PROTECT_OFF) {
+            FOREACH_I(len) {
+                FLG_RMV(*(flag_start+i), LIB_MEM_READ_PROTECT_ON);
+            }
+        }
+        if (act_flags & LIB_MEM_WRITE_PROTECT_OFF) {
+            FOREACH_I(len) {
+                FLG_RMV(*(flag_start+i), LIB_MEM_WRITE_PROTECT_ON);
+            }
+        }
+        if (act_flags & LIB_MEM_READ_PROTECT_ON) {
+            FOREACH_I(len) {
+                FLG_ADD(*(flag_start+i), LIB_MEM_READ_PROTECT_ON);
+            }
+        }
+        if (act_flags & LIB_MEM_WRITE_PROTECT_ON) {
+            FOREACH_I(len) {
+                FLG_ADD(*(flag_start+i), LIB_MEM_WRITE_PROTECT_ON);
+            }
+        }
+    }
+    return 0;
+}
+
+int LibMem_ReadCheck(u8 *any_addr, u32 len, u32 key)
+{
+    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntryByAnyAddr(any_addr, len);
+
+    if (curr_cell == NULL)
+        return LIB_MEM_RC_CANT_FIND_CELL;
+
+    if (curr_cell->key != 0) {
+        if (curr_cell->key == key)
+            return 0;
+    }
+
+    {
+        u8 *flag_start = any_addr + curr_cell->size_with_padding;
+
+        FOREACH_I(len) {
+            if (flag_start[i] & LIB_MEM_READ_PROTECT_ON)
+                return LIB_MEM_RC_READ_PROTECT_VIOLATION;
+        }
+    }
+    return 0;
+}
+
+int LibMem_ReadCheckEx(u8 *any_addr, u32 len, u32 key, const char *file_str, int line)
+{
+    int ret = LibMem_ReadCheck(any_addr, len, key);
+
+    if (ret) {
+        printf("%s() error, code: %s, in file:%s, line:%d\n", __func__, _LibMem_ErrorCodeString(ret), file_str, line);
+        #if LIB_MEM_ASSERT_ENABLE
+        BASIC_ASSERT(0);
+        #endif
+    }
+    return ret;
+}
+
+int LibMem_WriteCheck(u8 *any_addr, u32 len, u32 key)
+{
+    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntryByAnyAddr(any_addr, len);
+
+    if (curr_cell == NULL)
+        return LIB_MEM_RC_CANT_FIND_CELL;
+
+    if (curr_cell->key != 0) {
+        if (curr_cell->key == key)
+            return 0;
+    }
+
+    {
+        u8 *flag_start = any_addr + curr_cell->size_with_padding;
+
+        FOREACH_I(len) {
+            if (flag_start[i] & LIB_MEM_WRITE_PROTECT_ON)
+                return LIB_MEM_RC_WRITE_PROTECT_VIOLATION;
+        }
+    }
+    return 0;
+}
+
+void LibMem_Dump_Cell(u8 *any_addr)
+{
+    u8 *ptr;
+    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntryByAnyAddr(any_addr, 0);
+
+    if (curr_cell == NULL)
+        printf("Can't find matched cell!\n");
+
+    DUMPNA(curr_cell);
+    DUMPNX(curr_cell->key);
+    DUMPNU(curr_cell->size);
+    DUMPNU(curr_cell->real_size);
+    DUMPNU(curr_cell->size_with_padding);
+
+    printf("Data in hex:\n");
+    ptr = LIB_MEM_DATA(curr_cell);
+    FOREACH_I(curr_cell->size) {
+        if (i%4 == 3)
+            printf("%02X, ", ptr[i]);
+        else
+            printf("%02X ", ptr[i]);
+        if (i%16 == 15)
+            PRINT_NEXT_LINE;
+    }
+    PRINT_NEXT_LINE;
+
+    printf("Flag in hex:\n");
+    ptr = LIB_MEM_DATA(curr_cell) + curr_cell->size_with_padding;
+    FOREACH_I(curr_cell->size) {
+        if (i%4 == 3)
+            printf("%02X, ", ptr[i]);
+        else
+            printf("%02X ", ptr[i]);
+        if (i%16 == 15)
+            PRINT_NEXT_LINE;
+    }
+    PRINT_NEXT_LINE;
+}
 
 void LibMem_Dump(void)
 {
@@ -219,18 +496,37 @@ mutex
 
 void LibMem_Demo(void)
 {
+typedef struct {
+    u8 a;
+    u16 b;
+    u32 c;
+}testaaa;
+    DUMPND(sizeof(testaaa));
+
+    int ret;
     u8 *ptr;
     u8 *ptr2;
-    LibMem_Cell_t *curr_cell;
+    testaaa *ptraaa;
+    u32 ptr2_key = LibUtil_GetUniqueU32();
+    //LibMem_Cell_t *curr_cell;
     ptr = (u8 *)LIB_MEM_ALLOC(3);
     ptr2 = (u8 *)LIB_MEM_ALLOC(9);
-    curr_cell = _LibMem_FindCellEntry(ptr2);
-    curr_cell->size = 999;
-    curr_cell = _LibMem_FindCellEntry(ptr);
-    curr_cell->size = 888;
-    //LibMem_KeyInit(ptr, 2);
+    ptraaa = (testaaa *)ptr2;
+    //curr_cell = _LibMem_FindCellEntry(ptr2);
+    //curr_cell = _LibMem_FindCellEntry(ptr);
+    //curr_cell->size = 888;
+    LibMem_KeyInit(ptr, 2);
+    //LibMem_Free(ptr);
     LibMem_Dump();
+    //return;
+    LibMem_KeyInit(ptr2, ptr2_key);
+    LibMem_ConfigureProtection(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
+    LibMem_ConfigureProtection((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
+    //LibMem_ConfigureProtection((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_OFF | LIB_MEM_READ_PROTECT_OFF);
+    LibMem_Dump_Cell(ptr2);
 
+    ret = LibMem_ReadCheckEx((u8 *)ptraaa, sizeof(testaaa), 11, __FILE__, __LINE__);
+    DUMPND(ret);
 
     LibMem_Uninit();
 }
@@ -240,6 +536,10 @@ int main(int argc, char *argv[])
     //LibUtile_Demo2();
 
     LibMem_Demo();
+    //DUMPND(LibUtil_GetUniqueU32());
+    //DUMPND(LibUtil_GetUniqueU32());
+    //DUMPND(LibUtil_GetUniqueU32());
+    //DUMPND(LibUtil_GetUniqueU32());
     return 99;
 }
 
