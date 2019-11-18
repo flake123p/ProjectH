@@ -53,8 +53,28 @@ u16 LibUtil_GetUniqueU16(void)
 #define LIB_MEM_FLAG(cell) (((u8 *)&(cell->data))+cell->size_with_padding)
 #define LIB_MEM_ALLOC(size) LibMem_MallocEx(size,__FILE__,__LINE__)
 #define LIB_MEM_FREE(ptr)
+#define LIB_MEM_READ_CHECK(addr,len,key) LibMem_ReadCheckEx((u8 *)(addr),len,key,__FILE__,__LINE__)
+#define LIB_MEM_WRITE_CHECK(addr,len,key,doWrite) LibMem_WriteCheckEx((u8 *)(addr),len,key,doWrite,__FILE__,__LINE__)
+
+#if 1
+#define WT(a,b)           LIB_MEM_WRITE_CHECK(&(a),sizeof(a),0,1);(a)=(b)
+#define WTKEY(key,a,b)    LIB_MEM_WRITE_CHECK(&(a),sizeof(a),key,1);(a)=(b)
+#define RW(a,op,b)        LIB_MEM_READ_CHECK(&(a),sizeof(a),0);LIB_MEM_WRITE_CHECK(&(a),sizeof(a),0,1);(a)op(b)
+#define RWKEY(key,a,op,b) LIB_MEM_READ_CHECK(&(a),sizeof(a),key);LIB_MEM_WRITE_CHECK(&(a),sizeof(a),key,1);(a)op(b)
+#define RD(a,b)           LIB_MEM_READ_CHECK(&(b),sizeof(b),0);(a)=(b)
+#define RDKEY(key,a,b)    LIB_MEM_READ_CHECK(&(b),sizeof(b),key);(a)=(b)
+#else
+#define WT(a,b)           (a)=(b)
+#define WTKEY(key,a,b)    (a)=(b)
+#define RW(a,op,b)        (a)op(b)
+#define RWKEY(key,a,op,b) (a)op(b)
+#define RD(a,b)           (a)=(b)
+#define RDKEY(key,a,b)    (a)=(b)
+#endif
 
 typedef enum {
+    LIB_MEM_BYTE_WAS_WRITTEN  = 0x01, /* used in flag array */
+
     LIB_MEM_READ_PROTECT_OFF  = 0x10,
     LIB_MEM_WRITE_PROTECT_OFF = 0x20,
     LIB_MEM_READ_PROTECT_ON   = 0x40, /* used in flag array */
@@ -67,6 +87,7 @@ typedef enum {
     LIB_MEM_RC_DUPLICAT_KEY_INIT,
     LIB_MEM_RC_KEY_IS_NOT_INITED,
     LIB_MEM_RC_KEY_IS_NOT_MATCH,
+    LIB_MEM_RC_READ_BEFORE_WRITE,
     LIB_MEM_RC_READ_PROTECT_VIOLATION,
     LIB_MEM_RC_WRITE_PROTECT_VIOLATION,
 } LIB_MEM_RETURN_CODE_t;
@@ -92,6 +113,7 @@ static const char *_LibMem_ErrorCodeString(int errorCode)
         case LIB_MEM_RC_DUPLICAT_KEY_INIT: return "LIB_MEM_RC_DUPLICAT_KEY_INIT";
         case LIB_MEM_RC_KEY_IS_NOT_INITED: return "LIB_MEM_RC_KEY_IS_NOT_INITED";
         case LIB_MEM_RC_KEY_IS_NOT_MATCH: return "LIB_MEM_RC_KEY_IS_NOT_MATCH";
+        case LIB_MEM_RC_READ_BEFORE_WRITE: return "LIB_MEM_RC_READ_BEFORE_WRITE";
         case LIB_MEM_RC_READ_PROTECT_VIOLATION: return "LIB_MEM_RC_READ_PROTECT_VIOLATION";
         case LIB_MEM_RC_WRITE_PROTECT_VIOLATION: return "LIB_MEM_RC_WRITE_PROTECT_VIOLATION";
     }
@@ -353,6 +375,7 @@ int LibMem_ConfigureProtection(u8 *any_addr, u32 len, u32 key, u8 act_flags/*LIB
 
 int LibMem_ReadCheck(u8 *any_addr, u32 len, u32 key)
 {
+    int key_is_matched = 0;
     LibMem_Cell_t *curr_cell = _LibMem_FindCellEntryByAnyAddr(any_addr, len);
 
     if (curr_cell == NULL)
@@ -360,16 +383,29 @@ int LibMem_ReadCheck(u8 *any_addr, u32 len, u32 key)
 
     if (curr_cell->key != 0) {
         if (curr_cell->key == key)
-            return 0;
+            key_is_matched = 1;
+        else if (key != 0)
+            return LIB_MEM_RC_KEY_IS_NOT_MATCH;
     }
 
     {
         u8 *flag_start = any_addr + curr_cell->size_with_padding;
 
-        FOREACH_I(len) {
-            if (flag_start[i] & LIB_MEM_READ_PROTECT_ON)
-                return LIB_MEM_RC_READ_PROTECT_VIOLATION;
+        if (key_is_matched) {
+            FOREACH_I(len) {
+                if (0 == (flag_start[i] & LIB_MEM_BYTE_WAS_WRITTEN))
+                    return LIB_MEM_RC_READ_BEFORE_WRITE;
+            }
+        } else {
+            FOREACH_I(len) {
+                if (0 == (flag_start[i] & LIB_MEM_BYTE_WAS_WRITTEN))
+                    return LIB_MEM_RC_READ_BEFORE_WRITE;
+
+                if (flag_start[i] & LIB_MEM_READ_PROTECT_ON)
+                    return LIB_MEM_RC_READ_PROTECT_VIOLATION;
+            }
         }
+
     }
     return 0;
 }
@@ -387,8 +423,9 @@ int LibMem_ReadCheckEx(u8 *any_addr, u32 len, u32 key, const char *file_str, int
     return ret;
 }
 
-int LibMem_WriteCheck(u8 *any_addr, u32 len, u32 key)
+int LibMem_WriteCheck(u8 *any_addr, u32 len, u32 key, int do_write)
 {
+    int key_is_matched = 0;
     LibMem_Cell_t *curr_cell = _LibMem_FindCellEntryByAnyAddr(any_addr, len);
 
     if (curr_cell == NULL)
@@ -396,18 +433,45 @@ int LibMem_WriteCheck(u8 *any_addr, u32 len, u32 key)
 
     if (curr_cell->key != 0) {
         if (curr_cell->key == key)
-            return 0;
+            key_is_matched = 1;
+        else if (key != 0)
+            return LIB_MEM_RC_KEY_IS_NOT_MATCH;
     }
 
     {
         u8 *flag_start = any_addr + curr_cell->size_with_padding;
 
-        FOREACH_I(len) {
-            if (flag_start[i] & LIB_MEM_WRITE_PROTECT_ON)
-                return LIB_MEM_RC_WRITE_PROTECT_VIOLATION;
+        if (key_is_matched) {
+            if (do_write) {
+                FOREACH_I(len) {
+                    flag_start[i] |= LIB_MEM_BYTE_WAS_WRITTEN;
+                }
+            }
+        } else {
+            FOREACH_I(len) {
+                if (flag_start[i] & LIB_MEM_WRITE_PROTECT_ON)
+                    return LIB_MEM_RC_WRITE_PROTECT_VIOLATION;
+
+                if (do_write)
+                    flag_start[i] |= LIB_MEM_BYTE_WAS_WRITTEN;
+            }
         }
+
     }
     return 0;
+}
+
+int LibMem_WriteCheckEx(u8 *any_addr, u32 len, u32 key, int do_write, const char *file_str, int line)
+{
+    int ret = LibMem_WriteCheck(any_addr, len, key, do_write);
+
+    if (ret) {
+        printf("%s() error, code: %s, in file:%s, line:%d\n", __func__, _LibMem_ErrorCodeString(ret), file_str, line);
+        #if LIB_MEM_ASSERT_ENABLE
+        BASIC_ASSERT(0);
+        #endif
+    }
+    return ret;
 }
 
 void LibMem_Dump_Cell(u8 *any_addr)
@@ -503,7 +567,6 @@ typedef struct {
 }testaaa;
     DUMPND(sizeof(testaaa));
 
-    int ret;
     u8 *ptr;
     u8 *ptr2;
     testaaa *ptraaa;
@@ -523,10 +586,16 @@ typedef struct {
     LibMem_ConfigureProtection(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
     LibMem_ConfigureProtection((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
     //LibMem_ConfigureProtection((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_OFF | LIB_MEM_READ_PROTECT_OFF);
-    LibMem_Dump_Cell(ptr2);
 
-    ret = LibMem_ReadCheckEx((u8 *)ptraaa, sizeof(testaaa), 11, __FILE__, __LINE__);
-    DUMPND(ret);
+
+    WTKEY(0, ptraaa->a, 0x78);
+    LibMem_Dump_Cell(ptr2);
+    u8 x;
+    RDKEY(ptr2_key, x, ptraaa->a);
+    DUMPNX(x);
+    RWKEY(ptr2_key, ptraaa->a, =, 0x0f);
+    DUMPNX(ptraaa->a);
+    //LibMem_WriteCheckEx((u8 *)ptraaa, sizeof(testaaa), 11, __FILE__, __LINE__);
 
     LibMem_Uninit();
 }
