@@ -1,3 +1,12 @@
+/*
+    TODO:
+        1.task message send/receive                [LibHiTask.cpp]
+            create task & trigger event
+            task go with message
+            wait task done with comeback message
+        2.thread-safe LibDesc                      [LibHiTask.cpp]
+        3.task pool (enable true multi-threading)  [LibHiTask.cpp]
+*/
 
 #include "Everything_App.hpp"
 //#include "unix_sys_queue.h"
@@ -46,17 +55,24 @@ u16 LibUtil_GetUniqueU16(void)
     return gLibUtil_GetUniqueU16_Base;
 }
 
+#define LIB_MEM_ENABLE        ( 1 )
 #define LIB_MEM_ASSERT_ENABLE ( 1 )
+
 #define LIB_MEM_HEAD (&gLibMemHead)
 #define LIB_MEM_CURR (gLibMemCurr)
 #define LIB_MEM_DATA(cell) ((u8 *)(&(cell->data)))
 #define LIB_MEM_FLAG(cell) (((u8 *)&(cell->data))+cell->size_with_padding)
-#define LIB_MEM_ALLOC(size) LibMem_MallocEx(size,__FILE__,__LINE__)
-#define LIB_MEM_FREE(ptr)
+
 #define LIB_MEM_READ_CHECK(addr,len,key) LibMem_ReadCheckEx((u8 *)(addr),len,key,__FILE__,__LINE__)
 #define LIB_MEM_WRITE_CHECK(addr,len,key,doWrite) LibMem_WriteCheckEx((u8 *)(addr),len,key,doWrite,__FILE__,__LINE__)
 
-#if 1
+#if LIB_MEM_ENABLE
+#define LIB_MEM_ALLOC(size)               LibMem_MallocEx(size,__FILE__,__LINE__)
+#define LIB_MEM_FREE(ptr)                 LibMem_Free(ptr)
+#define LIB_MEM_KEY_INIT(addr,key)        LibMem_KeyInit(addr,key)
+#define LIB_MEM_CONFIG(addr,len,key,flag) LibMem_ConfigureProtection(addr,len,key,flag)
+#define LIB_MEM_DUMP()                    LibMem_Dump()
+#define LIB_MEM_DUMP_CELL(addr)           LibMem_DumpCell(addr)
 #define WT(a,b)           LIB_MEM_WRITE_CHECK(&(a),sizeof(a),0,1);(a)=(b)
 #define WTKEY(key,a,b)    LIB_MEM_WRITE_CHECK(&(a),sizeof(a),key,1);(a)=(b)
 #define RW(a,op,b)        LIB_MEM_READ_CHECK(&(a),sizeof(a),0);LIB_MEM_WRITE_CHECK(&(a),sizeof(a),0,1);(a)op(b)
@@ -64,6 +80,12 @@ u16 LibUtil_GetUniqueU16(void)
 #define RD(a,b)           LIB_MEM_READ_CHECK(&(b),sizeof(b),0);(a)=(b)
 #define RDKEY(key,a,b)    LIB_MEM_READ_CHECK(&(b),sizeof(b),key);(a)=(b)
 #else
+#define LIB_MEM_ALLOC(size) malloc(size)
+#define LIB_MEM_FREE(ptr)   free(ptr)
+#define LIB_MEM_KEY_INIT(addr,key)
+#define LIB_MEM_CONFIG(addr,len,key,flag)
+#define LIB_MEM_DUMP()
+#define LIB_MEM_DUMP_CELL(addr)
 #define WT(a,b)           (a)=(b)
 #define WTKEY(key,a,b)    (a)=(b)
 #define RW(a,op,b)        (a)op(b)
@@ -232,6 +254,16 @@ static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
     return NULL;
 }
 
+void LibMem_Init(void)
+{
+    if (gLibMemInitiated == 0)
+    {
+        int retVal;
+        gLibMemInitiated = 1;
+        ASSERT_CHK( retVal, LibIPC_Mutex_Create(&gLibMemMutexHdl) );
+    }
+}
+
 void LibMem_Uninit(void)
 {
     LibMem_Cell_t *curr_cell;
@@ -265,14 +297,15 @@ void *LibMem_Malloc(size_t size)
 
     real_size = sizeof(LibMem_Cell_t) + size_with_padding - memory_bus_size/*u8 *data*/ + size_with_padding;
 
-    curr_cell = (LibMem_Cell_t *)malloc(real_size);
-    printf("%s(), size=%u, size_with_padding=%u, real_size=%u\n", __func__, (unsigned int)size, (unsigned int)size_with_padding, (unsigned int)real_size);
-    if (curr_cell == NULL)
-        return NULL;
-
     _LibMem_Mutex_Lock();
+    curr_cell = (LibMem_Cell_t *)malloc(real_size);
+    //printf("%s(), size=%u, size_with_padding=%u, real_size=%u\n", __func__, (unsigned int)size, (unsigned int)size_with_padding, (unsigned int)real_size);
+    if (curr_cell == NULL) {
+        return NULL;
+    }
     DLLIST_INSERT_LAST(LIB_MEM_HEAD, curr_cell);
     _LibMem_Mutex_Unlock();
+
     curr_cell->key = 0;
     curr_cell->size = size;
     curr_cell->real_size = real_size;
@@ -474,13 +507,15 @@ int LibMem_WriteCheckEx(u8 *any_addr, u32 len, u32 key, int do_write, const char
     return ret;
 }
 
-void LibMem_Dump_Cell(u8 *any_addr)
+void LibMem_DumpCell(u8 *any_addr)
 {
     u8 *ptr;
     LibMem_Cell_t *curr_cell = _LibMem_FindCellEntryByAnyAddr(any_addr, 0);
 
-    if (curr_cell == NULL)
+    if (curr_cell == NULL) {
         printf("Can't find matched cell!\n");
+        return;
+    }
 
     DUMPNA(curr_cell);
     DUMPNX(curr_cell->key);
@@ -575,27 +610,22 @@ typedef struct {
     ptr = (u8 *)LIB_MEM_ALLOC(3);
     ptr2 = (u8 *)LIB_MEM_ALLOC(9);
     ptraaa = (testaaa *)ptr2;
-    //curr_cell = _LibMem_FindCellEntry(ptr2);
-    //curr_cell = _LibMem_FindCellEntry(ptr);
-    //curr_cell->size = 888;
-    LibMem_KeyInit(ptr, 2);
-    //LibMem_Free(ptr);
-    LibMem_Dump();
-    //return;
-    LibMem_KeyInit(ptr2, ptr2_key);
-    LibMem_ConfigureProtection(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
-    LibMem_ConfigureProtection((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
-    //LibMem_ConfigureProtection((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_OFF | LIB_MEM_READ_PROTECT_OFF);
 
+    LIB_MEM_KEY_INIT(ptr, 2);
+
+    LIB_MEM_DUMP();
+
+    LIB_MEM_KEY_INIT(ptr2, ptr2_key);
+    LIB_MEM_CONFIG(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
+    LIB_MEM_CONFIG((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
 
     WTKEY(0, ptraaa->a, 0x78);
-    LibMem_Dump_Cell(ptr2);
+    LIB_MEM_DUMP_CELL(ptr2);
     u8 x;
     RDKEY(ptr2_key, x, ptraaa->a);
     DUMPNX(x);
     RWKEY(ptr2_key, ptraaa->a, =, 0x0f);
     DUMPNX(ptraaa->a);
-    //LibMem_WriteCheckEx((u8 *)ptraaa, sizeof(testaaa), 11, __FILE__, __LINE__);
 
     LibMem_Uninit();
 }
