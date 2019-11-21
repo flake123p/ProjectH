@@ -46,7 +46,7 @@ static int _CPU_X_Run_One_Instruction(void)
 			BASIC_ASSERT(0);
 			break;
 	}
-	
+
 	switch (OpCode) {
 		case 0x01: {
 			RegisterA = Operand;
@@ -67,7 +67,7 @@ static int _CPU_X_Run_One_Instruction(void)
 static int _CPU_X_Run(void)
 {
 
-	
+
 	DUMPD(PC_Max);
 	while (PC < PC_Max) {
 		_CPU_X_Run_One_Instruction();
@@ -87,7 +87,7 @@ static int _CPU_X_FileToMemory(void)
 
 	nibbleCtr = 0;
 	while (1) {
-		
+
 		retVal = gInputObjFile.GetCharacter();
 
 		if (retVal == EOF) {
@@ -124,7 +124,7 @@ int CPU_X_Main(int argc, char *argv[])
 		CPU_X_PrintUsage();
 		return 1;
 	}
-	
+
 	DUMPS(argv[0]);
 	gInputObjFile.openMode = "r+b";
 	gInputObjFile.fileName = argv[0];
@@ -137,7 +137,7 @@ int CPU_X_Main(int argc, char *argv[])
 	RETURN_CHK(rc, _CPU_X_FileToMemory());
 
 	RETURN_CHK(rc, _CPU_X_Run());
-	
+
 	return 0;
 }
 

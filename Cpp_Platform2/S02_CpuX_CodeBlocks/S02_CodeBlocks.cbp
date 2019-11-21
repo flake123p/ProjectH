@@ -12,6 +12,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-g" />
 				</Compiler>
 			</Target>
@@ -22,10 +23,10 @@
 			<Add directory="D:/WS/workspace/ProjectH/Cpp_Platform2/S02/include" />
 			<Add directory="D:/WS/workspace/ProjectH/Cpp_Platform2/_Library/include" />
 		</Compiler>
-		<Unit filename="../S02/include/CpuX.hpp" />
-		<Unit filename="../S02/include/Everything_App.hpp" />
-		<Unit filename="../S02/src/CpuX.cpp" />
-		<Unit filename="../S02/src/main.c">
+		<Unit filename="../S02_CpuX/include/CpuX.hpp" />
+		<Unit filename="../S02_CpuX/include/Everything_App.hpp" />
+		<Unit filename="../S02_CpuX/src/CpuX.cpp" />
+		<Unit filename="../S02_CpuX/src/main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../_Library/include/Everything_Lib_Linux.hpp" />
@@ -34,12 +35,16 @@
 		<Unit filename="../_Library/include/LibArgParser.hpp" />
 		<Unit filename="../_Library/include/LibBT_HCI.hpp" />
 		<Unit filename="../_Library/include/LibBuffer.hpp" />
+		<Unit filename="../_Library/include/LibEncrypt.hpp" />
 		<Unit filename="../_Library/include/LibEvent.hpp" />
 		<Unit filename="../_Library/include/LibFileIO.hpp" />
+		<Unit filename="../_Library/include/LibFileIO2.hpp" />
 		<Unit filename="../_Library/include/LibOs.hpp" />
+		<Unit filename="../_Library/include/LibPacket.hpp" />
 		<Unit filename="../_Library/include/LibScreenLogic.hpp" />
 		<Unit filename="../_Library/include/LibScreenLogic_GetEvent.hpp" />
 		<Unit filename="../_Library/include/LibSharedMemory.hpp" />
+		<Unit filename="../_Library/include/LibSimpleFS.hpp" />
 		<Unit filename="../_Library/include/LibSysCmd.hpp" />
 		<Unit filename="../_Library/include/LibThread.hpp" />
 		<Unit filename="../_Library/include/LibTime.hpp" />
@@ -62,12 +67,16 @@
 		<Unit filename="../_Library/lib_mgr/LibArgParserMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibBT_HCI_Mgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibBufferMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibEncrypt.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibEventMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibFileIOMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibFileIOMgr2.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibOsMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibPacketMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibScreenLogicMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibScreenLogicMgr_GetEvent.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibSharedMemoryMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibSimpleFS.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibSysCmdMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibThreadMgr.cpp" />
 		<Unit filename="../_Library/lib_mgr/LibTimeMgr.cpp" />

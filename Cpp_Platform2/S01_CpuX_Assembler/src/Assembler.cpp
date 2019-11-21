@@ -8,8 +8,8 @@ typedef enum {
 	ARG_KEY_DUMP_LIST_FILE,
 }ARG_KEY_t;
 Option_Set_Big_t gBigOptionSet[] = {
-	{ARG_KEY_INPUT_FILE,  true,  "-i", "--input", NULL, NULL},
-	{ARG_KEY_OUTPUT_FILE, true,  "-o", "--output", NULL, NULL},
+	{ARG_KEY_INPUT_FILE,  ARG_BY_SPACE,  "-i", "--input", NULL, NULL},
+	{ARG_KEY_OUTPUT_FILE, ARG_BY_SPACE,  "-o", "--output", NULL, NULL},
 };
 Option_Set_Small_t gSmallOptionSet[] = {
 	{ARG_KEY_DUMP_LIST_FILE, 'l'},
