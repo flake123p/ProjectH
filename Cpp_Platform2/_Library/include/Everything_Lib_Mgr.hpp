@@ -21,6 +21,8 @@
 		2.) Create Dump()
 */
 #include "_LibLinkedList.hpp"
+#include "_LibMT.hpp"
+#include "_LibMem.hpp"
 #include "_LibMemory.hpp"
 #include "_LibMenu.hpp"
 #include "_LibString.hpp"

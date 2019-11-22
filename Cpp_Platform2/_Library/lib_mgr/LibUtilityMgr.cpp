@@ -605,6 +605,50 @@ void LibUtil_UniqueID_Dump(LibUtil_UniqueID_Info_t *info)
     }
 }
 
+static int gLibUtil_GetUniqueU32_Inited = 0;
+static u32 gLibUtil_GetUniqueU32_Base = 0;
+static u32 gLibUtil_GetUniqueU32_Increment = 0;
+u32 LibUtil_GetUniqueU32(void)
+{
+    if (0 == gLibUtil_GetUniqueU32_Inited)
+    {
+        gLibUtil_GetUniqueU32_Inited = 1;
+
+        LibUtil_InitRand();
+        gLibUtil_GetUniqueU32_Base = (u32)LibUtil_GetRand();
+        gLibUtil_GetUniqueU32_Increment = (u32)LibUtil_GetRand();
+        gLibUtil_GetUniqueU32_Increment |= 0x00000001;
+    }
+
+    gLibUtil_GetUniqueU32_Base += gLibUtil_GetUniqueU32_Increment;
+    if (gLibUtil_GetUniqueU32_Base == 0)
+        gLibUtil_GetUniqueU32_Base += gLibUtil_GetUniqueU32_Increment;
+
+    return gLibUtil_GetUniqueU32_Base;
+}
+
+static int gLibUtil_GetUniqueU16_Inited = 0;
+static u16 gLibUtil_GetUniqueU16_Base = 0;
+static u16 gLibUtil_GetUniqueU16_Increment = 0;
+u16 LibUtil_GetUniqueU16(void)
+{
+    if (0 == gLibUtil_GetUniqueU16_Inited)
+    {
+        gLibUtil_GetUniqueU16_Inited = 1;
+
+        LibUtil_InitRand();
+        gLibUtil_GetUniqueU16_Base = (u16)LibUtil_GetRand();
+        gLibUtil_GetUniqueU16_Increment = (u16)LibUtil_GetRand();
+        gLibUtil_GetUniqueU16_Increment |= 0x0001;
+    }
+
+    gLibUtil_GetUniqueU16_Base += gLibUtil_GetUniqueU16_Increment;
+    if (gLibUtil_GetUniqueU16_Base == 0)
+        gLibUtil_GetUniqueU16_Base += gLibUtil_GetUniqueU16_Increment;
+
+    return gLibUtil_GetUniqueU16_Base;
+}
+
 void LibUtile_Demo(void)
 {
     int ret;

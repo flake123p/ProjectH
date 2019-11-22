@@ -82,6 +82,11 @@ void LibUtil_UniqueID_Dump(LibUtil_UniqueID_Info_t *info);
 
 
 
+u32 LibUtil_GetUniqueU32(void);
+u16 LibUtil_GetUniqueU16(void);
+
+
+
 void LibUtile_Demo(void);
 void LibUtile_Demo2(void);
 
