@@ -12,7 +12,17 @@
         Mod:SimClk SimChnl SimBT SimUSB SimWIFI Sim4G Sim5G Sim6G SimZB
         SimClk -> SimParalell -> SimRTOS
         OS sim? task sim?
-        
+
+Lib_TotalInit();
+Lib_TotalUninit();
+        Enable MT:
+        int main()
+        {
+            LibMT_Init();
+            LibVCD_Init();
+            LibVCD_Unit();
+            LibMT_Uninit();
+        }
 */
 
 #include "Everything_App.hpp"
@@ -52,19 +62,21 @@ typedef struct {
     const char wire_name;
 } LIB_VCD_WIRE_INFO_INT_t;
 
-static int gIs_LibVCD_In_MT_Mode = 0;
+static int gIs_LibVCD_Using_MT = 0;
 
 int LibVCD_Init(u32 timescale, Time_Unit_t unit, LIB_VCD_WIRE_INFO_t *info, u32 num_of_info)
 {
     printf("%s()\n", __func__);
-    gIs_LibVCD_In_MT_Mode = LibMT_IsMultiThreadingEnable();
+    gIs_LibVCD_Using_MT = LibMT_IsMultiThreadingEnable();
+
+    
     return 0;
 }
 
 
 int main(int argc, char *argv[])
 {
-    //LibUtile_Demo2();
+    LibMem_Demo();
 #define XBA
     LibDesc_Demo();
     //DUMPND(LibUtil_GetUniqueU32());

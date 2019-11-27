@@ -1,7 +1,12 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
-DLList_Head_t gLibMemHead = DLLIST_HEAD_INIT(LIB_MEM_HEAD);
+#define _LIB_MEM_HEAD (&gLibMemHead)
+#define _LIB_MEM_CURR (gLibMemCurr)
+#define _LIB_MEM_DATA(cell) ((u8 *)(&(cell->data)))
+#define _LIB_MEM_FLAG(cell) (((u8 *)&(cell->data))+cell->size_with_padding)
+
+DLList_Head_t gLibMemHead = DLLIST_HEAD_INIT(_LIB_MEM_HEAD);
 LibMem_Cell_t *gLibMemCurr = NULL;
 int gLibMemInitiated = 0;
 MUTEX_HANDLE_t gLibMemMutexHdl = NULL;
@@ -56,7 +61,7 @@ static LibMem_Cell_t *_LibMem_FindCellEntry(u8 *data_addr)
 
     while (1)
     {
-        if (LIB_MEM_DATA(curr_cell) == data_addr) {
+        if (_LIB_MEM_DATA(curr_cell) == data_addr) {
             gLibMemCurr = curr_cell;
             return curr_cell;
         }
@@ -70,12 +75,12 @@ static LibMem_Cell_t *_LibMem_FindCellEntry(u8 *data_addr)
     curr_cell = gLibMemCurr;
     while (1)
     {
-        if (curr_cell->entry.prev == LIB_MEM_HEAD)
+        if (curr_cell->entry.prev == _LIB_MEM_HEAD)
             break;
 
         curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
 
-        if (LIB_MEM_DATA(curr_cell) == data_addr) {
+        if (_LIB_MEM_DATA(curr_cell) == data_addr) {
             gLibMemCurr = curr_cell;
             return curr_cell;
         }
@@ -90,7 +95,7 @@ static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
         return NULL;
 
     LibMem_Cell_t *curr_cell = gLibMemCurr;
-    u8 *cell_addr_start = LIB_MEM_DATA(curr_cell);
+    u8 *cell_addr_start = _LIB_MEM_DATA(curr_cell);
     u8 *cell_addr_end = cell_addr_start + curr_cell->size;
     u8 *target_addr_start = any_addr;
     u8 *target_addr_end = any_addr + len;
@@ -105,7 +110,7 @@ static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
             break;
         } else {
             curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
-            cell_addr_start = LIB_MEM_DATA(curr_cell);
+            cell_addr_start = _LIB_MEM_DATA(curr_cell);
             cell_addr_end = cell_addr_start + curr_cell->size;
         }
     }
@@ -113,11 +118,11 @@ static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
     curr_cell = gLibMemCurr;
     while (1)
     {
-        if (curr_cell->entry.prev == LIB_MEM_HEAD)
+        if (curr_cell->entry.prev == _LIB_MEM_HEAD)
             break;
 
         curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
-        cell_addr_start = LIB_MEM_DATA(curr_cell);
+        cell_addr_start = _LIB_MEM_DATA(curr_cell);
         cell_addr_end = cell_addr_start + curr_cell->size;
 
         if (cell_addr_start <= target_addr_start && cell_addr_end >= target_addr_end) {
@@ -144,14 +149,14 @@ void LibMem_Uninit(void)
     LibMem_Cell_t *curr_cell;
     LibMem_Cell_t *cell_to_free;
 
-    DLLIST_WHILE_START(LIB_MEM_HEAD, curr_cell, LibMem_Cell_t)
+    DLLIST_WHILE_START(_LIB_MEM_HEAD, curr_cell, LibMem_Cell_t)
     {
         printf("Unreleased meory:0x%p\n", curr_cell);
         cell_to_free = curr_cell;
         DLLIST_WHILE_NEXT(curr_cell, LibMem_Cell_t);
         free(cell_to_free);
     }
-    gLibMemHead = DLLIST_HEAD_INIT(LIB_MEM_HEAD);
+    gLibMemHead = DLLIST_HEAD_INIT(_LIB_MEM_HEAD);
     gLibMemCurr = NULL;
 
     _LibMem_Mutex_Destroy();
@@ -179,7 +184,7 @@ void *LibMem_Malloc(size_t size)
     if (curr_cell == NULL) {
         return NULL;
     }
-    DLLIST_INSERT_LAST(LIB_MEM_HEAD, curr_cell);
+    DLLIST_INSERT_LAST(_LIB_MEM_HEAD, curr_cell);
     _LibMem_Mutex_Unlock();
 
     curr_cell->key = 0;
@@ -187,7 +192,7 @@ void *LibMem_Malloc(size_t size)
     curr_cell->real_size = real_size;
     curr_cell->size_with_padding = size_with_padding;
 
-    flag = LIB_MEM_FLAG(curr_cell);
+    flag = _LIB_MEM_FLAG(curr_cell);
     memset(flag, 0, size);
 
     gLibMemCurr = curr_cell;
@@ -213,7 +218,7 @@ int LibMem_Free(void *ptr)
         return LIB_MEM_RC_CANT_FIND_CELL;
 
     _LibMem_Mutex_Lock();
-    DLLIST_REMOVE_NODE(LIB_MEM_HEAD, curr_cell);
+    DLLIST_REMOVE_NODE(_LIB_MEM_HEAD, curr_cell);
     _LibMem_Mutex_Unlock();
 
     free(curr_cell);
@@ -400,7 +405,7 @@ void LibMem_DumpCell(u8 *any_addr)
     DUMPNU(curr_cell->size_with_padding);
 
     printf("Data in hex:\n");
-    ptr = LIB_MEM_DATA(curr_cell);
+    ptr = _LIB_MEM_DATA(curr_cell);
     FOREACH_I(curr_cell->size) {
         if (i%4 == 3)
             printf("%02X, ", ptr[i]);
@@ -412,7 +417,7 @@ void LibMem_DumpCell(u8 *any_addr)
     PRINT_NEXT_LINE;
 
     printf("Flag in hex:\n");
-    ptr = LIB_MEM_DATA(curr_cell) + curr_cell->size_with_padding;
+    ptr = _LIB_MEM_DATA(curr_cell) + curr_cell->size_with_padding;
     FOREACH_I(curr_cell->size) {
         if (i%4 == 3)
             printf("%02X, ", ptr[i]);
@@ -436,17 +441,17 @@ void LibMem_Dump(void)
     void *prev;
     void *next;
 
-    DUMPNA(LIB_MEM_HEAD);
-    DUMPNA(LIB_MEM_CURR);
+    DUMPNA(_LIB_MEM_HEAD);
+    DUMPNA(_LIB_MEM_CURR);
 
-    DLLIST_FOREACH(LIB_MEM_HEAD, curr_cell, LibMem_Cell_t)
+    DLLIST_FOREACH(_LIB_MEM_HEAD, curr_cell, LibMem_Cell_t)
     {
         key = curr_cell->key;
         size = curr_cell->size;
         real_size = curr_cell->real_size;
         addrC = (void *)curr_cell;
-        addrD = (void *)LIB_MEM_DATA(curr_cell);
-        flag = (void *)LIB_MEM_FLAG(curr_cell);
+        addrD = (void *)_LIB_MEM_DATA(curr_cell);
+        flag = (void *)_LIB_MEM_FLAG(curr_cell);
         prev = (void *)curr_cell->entry.prev;
         next = (void *)curr_cell->entry.next;
         DUMPX(key);
@@ -485,21 +490,21 @@ typedef struct {
 
     LibMem_Init();
 
-    ptr = (u8 *)LIB_MEM_ALLOC(3);
-    ptr2 = (u8 *)LIB_MEM_ALLOC(9);
+    ptr = (u8 *)MEM_ALLOC(3);
+    ptr2 = (u8 *)MEM_ALLOC(9);
     ptraaa = (testaaa *)ptr2;
 
-    LIB_MEM_KEY_INIT(ptr, 2);
+    MEM_KEY_INIT(ptr, 2);
 
-    LIB_MEM_DUMP();
+    MEM_DUMP();
 
-    LIB_MEM_KEY_INIT(ptr2, ptr2_key);
-    LIB_MEM_CONFIG(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
-    LIB_MEM_CONFIG((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
+    MEM_KEY_INIT(ptr2, ptr2_key);
+    MEM_CONFIG(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
+    MEM_CONFIG((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
 
-    LIB_MEM_SETK(ptr2_key, ptraaa, 2, sizeof(testaaa));
+    MEM_SETK(ptr2_key, ptraaa, 2, sizeof(testaaa));
     WTK(0, ptraaa->a, 0x78);
-    LIB_MEM_DUMP_CELL(ptr2);
+    MEM_DUMP_CELL(ptr2);
     u8 x;
     RDK(ptr2_key, x, ptraaa->a);
     DUMPNX(x);
