@@ -76,6 +76,8 @@ int LibVCD_Init(u32 timescale, Time_Unit_t unit, LIB_VCD_WIRE_INFO_t *info, u32 
 
 int main(int argc, char *argv[])
 {
+    Lib_Init(ENABLE_NONE);
+
     LibMem_Demo();
 #define XBA
     LibDesc_Demo();
@@ -83,6 +85,8 @@ int main(int argc, char *argv[])
     //DUMPND(LibUtil_GetUniqueU32());
     //DUMPND(LibUtil_GetUniqueU32());
     //DUMPND(LibUtil_GetUniqueU32());
+
+    Lib_Uninit();
     return 99;
 }
 

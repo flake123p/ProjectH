@@ -1,5 +1,15 @@
 
+#if 0
 #include "Everything_Lib_Mgr.hpp"
+#else
+#include "Everything_Lib_Mgr_Lite.hpp"
+#include "_LibString.hpp"
+#include "_LibMemory.hpp"
+#include "_Lib51Hex.hpp"
+#include "LibTime.hpp"
+#include "LibFileIO.hpp"
+#include "LibFileIO2.hpp"
+#endif
 
 #define HEX_DATA_HEADER_SIZE (4)
 #define HEX_DATA_SIZE        (255)

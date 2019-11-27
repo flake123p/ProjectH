@@ -2,6 +2,7 @@
 
 #ifndef _EVERYTHING_LIB_MGR_HPP_INCLUDED_
 
+#if 0
 //#include "stdafx.h" //For porting to "Visual Studio"
 
 // ====== Standard C/Cpp Library ======
@@ -20,7 +21,11 @@
 		1.) Create Demo()
 		2.) Create Dump()
 */
-#include "_LibLinkedList.hpp"
+#else
+#include "Everything_Lib_Mgr_Lite.hpp"
+#endif
+
+#include "_Lib_.hpp"
 #include "_LibMT.hpp"
 #include "_LibMem.hpp"
 #include "_LibMemory.hpp"

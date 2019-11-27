@@ -1,5 +1,10 @@
 
+#if 0
 #include "Everything_Lib_Mgr.hpp"
+#else
+#include "Everything_Lib_Mgr_Lite.hpp"
+#include "LibBT_HCI.hpp"
+#endif
 
 void LibBT_HCI_Diagnose(void)
 {

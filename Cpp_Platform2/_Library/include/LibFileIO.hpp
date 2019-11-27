@@ -25,6 +25,7 @@ void LibFileIo_CloseFile(File_Profiles_t *fileProfile);
 //
 #include "LibBuffer.hpp" // LibBufferBasic
 #include <string.h>
+
 typedef enum {
 	NextLine_Win,
 	NextLine_Unix,
