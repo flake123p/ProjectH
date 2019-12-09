@@ -1,17 +1,16 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
-LIB_FLAG_t gLibFlags = ENABLE_NONE;
 
-int Lib_Init(LIB_FLAG_t initFlags)
+int Lib_Init(void)
 {
-    gLibFlags = initFlags;
-    //LibMem_Init(void)
+    MEM_INIT(); //keep this at first
     return 0;
 }
 
 int Lib_Uninit(void)
 {
+    MEM_UNINIT(); //keep this at last
     return 0;
 }
 

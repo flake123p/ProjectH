@@ -8,13 +8,14 @@
 // ============================== Debug ==============================
 
 // ============================== Define ==============================
-#define LIB_MEM_ENABLE        ( 1 )
 #define LIB_MEM_ASSERT_ENABLE ( 1 )
 
 #define LIB_MEM_READ_CHECK(addr,len,key) LibMem_ReadCheckEx((u8 *)(addr),len,key,__FILE__,__LINE__)
 #define LIB_MEM_WRITE_CHECK(addr,len,key,doWrite) LibMem_WriteCheckEx((u8 *)(addr),len,key,doWrite,__FILE__,__LINE__)
 
-#if LIB_MEM_ENABLE
+#if ENABLE_LIB_MEM
+#define MEM_INIT()                    LibMem_Init()
+#define MEM_UNINIT()                  LibMem_Uninit()
 #define MEM_ALLOC(size)               LibMem_MallocEx(size,__FILE__,__LINE__)
 #define MEM_FREE(ptr)                 LibMem_Free(ptr)
 #define MEM_KEY_INIT(addr,key)        LibMem_KeyInit(addr,key)
@@ -39,6 +40,8 @@
 #define RWB(mem,op,mem2)           LIB_MEM_READ_CHECK(&(mem),sizeof(mem),0);LIB_MEM_WRITE_CHECK(&(mem),sizeof(mem),0,1);LIB_MEM_READ_CHECK(&(mem2),sizeof(mem2),0);(mem)op(mem2)
 #define RWKB(key,key2,mem,op,mem2) LIB_MEM_READ_CHECK(&(mem),sizeof(mem),key);LIB_MEM_WRITE_CHECK(&(mem),sizeof(mem),key,1);LIB_MEM_READ_CHECK(&(mem2),sizeof(mem2),key2);(mem)op(mem2)
 #else
+#define MEM_INIT()
+#define MEM_UNINIT()
 #define MEM_ALLOC(size) malloc(size)
 #define MEM_FREE(ptr)   free(ptr)
 #define MEM_KEY_INIT(addr,key)
