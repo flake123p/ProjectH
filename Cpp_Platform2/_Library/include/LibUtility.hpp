@@ -10,6 +10,8 @@
 /*
 	Useful function from <stdlib.h>
 */
+void LibUtil_Init(void);
+void LibUtil_Uninit(void);
 
 void LibUtil_InitRand(void);
 int LibUtil_GetRand(void);
@@ -87,8 +89,8 @@ u16 LibUtil_GetUniqueU16(void);
 
 
 
-void LibUtile_Demo(void);
-void LibUtile_Demo2(void);
+void LibUtil_Demo(void);
+void LibUtil_Demo2(void);
 
 
 #define _LIB_UTILITY_HPP_INCLUDED_

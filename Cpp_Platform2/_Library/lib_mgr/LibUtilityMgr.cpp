@@ -14,6 +14,14 @@
 #include "LibUtility.hpp"
 #include "My_Basics.hpp"
 
+void LibUtil_Init(void)
+{
+}
+
+void LibUtil_Uninit(void)
+{
+}
+
 unsigned int seed;
 void LibUtil_InitRand(void)
 {
@@ -649,7 +657,7 @@ u16 LibUtil_GetUniqueU16(void)
     return gLibUtil_GetUniqueU16_Base;
 }
 
-void LibUtile_Demo(void)
+void LibUtil_Demo(void)
 {
     int ret;
     u8 map = 0xFF;
@@ -679,7 +687,7 @@ void LibUtile_Demo(void)
     }
 }
 
-void LibUtile_Demo2(void)
+void LibUtil_Demo2(void)
 {
     LibUtil_UniqueID_Info_t demo_uniqueID_info;
     int ret = 0;

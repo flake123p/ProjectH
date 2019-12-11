@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 {
     Lib_Init();
 
-    //LibMem_Demo();
+    LibMem_Demo();
 #define XBA
     LibVCD_Demo();
     //DUMPND(LibUtil_GetUniqueU32());

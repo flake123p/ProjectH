@@ -3,7 +3,6 @@
 #ifndef _EVERYTHING_LIB_MGR_LITE_HPP_INCLUDED_
 
 //Keep these before every header files
-#define ENABLE_LIB_MT  ( 1 )
 #define ENABLE_LIB_MEM ( 1 )
 
 //#include "stdafx.h" //For porting to "Visual Studio"
