@@ -10,23 +10,37 @@
 #include <time.h>
 
 // ====== Platform Library ======
+#include "_LibMT.hpp"
 #include "_LibError.hpp"
 #include "LibUtility.hpp"
 #include "My_Basics.hpp"
 
+
+LibMT_UtilMutex_t gLibUtilLock;
+#define LIB_UTIL_LOCK    LibMT_UtilMutex_Lock(&gLibUtilLock);
+#define LIB_UTIL_UNLOCK  LibMT_UtilMutex_Unlock(&gLibUtilLock);
+
 void LibUtil_Init(void)
 {
+    LibMT_UtilMutex_Init(&gLibUtilLock);
 }
 
 void LibUtil_Uninit(void)
 {
+    LibMT_UtilMutex_Uninit(&gLibUtilLock);
 }
 
-unsigned int seed;
-void LibUtil_InitRand(void)
+unsigned int seed = 0;
+void LibUtil_InitRand(int do_lock/* = 1 */)
 {
-	seed += time(NULL);
-	srand(seed);
+    if (do_lock) {
+        LIB_UTIL_LOCK;
+    }
+    seed += time(NULL);
+    srand(seed);
+    if (do_lock) {
+        LIB_UTIL_UNLOCK;
+    }
 }
 
 int LibUtil_GetRand(void)
@@ -618,11 +632,12 @@ static u32 gLibUtil_GetUniqueU32_Base = 0;
 static u32 gLibUtil_GetUniqueU32_Increment = 0;
 u32 LibUtil_GetUniqueU32(void)
 {
+    LIB_UTIL_LOCK;
     if (0 == gLibUtil_GetUniqueU32_Inited)
     {
         gLibUtil_GetUniqueU32_Inited = 1;
 
-        LibUtil_InitRand();
+        LibUtil_InitRand(0);
         gLibUtil_GetUniqueU32_Base = (u32)LibUtil_GetRand();
         gLibUtil_GetUniqueU32_Increment = (u32)LibUtil_GetRand();
         gLibUtil_GetUniqueU32_Increment |= 0x00000001;
@@ -632,6 +647,7 @@ u32 LibUtil_GetUniqueU32(void)
     if (gLibUtil_GetUniqueU32_Base == 0)
         gLibUtil_GetUniqueU32_Base += gLibUtil_GetUniqueU32_Increment;
 
+    LIB_UTIL_UNLOCK;
     return gLibUtil_GetUniqueU32_Base;
 }
 
@@ -640,11 +656,12 @@ static u16 gLibUtil_GetUniqueU16_Base = 0;
 static u16 gLibUtil_GetUniqueU16_Increment = 0;
 u16 LibUtil_GetUniqueU16(void)
 {
+    LIB_UTIL_LOCK;
     if (0 == gLibUtil_GetUniqueU16_Inited)
     {
         gLibUtil_GetUniqueU16_Inited = 1;
 
-        LibUtil_InitRand();
+        LibUtil_InitRand(0);
         gLibUtil_GetUniqueU16_Base = (u16)LibUtil_GetRand();
         gLibUtil_GetUniqueU16_Increment = (u16)LibUtil_GetRand();
         gLibUtil_GetUniqueU16_Increment |= 0x0001;
@@ -654,6 +671,7 @@ u16 LibUtil_GetUniqueU16(void)
     if (gLibUtil_GetUniqueU16_Base == 0)
         gLibUtil_GetUniqueU16_Base += gLibUtil_GetUniqueU16_Increment;
 
+    LIB_UTIL_UNLOCK;
     return gLibUtil_GetUniqueU16_Base;
 }
 

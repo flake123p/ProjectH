@@ -38,7 +38,7 @@ int LibMT_UtilMutex_Unlock(LibMT_UtilMutex_t *mutex)
 }
 
 LibMT_UtilMutex_t gTestUtilMutex1;
-#define SHOW_RACE_CONDITION ( 0 )
+#define SHOW_RACE_CONDITION ( 1 )
 int race_condition = 100;
 void *LibMT_UtilMutex_Demo_Thread1(void *arg)
 {
@@ -79,8 +79,12 @@ void LibMT_UtilMutex_Demo(void)
 
 #if SHOW_RACE_CONDITION
 #else
-    LibMT_UtilMutex_Init(&gTestUtilMutex1);
+    if (NOT(Lib_IsMT())) {
+        printf("Please set LIB_MT_ENABLE flag at Lib_Init()... Protect condition demo failed...\n");
+        return;
+    }
 #endif
+    LibMT_UtilMutex_Init(&gTestUtilMutex1);
 
     DUMPND(race_condition);
     ASSERT_CHK( retVal, LibThread_NewHandle(&threadHdlAry[0]) );
@@ -93,10 +97,7 @@ void LibMT_UtilMutex_Demo(void)
     ASSERT_CHK( retVal, LibThread_DestroyHandle(threadHdlAry[1]) );
     DUMPND(race_condition);
 
-#if SHOW_RACE_CONDITION
-#else
     LibMT_UtilMutex_Uninit(&gTestUtilMutex1);
-#endif
 
     REMOVE_UNUSED_WRANING(retVal);
 }

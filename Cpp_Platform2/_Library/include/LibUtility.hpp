@@ -13,7 +13,7 @@
 void LibUtil_Init(void);
 void LibUtil_Uninit(void);
 
-void LibUtil_InitRand(void);
+void LibUtil_InitRand(int do_lock = 1);
 int LibUtil_GetRand(void);
 void LibUtil_Print_RAND_MAX(void);
 

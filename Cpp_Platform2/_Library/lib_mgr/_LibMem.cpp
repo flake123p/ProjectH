@@ -8,8 +8,7 @@
 
 DLList_Head_t gLibMemHead = DLLIST_HEAD_INIT(_LIB_MEM_HEAD);
 LibMem_Cell_t *gLibMemCurr = NULL;
-int gLibMemInitiated = 0;
-MUTEX_HANDLE_t gLibMemMutexHdl = NULL;
+LibMT_UtilMutex_t gLibMemLock;
 
 static const char *_LibMem_ErrorCodeString(int errorCode)
 {
@@ -25,67 +24,44 @@ static const char *_LibMem_ErrorCodeString(int errorCode)
     return "NULL";
 }
 
-static void _LibMem_Mutex_Lock(void)
-{
-    if (gLibMemInitiated)
-    {
-        LibIPC_Mutex_Lock(gLibMemMutexHdl);
-    }
-}
-
-static void _LibMem_Mutex_Unlock(void)
-{
-    if (gLibMemInitiated)
-    {
-        LibIPC_Mutex_Unlock(gLibMemMutexHdl);
-    }
-}
-
-static void _LibMem_Mutex_Destroy(void)
-{
-    int retVal;
-
-    if (gLibMemMutexHdl == NULL)
-        return;
-
-    ASSERT_CHK( retVal, LibIPC_Mutex_Destroy(gLibMemMutexHdl) );
-    gLibMemMutexHdl = NULL;
-}
-
 static LibMem_Cell_t *_LibMem_FindCellEntry(u8 *data_addr)
 {
     if (gLibMemCurr == NULL)
         return NULL;
 
-    LibMem_Cell_t *curr_cell = gLibMemCurr;
-
-    while (1)
+    LibMT_UtilMutex_Lock(&gLibMemLock);
     {
-        if (_LIB_MEM_DATA(curr_cell) == data_addr) {
-            gLibMemCurr = curr_cell;
-            return curr_cell;
+        LibMem_Cell_t *curr_cell = gLibMemCurr;
+        while (1)
+        {
+            if (_LIB_MEM_DATA(curr_cell) == data_addr) {
+                gLibMemCurr = curr_cell;
+                LibMT_UtilMutex_Unlock(&gLibMemLock);
+                return curr_cell;
+            }
+            if (curr_cell->entry.next == NULL) {
+                break;
+            } else {
+                curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+            }
         }
-        if (curr_cell->entry.next == NULL) {
-            break;
-        } else {
-            curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+
+        curr_cell = gLibMemCurr;
+        while (1)
+        {
+            if (curr_cell->entry.prev == _LIB_MEM_HEAD)
+                break;
+
+            curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
+
+            if (_LIB_MEM_DATA(curr_cell) == data_addr) {
+                gLibMemCurr = curr_cell;
+                LibMT_UtilMutex_Unlock(&gLibMemLock);
+                return curr_cell;
+            }
         }
     }
-
-    curr_cell = gLibMemCurr;
-    while (1)
-    {
-        if (curr_cell->entry.prev == _LIB_MEM_HEAD)
-            break;
-
-        curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
-
-        if (_LIB_MEM_DATA(curr_cell) == data_addr) {
-            gLibMemCurr = curr_cell;
-            return curr_cell;
-        }
-    }
-
+    LibMT_UtilMutex_Unlock(&gLibMemLock);
     return NULL;
 }
 
@@ -94,54 +70,55 @@ static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
     if (gLibMemCurr == NULL)
         return NULL;
 
-    LibMem_Cell_t *curr_cell = gLibMemCurr;
-    u8 *cell_addr_start = _LIB_MEM_DATA(curr_cell);
-    u8 *cell_addr_end = cell_addr_start + curr_cell->size;
-    u8 *target_addr_start = any_addr;
-    u8 *target_addr_end = any_addr + len;
-
-    while (1)
+    LibMT_UtilMutex_Lock(&gLibMemLock);
     {
-        if (cell_addr_start <= target_addr_start && cell_addr_end >= target_addr_end) {
-            gLibMemCurr = curr_cell;
-            return curr_cell;
+        LibMem_Cell_t *curr_cell = gLibMemCurr;
+        u8 *cell_addr_start = _LIB_MEM_DATA(curr_cell);
+        u8 *cell_addr_end = cell_addr_start + curr_cell->size;
+        u8 *target_addr_start = any_addr;
+        u8 *target_addr_end = any_addr + len;
+
+
+        while (1)
+        {
+            if (cell_addr_start <= target_addr_start && cell_addr_end >= target_addr_end) {
+                gLibMemCurr = curr_cell;
+                LibMT_UtilMutex_Unlock(&gLibMemLock);
+                return curr_cell;
+            }
+            if (curr_cell->entry.next == NULL) {
+                break;
+            } else {
+                curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+                cell_addr_start = _LIB_MEM_DATA(curr_cell);
+                cell_addr_end = cell_addr_start + curr_cell->size;
+            }
         }
-        if (curr_cell->entry.next == NULL) {
-            break;
-        } else {
-            curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+
+        curr_cell = gLibMemCurr;
+        while (1)
+        {
+            if (curr_cell->entry.prev == _LIB_MEM_HEAD)
+                break;
+
+            curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
             cell_addr_start = _LIB_MEM_DATA(curr_cell);
             cell_addr_end = cell_addr_start + curr_cell->size;
+
+            if (cell_addr_start <= target_addr_start && cell_addr_end >= target_addr_end) {
+                gLibMemCurr = curr_cell;
+                LibMT_UtilMutex_Unlock(&gLibMemLock);
+                return curr_cell;
+            }
         }
     }
-
-    curr_cell = gLibMemCurr;
-    while (1)
-    {
-        if (curr_cell->entry.prev == _LIB_MEM_HEAD)
-            break;
-
-        curr_cell = (LibMem_Cell_t *)curr_cell->entry.prev;
-        cell_addr_start = _LIB_MEM_DATA(curr_cell);
-        cell_addr_end = cell_addr_start + curr_cell->size;
-
-        if (cell_addr_start <= target_addr_start && cell_addr_end >= target_addr_end) {
-            gLibMemCurr = curr_cell;
-            return curr_cell;
-        }
-    }
-
+    LibMT_UtilMutex_Unlock(&gLibMemLock);
     return NULL;
 }
 
 void LibMem_Init(void)
 {
-    if (gLibMemInitiated == 0)
-    {
-        int retVal;
-        gLibMemInitiated = 1;
-        ASSERT_CHK( retVal, LibIPC_Mutex_Create(&gLibMemMutexHdl) );
-    }
+    LibMT_UtilMutex_Init(&gLibMemLock);
 }
 
 void LibMem_Uninit(void)
@@ -159,9 +136,7 @@ void LibMem_Uninit(void)
     gLibMemHead = DLLIST_HEAD_INIT(_LIB_MEM_HEAD);
     gLibMemCurr = NULL;
 
-    _LibMem_Mutex_Destroy();
-    gLibMemInitiated = 0;
-    gLibMemMutexHdl = NULL;
+    LibMT_UtilMutex_Uninit(&gLibMemLock);
 }
 
 void *LibMem_Malloc(size_t size)
@@ -178,14 +153,15 @@ void *LibMem_Malloc(size_t size)
 
     real_size = sizeof(LibMem_Cell_t) + size_with_padding - memory_bus_size/*u8 *data*/ + size_with_padding;
 
-    _LibMem_Mutex_Lock();
+    LibMT_UtilMutex_Lock(&gLibMemLock);
     curr_cell = (LibMem_Cell_t *)malloc(real_size);
     //printf("%s(), size=%u, size_with_padding=%u, real_size=%u\n", __func__, (unsigned int)size, (unsigned int)size_with_padding, (unsigned int)real_size);
     if (curr_cell == NULL) {
         return NULL;
     }
     DLLIST_INSERT_LAST(_LIB_MEM_HEAD, curr_cell);
-    _LibMem_Mutex_Unlock();
+    gLibMemCurr = curr_cell;
+    LibMT_UtilMutex_Unlock(&gLibMemLock);
 
     curr_cell->key = 0;
     curr_cell->size = size;
@@ -194,8 +170,6 @@ void *LibMem_Malloc(size_t size)
 
     flag = _LIB_MEM_FLAG(curr_cell);
     memset(flag, 0, size);
-
-    gLibMemCurr = curr_cell;
 
     return (void *)&(curr_cell->data);
 }
@@ -217,9 +191,9 @@ int LibMem_Free(void *ptr)
     if (curr_cell == NULL)
         return LIB_MEM_RC_CANT_FIND_CELL;
 
-    _LibMem_Mutex_Lock();
+    LibMT_UtilMutex_Lock(&gLibMemLock);
     DLLIST_REMOVE_NODE(_LIB_MEM_HEAD, curr_cell);
-    _LibMem_Mutex_Unlock();
+    LibMT_UtilMutex_Unlock(&gLibMemLock);
 
     free(curr_cell);
 

@@ -23,15 +23,19 @@
 
 int main(int argc, char *argv[])
 {
+#if 1
     Lib_Init();
+#else
+    Lib_Init(LIB_MT_ENABLE);
+#endif
 
-    //LibMem_Demo();
-#define XBA
-    LibMT_UtilMutex_Demo();
-    //DUMPND(LibUtil_GetUniqueU32());
-    //DUMPND(LibUtil_GetUniqueU32());
-    //DUMPND(LibUtil_GetUniqueU32());
-    //DUMPND(LibUtil_GetUniqueU32());
+    LibMem_Demo();
+
+    //LibMT_UtilMutex_Demo();
+    DUMPND(LibUtil_GetUniqueU32());
+    DUMPND(LibUtil_GetUniqueU32());
+    DUMPND(LibUtil_GetUniqueU32());
+    DUMPND(LibUtil_GetUniqueU32());
 
     Lib_Uninit();
     return 99;
