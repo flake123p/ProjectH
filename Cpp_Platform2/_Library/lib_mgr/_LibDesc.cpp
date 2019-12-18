@@ -116,23 +116,23 @@ int LibDesc_Dump(Lib_Desc_Head_t *desc_head)
 typedef struct {
     Lib_Desc_Head_t head_entry;
     u32 mod_id;
-} Demo_Module_Instance_t;
+} Demo_Module_Instance2_t;
 
 typedef struct {
     Lib_Desc_Info_t desc_entry;
     u32 desc_id;
-} Demo_Desc_t;
+} Demo_Desc2_t;
 
 void LibDesc_Demo(void)
 {
-    Demo_Module_Instance_t *mod_1 = (Demo_Module_Instance_t *)LibDesc_CreateList(sizeof(Demo_Module_Instance_t), 2, sizeof(Demo_Desc_t));
+    Demo_Module_Instance2_t *mod_1 = (Demo_Module_Instance2_t *)LibDesc_CreateList(sizeof(Demo_Module_Instance2_t), 2, sizeof(Demo_Desc2_t));
 
     printf("%s()\n", __func__);
 
-    Demo_Desc_t *desc1 = (Demo_Desc_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
+    Demo_Desc2_t *desc1 = (Demo_Desc2_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
     desc1 = desc1;
-    Demo_Desc_t *desc2 = (Demo_Desc_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
-    Demo_Desc_t *desc3 = (Demo_Desc_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
+    Demo_Desc2_t *desc2 = (Demo_Desc2_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
+    Demo_Desc2_t *desc3 = (Demo_Desc2_t *)LibDesc_GetDesc((Lib_Desc_Head_t *)mod_1);
 
     LibDesc_ReleaseDesc((Lib_Desc_Head_t *)mod_1, (Lib_Desc_Info_t *)desc3);
     LibDesc_ReleaseDesc((Lib_Desc_Head_t *)mod_1, (Lib_Desc_Info_t *)desc2);

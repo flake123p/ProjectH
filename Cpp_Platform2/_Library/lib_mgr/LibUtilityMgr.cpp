@@ -48,6 +48,13 @@ int LibUtil_GetRand(void)
 	return rand();
 }
 
+int LibUtil_GetRand2(void)
+{
+    int ret = rand();
+    ret = ret << (ret&0xF);
+	return ret | rand();
+}
+
 void LibUtil_Print_RAND_MAX(void)
 {
 	printf("RAND_MAX = %d\n", RAND_MAX);
@@ -638,8 +645,8 @@ u32 LibUtil_GetUniqueU32(void)
         gLibUtil_GetUniqueU32_Inited = 1;
 
         LibUtil_InitRand(0);
-        gLibUtil_GetUniqueU32_Base = (u32)LibUtil_GetRand();
-        gLibUtil_GetUniqueU32_Increment = (u32)LibUtil_GetRand();
+        gLibUtil_GetUniqueU32_Base = (u32)LibUtil_GetRand2();
+        gLibUtil_GetUniqueU32_Increment = (u32)LibUtil_GetRand2();
         gLibUtil_GetUniqueU32_Increment |= 0x00000001;
     }
 
@@ -662,8 +669,8 @@ u16 LibUtil_GetUniqueU16(void)
         gLibUtil_GetUniqueU16_Inited = 1;
 
         LibUtil_InitRand(0);
-        gLibUtil_GetUniqueU16_Base = (u16)LibUtil_GetRand();
-        gLibUtil_GetUniqueU16_Increment = (u16)LibUtil_GetRand();
+        gLibUtil_GetUniqueU16_Base = (u16)LibUtil_GetRand2();
+        gLibUtil_GetUniqueU16_Increment = (u16)LibUtil_GetRand2();
         gLibUtil_GetUniqueU16_Increment |= 0x0001;
     }
 

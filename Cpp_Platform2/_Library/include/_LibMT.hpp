@@ -6,6 +6,7 @@
 #include "_LibLinkedList.hpp" //LinkedListClass
 
 #include "LibThread.hpp"
+#include "_LibDesc.hpp"
 
 // ============================== Debug ==============================
 
@@ -14,6 +15,24 @@ typedef struct {
     //int initiated;
     MUTEX_HANDLE_t handle;
 } LibMT_UtilMutex_t; //init with = {0, NULL};
+
+typedef struct {
+    DLList_Entry_t list_entry;
+    int is_pre_allocate;
+    u32 msg;
+    void *hdl;
+} LibMT_Msg_t;
+
+typedef struct {
+    DLList_Entry_t internal_entry;
+
+    THREAD_HANDLE_t threadHdl;
+    EVENT_HANDLE_t  evtHdl;
+    MUTEX_HANDLE_t  msgLock;
+    DLList_Head_t   msgHead;
+
+    ThreadEntryFunc func;
+} LibMT_ThreadInfo_t;
 
 //destroy in LibMT_Uninit();
 int LibMT_UtilMutex_Init(LibMT_UtilMutex_t *mutex);
@@ -24,6 +43,14 @@ void LibMT_UtilMutex_Demo(void);
 
 int LibMT_Init(void);
 int LibMT_Uninit(void);
+LibMT_Msg_t *LibMT_MsgGet(void);
+int LibMT_MsgRelease(LibMT_Msg_t *msg);
+LibMT_ThreadInfo_t *LibMT_CreateThread(ThreadEntryFunc func);
+int LibMT_WaitThreadAndDestroy(LibMT_ThreadInfo_t *info);
+int LibMT_WaitMainThreadAndDestroyAll(LibMT_ThreadInfo_t *info = NULL);
+
+
+void LibMT_Demo(void);
 
 #define __LIB_MT_HPP_INCLUDED_
 #endif//__LIB_MT_HPP_INCLUDED_

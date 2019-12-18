@@ -23,19 +23,23 @@
 
 int main(int argc, char *argv[])
 {
-#if 1
+#if ( 0 )
     Lib_Init();
 #else
     Lib_Init(LIB_MT_ENABLE);
 #endif
 
-    LibMem_Demo();
+    //LibMem_Demo();
 
     //LibMT_UtilMutex_Demo();
+    LibMT_Demo();
+
+#if 0
     DUMPND(LibUtil_GetUniqueU32());
     DUMPND(LibUtil_GetUniqueU32());
     DUMPND(LibUtil_GetUniqueU32());
     DUMPND(LibUtil_GetUniqueU32());
+#endif
 
     Lib_Uninit();
     return 99;
