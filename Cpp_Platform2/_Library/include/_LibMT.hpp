@@ -19,10 +19,11 @@ typedef struct {
 typedef struct {
     DLList_Entry_t list_entry;
     int is_pre_allocate;
-    u32 msg;
+    u32 val;
     void *hdl;
 } LibMT_Msg_t;
 
+typedef int (*LibMT_EntryFunc)(LibMT_Msg_t *msg); //return true for end of thread
 typedef struct {
     DLList_Entry_t internal_entry;
 
@@ -31,7 +32,7 @@ typedef struct {
     MUTEX_HANDLE_t  msgLock;
     DLList_Head_t   msgHead;
 
-    ThreadEntryFunc func;
+    LibMT_EntryFunc func;
 } LibMT_ThreadInfo_t;
 
 //destroy in LibMT_Uninit();

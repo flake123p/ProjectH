@@ -218,8 +218,8 @@ typedef struct {
 
 #define DLLIST_REMOVE_NODE_SAFELY(head, node) \
     if (DLLIST_IS_NOT_EMPTY(head)) {\
-        if (node != head) {\
-            DLLIST_REMOVE_NODE(head);\
+        if ((void *)node != (void *)head) {\
+            DLLIST_REMOVE_NODE(head, node);\
         }\
     }
 

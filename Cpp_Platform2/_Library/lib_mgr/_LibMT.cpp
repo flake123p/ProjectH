@@ -149,9 +149,57 @@ int _LibMT_CreateMsgList(void)
     return 0;
 }
 
+LibMT_Msg_t *_LibMT_ThreadMsgGet(LibMT_ThreadInfo_t *info)
+{
+    LibMT_Msg_t *msg = NULL;
+
+    LIB_MT_MSG_LOCK;
+    if (DLLIST_IS_NOT_EMPTY(&(info->msgHead))) {
+        msg = (LibMT_Msg_t *)DLLIST_FIRST(&(info->msgHead));
+        DLLIST_REMOVE_FIRST(&(info->msgHead));
+    }
+    LIB_MT_MSG_UNLOCK;
+    return msg;
+}
+
 void *_LibMT_CommonShellFunc(void *hdl)
 {
+    LibMT_ThreadInfo_t *info = (LibMT_ThreadInfo_t *)hdl;
+    LibMT_Msg_t *msg;
+
+    while (1)
+    {
+        LibIPC_Event_Wait(info->evtHdl);
+
+        while (1)
+        {
+            msg = _LibMT_ThreadMsgGet(info);
+            if (msg == NULL)
+                break;
+
+            if ( (*(info->func))(msg) ) {
+                LibMT_MsgRelease(msg);
+                return NULL;
+            }
+            LibMT_MsgRelease(msg);
+        }
+    }
     return NULL;
+}
+
+int _LibMT_DestroyThreadMsgList(DLList_Head_t *head)
+{
+    LibMT_Msg_t *currMsg;
+    LibMT_Msg_t *prevMsg;
+
+    DLLIST_WHILE_START(head, currMsg, LibMT_Msg_t)
+    {
+        prevMsg = currMsg;
+        DLLIST_WHILE_NEXT(currMsg, LibMT_Msg_t);
+        LibMT_MsgRelease(prevMsg);
+    }
+
+    return 0;
 }
 
 int LibMT_Init(void)
@@ -202,7 +250,25 @@ int LibMT_MsgRelease(LibMT_Msg_t *msg)
     return 0;
 }
 
-LibMT_ThreadInfo_t *LibMT_CreateThread(ThreadEntryFunc func)
+int LibMT_MsgToThread(LibMT_Msg_t *msg, LibMT_ThreadInfo_t *info)
+{
+    LibIPC_Mutex_Lock(info->msgLock);
+    DLLIST_INSERT_LAST(&(info->msgHead), msg);
+    LibIPC_Mutex_Unlock(info->msgLock);
+
+    LibIPC_Event_Set(info->evtHdl);
+    return 0;
+}
+
+int LibMT_MsgToThreadLite(u32 val, LibMT_ThreadInfo_t *info)
+{
+    LibMT_Msg_t *msg = LibMT_MsgGet();
+    msg->val = val;
+    LibMT_MsgToThread(msg, info);
+    return 0;
+}
+
+LibMT_ThreadInfo_t *LibMT_CreateThread(LibMT_EntryFunc func)
 {
     int retVal = 0;
     LibMT_ThreadInfo_t *info;
@@ -215,9 +281,10 @@ LibMT_ThreadInfo_t *LibMT_CreateThread(ThreadEntryFunc func)
     ASSERT_CHK( retVal, LibIPC_Event_Create(&(info->evtHdl)) );
     ASSERT_CHK( retVal, LibIPC_Mutex_Create(&(info->msgLock)) );
     DLLIST_HEAD_RESET(&(info->msgHead));
+    info->func = func;
 
     ASSERT_CHK( retVal, LibThread_Create(info->threadHdl, _LibMT_CommonShellFunc, (void *)info) );
-    //LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
+    LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
 
     LIB_MT_THREAD_UNLOCK;
 
@@ -226,14 +293,69 @@ LibMT_ThreadInfo_t *LibMT_CreateThread(ThreadEntryFunc func)
 
 int LibMT_WaitThreadAndDestroy(LibMT_ThreadInfo_t *info)
 {
+    int retVal;
+    LibThread_WaitThread(info->threadHdl);
+    LIB_MT_THREAD_LOCK;
+    ASSERT_CHK( retVal, LibThread_DestroyHandle(info->threadHdl) );
+    ASSERT_CHK( retVal, LibIPC_Event_Destroy(info->evtHdl) );
+    ASSERT_CHK( retVal, LibIPC_Mutex_Destroy(info->msgLock) );
+    _LibMT_DestroyThreadMsgList(&(info->msgHead));
+    DLLIST_REMOVE_NODE_SAFELY(&gLibMT_ThreadHead, info);
+    LIB_MT_THREAD_UNLOCK;
     return 0;
 }
 
 int LibMT_WaitMainThreadAndDestroyAll(LibMT_ThreadInfo_t *info /* = NULL */)
 {
     if (info != NULL) {
+        LibThread_WaitThread(info->threadHdl);
+    }
+
+    {
+        LibMT_ThreadInfo_t *currInfo;
+        LibMT_ThreadInfo_t *prevInfo;
+
+        DLLIST_WHILE_START(&gLibMT_ThreadHead, currInfo, LibMT_ThreadInfo_t)
+        {
+            prevInfo = currInfo;
+            DLLIST_WHILE_NEXT(currInfo, LibMT_ThreadInfo_t);
+            LibMT_WaitThreadAndDestroy(prevInfo);
+        }
     }
     return 0;
+}
+
+LibMT_ThreadInfo_t *taskH;
+LibMT_ThreadInfo_t *taskL;
+int LibMT_Demo_ThreadH(LibMT_Msg_t *msg)
+{
+    printf("%s() %d\n", __func__, msg->val);
+
+    if (msg->val < 100) {
+        LibMT_Msg_t *msgToL = LibMT_MsgGet();
+        msgToL->val = msg->val;
+        LibMT_MsgToThread(msgToL, taskL);
+    }
+    if (msg->val == 999) {
+        return 1;  //return true for end of thread
+    } else {
+        return 0;
+    }
+}
+
+int LibMT_Demo_ThreadL(LibMT_Msg_t *msg)
+{
+    LibMT_Msg_t *msgToH = LibMT_MsgGet();
+    if (msg->val == 49)
+        msgToH->val = 999;
+    else
+        msgToH->val = msg->val + 100;
+    LibMT_MsgToThread(msgToH, taskH);
+
+    if (msg->val == 49)
+        return 1;  //return true for end of thread
+    else
+        return 0;
 }
 
 void LibMT_Demo(void)
@@ -244,5 +366,11 @@ void LibMT_Demo(void)
         printf("Demo single-threading mode now ...\n");
     }
 
-    
+    taskH = LibMT_CreateThread(LibMT_Demo_ThreadH);
+    taskL = LibMT_CreateThread(LibMT_Demo_ThreadL);
+    FOREACH_I(50) {
+        LibMT_MsgToThreadLite(i, taskH);
+        LibOs_SleepMiliSeconds(1);
+    }
+    LibMT_WaitMainThreadAndDestroyAll(taskH);
 }
