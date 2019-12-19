@@ -20,6 +20,7 @@ typedef struct {
     DLList_Entry_t list_entry;
     int is_pre_allocate;
     u32 val;
+    u32 id;
     void *hdl;
 } LibMT_Msg_t;
 
@@ -42,16 +43,25 @@ int LibMT_UtilMutex_Lock(LibMT_UtilMutex_t *mutex);
 int LibMT_UtilMutex_Unlock(LibMT_UtilMutex_t *mutex);
 void LibMT_UtilMutex_Demo(void);
 
+int LibMT_Print_Lock(void);
+int LibMT_Print_Unlock(void);
+#define SAFE_PRINT(...) LibMT_Print_Lock();printf(__VA_ARGS__);LibMT_Print_Unlock()
+
 int LibMT_Init(void);
 int LibMT_Uninit(void);
 LibMT_Msg_t *LibMT_MsgGet(void);
 int LibMT_MsgRelease(LibMT_Msg_t *msg);
-LibMT_ThreadInfo_t *LibMT_CreateThread(ThreadEntryFunc func);
+int LibMT_MsgToThread(LibMT_Msg_t *msg, LibMT_ThreadInfo_t *info);
+int LibMT_MsgToThreadLite(u32 val, LibMT_ThreadInfo_t *info);
+LibMT_Msg_t *LibMT_MsgReceive(LibMT_ThreadInfo_t *info);
+
+LibMT_ThreadInfo_t *LibMT_CreateThread(LibMT_EntryFunc func);
+LibMT_ThreadInfo_t *LibMT_CreateThreadEx(ThreadEntryFunc func);
 int LibMT_WaitThreadAndDestroy(LibMT_ThreadInfo_t *info);
 int LibMT_WaitMainThreadAndDestroyAll(LibMT_ThreadInfo_t *info = NULL);
 
-
 void LibMT_Demo(void);
+void LibMT_Demo_Safe_Print(void);
 
 #define __LIB_MT_HPP_INCLUDED_
 #endif//__LIB_MT_HPP_INCLUDED_

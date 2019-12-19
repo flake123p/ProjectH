@@ -32,7 +32,8 @@ int main(int argc, char *argv[])
     //LibMem_Demo();
 
     //LibMT_UtilMutex_Demo();
-    LibMT_Demo();
+    LibTimer_DemoEx();
+    //LibMT_Demo_Safe_Print();
 
 #if 0
     DUMPND(LibUtil_GetUniqueU32());

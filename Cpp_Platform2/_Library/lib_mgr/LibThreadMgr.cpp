@@ -366,6 +366,7 @@ void *WatchDog_Thread(void *arg)
 					ctr = 0;
 					if (gTimeOutCB != NULL) {
 						(*gTimeOutCB)();
+						return 0;
 					} else {
 						return 0;
 					}

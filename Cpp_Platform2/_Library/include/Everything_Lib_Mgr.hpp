@@ -36,6 +36,7 @@
 #include "_LibSyntex.hpp"
 #include "_LibDesc.hpp"
 #include "_LibModule.hpp"
+#include "_LibTimer.hpp"
 #include "_LibVCD.hpp"
 #include "LibUart.hpp"
 #include "LibTime.hpp"

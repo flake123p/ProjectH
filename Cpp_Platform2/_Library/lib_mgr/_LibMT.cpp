@@ -103,6 +103,17 @@ void LibMT_UtilMutex_Demo(void)
     REMOVE_UNUSED_WRANING(retVal);
 }
 
+LibMT_UtilMutex_t gLibMT_PrintLock;
+int LibMT_Print_Lock(void)
+{
+    return LibMT_UtilMutex_Lock(&gLibMT_PrintLock);
+}
+
+int LibMT_Print_Unlock(void)
+{
+    return LibMT_UtilMutex_Unlock(&gLibMT_PrintLock);
+}
+
 LibMT_UtilMutex_t gLibMT_MsgLock;
 DLList_Head_t gLibMT_MsgHead;
 #define LIB_MT_PREALLOCATE_MSG_NUM ( 16 )
@@ -149,20 +160,7 @@ int _LibMT_CreateMsgList(void)
     return 0;
 }
 
-LibMT_Msg_t *_LibMT_ThreadMsgGet(LibMT_ThreadInfo_t *info)
-{
-    LibMT_Msg_t *msg = NULL;
-
-    LIB_MT_MSG_LOCK;
-    if (DLLIST_IS_NOT_EMPTY(&(info->msgHead))) {
-        msg = (LibMT_Msg_t *)DLLIST_FIRST(&(info->msgHead));
-        DLLIST_REMOVE_FIRST(&(info->msgHead));
-    }
-    LIB_MT_MSG_UNLOCK;
-    return msg;
-}
-
-void *_LibMT_CommonShellFunc(void *hdl)
+void *_LibMT_CommonShellEntry(void *hdl)
 {
     LibMT_ThreadInfo_t *info = (LibMT_ThreadInfo_t *)hdl;
     LibMT_Msg_t *msg;
@@ -173,7 +171,7 @@ void *_LibMT_CommonShellFunc(void *hdl)
 
         while (1)
         {
-            msg = _LibMT_ThreadMsgGet(info);
+            msg = LibMT_MsgReceive(info);
             if (msg == NULL)
                 break;
 
@@ -204,6 +202,7 @@ int _LibMT_DestroyThreadMsgList(DLList_Head_t *head)
 
 int LibMT_Init(void)
 {
+    LibMT_UtilMutex_Init(&gLibMT_PrintLock);
     LibMT_UtilMutex_Init(&gLibMT_MsgLock);
     LibMT_UtilMutex_Init(&gLibMT_ThreadLock);
 
@@ -215,6 +214,7 @@ int LibMT_Init(void)
 
 int LibMT_Uninit(void)
 {
+    LibMT_UtilMutex_Uninit(&gLibMT_PrintLock);
     LibMT_UtilMutex_Uninit(&gLibMT_MsgLock);
     LibMT_UtilMutex_Uninit(&gLibMT_ThreadLock);
 
@@ -235,6 +235,7 @@ LibMT_Msg_t *LibMT_MsgGet(void)
         msg->is_pre_allocate = 0;
     }
     LIB_MT_MSG_UNLOCK;
+    msg->hdl = NULL;
     return msg;
 }
 
@@ -268,6 +269,19 @@ int LibMT_MsgToThreadLite(u32 val, LibMT_ThreadInfo_t *info)
     return 0;
 }
 
+LibMT_Msg_t *LibMT_MsgReceive(LibMT_ThreadInfo_t *info)
+{
+    LibMT_Msg_t *msg = NULL;
+
+    LIB_MT_MSG_LOCK;
+    if (DLLIST_IS_NOT_EMPTY(&(info->msgHead))) {
+        msg = (LibMT_Msg_t *)DLLIST_FIRST(&(info->msgHead));
+        DLLIST_REMOVE_FIRST(&(info->msgHead));
+    }
+    LIB_MT_MSG_UNLOCK;
+    return msg;
+}
+
 LibMT_ThreadInfo_t *LibMT_CreateThread(LibMT_EntryFunc func)
 {
     int retVal = 0;
@@ -283,7 +297,32 @@ LibMT_ThreadInfo_t *LibMT_CreateThread(LibMT_EntryFunc func)
     DLLIST_HEAD_RESET(&(info->msgHead));
     info->func = func;
 
-    ASSERT_CHK( retVal, LibThread_Create(info->threadHdl, _LibMT_CommonShellFunc, (void *)info) );
+    ASSERT_CHK( retVal, LibThread_Create(info->threadHdl, _LibMT_CommonShellEntry, (void *)info) );
+
+    LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
+
+    LIB_MT_THREAD_UNLOCK;
+
+    return info;
+}
+
+LibMT_ThreadInfo_t *LibMT_CreateThreadEx(ThreadEntryFunc func)
+{
+    int retVal = 0;
+    LibMT_ThreadInfo_t *info;
+
+    LIB_MT_THREAD_LOCK;
+    info = (LibMT_ThreadInfo_t *)malloc(sizeof(LibMT_ThreadInfo_t));
+    DLLIST_INSERT_LAST(&gLibMT_ThreadHead, info);
+
+    ASSERT_CHK( retVal, LibThread_NewHandle(&(info->threadHdl)) );
+    ASSERT_CHK( retVal, LibIPC_Event_Create(&(info->evtHdl)) );
+    ASSERT_CHK( retVal, LibIPC_Mutex_Create(&(info->msgLock)) );
+    DLLIST_HEAD_RESET(&(info->msgHead));
+    info->func = (LibMT_EntryFunc)func; //meanless
+
+    ASSERT_CHK( retVal, LibThread_Create(info->threadHdl, func, (void *)info) );
+
     LibOs_SleepMiliSeconds(10); // For linux, prevent SetEvent() is running before WaitEvent() !!
 
     LIB_MT_THREAD_UNLOCK;
@@ -372,5 +411,29 @@ void LibMT_Demo(void)
         LibMT_MsgToThreadLite(i, taskH);
         LibOs_SleepMiliSeconds(1);
     }
+    LibMT_WaitMainThreadAndDestroyAll(taskH);
+}
+
+void *LibMT_Demo_Print1(void *dummy)
+{
+    LibOs_SleepMiliSeconds(10);
+    FOREACH_I(50) {
+        SAFE_PRINT("%d\n", i);
+    }
+    return NULL;
+}
+
+void *LibMT_Demo_Print2(void *dummy)
+{
+    FOREACH_I(50) {
+        SAFE_PRINT("%d\n", i+1000);
+    }
+    return NULL;
+}
+
+void LibMT_Demo_Safe_Print(void)
+{
+    taskH = LibMT_CreateThreadEx(LibMT_Demo_Print1);
+    taskL = LibMT_CreateThreadEx(LibMT_Demo_Print2);
     LibMT_WaitMainThreadAndDestroyAll(taskH);
 }
