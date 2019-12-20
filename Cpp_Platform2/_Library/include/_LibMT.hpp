@@ -21,6 +21,8 @@ typedef struct {
     int is_pre_allocate;
     u32 val;
     u32 id;
+    u32 para1;
+    u32 para2;
     void *hdl;
 } LibMT_Msg_t;
 

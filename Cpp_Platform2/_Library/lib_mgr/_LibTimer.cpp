@@ -1,13 +1,24 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
-void _LibTimer_TemplateCallback(Timer_Msg_t *timerMsg)
+int _LibTimer_TemplateCallback(Timer_Msg_t *timerMsg)
+{
+    LibMT_Msg_t *msgToCaller = LibMT_MsgGet();
+    msgToCaller->val = timerMsg->toCallerMsgVal;
+    msgToCaller->id = timerMsg->uniqueID;
+    msgToCaller->hdl = NULL;
+    LibMT_MsgToThread(msgToCaller, timerMsg->callerThread);
+    return 1;
+}
+
+int _LibTimer_TemplateCallback_WithTimerMsg(Timer_Msg_t *timerMsg)
 {
     LibMT_Msg_t *msgToCaller = LibMT_MsgGet();
     msgToCaller->val = timerMsg->toCallerMsgVal;
     msgToCaller->id = timerMsg->uniqueID;
     msgToCaller->hdl = (void *)timerMsg;
     LibMT_MsgToThread(msgToCaller, timerMsg->callerThread);
+    return 0;
 }
 
 void *LibTimer_Thread(void *hdl)
@@ -29,7 +40,8 @@ void *LibTimer_Thread(void *hdl)
 
     timerMsg = (Timer_Msg_t *)msg->hdl;
     sleep_period_in_ms = timerMsg->data.sleep_period_in_ms;
-    free(timerMsg);
+    MEM_FREE(timerMsg);
+    LibMT_MsgRelease(msg);
 
     DLLIST_HEAD_RESET(&jobsHead);
 
@@ -45,7 +57,9 @@ void *LibTimer_Thread(void *hdl)
             DLLIST_WHILE_NEXT(currMsg, Timer_Msg_t);
             if (prevMsg->data.sleep_time_in_ms_remain < sleep_period_in_ms) {
                 DLLIST_REMOVE_NODE_SAFELY(&jobsHead, prevMsg);
-                (*(prevMsg->timesupCB))(prevMsg);
+                if ( (*(prevMsg->timesupCB))(prevMsg) ) {
+                    MEM_FREE(prevMsg);
+                }
             } else {
                 prevMsg->data.sleep_time_in_ms_remain -= sleep_period_in_ms;
             }
@@ -73,12 +87,13 @@ void *LibTimer_Thread(void *hdl)
                     {
                         prevMsg = currMsg;
                         DLLIST_WHILE_NEXT(currMsg, Timer_Msg_t);
-                        free(prevMsg);
+                        MEM_FREE(prevMsg);
                     }
                     if (timerMsg != NULL) {
-                        free(timerMsg);
+                        MEM_FREE(timerMsg);
                     }
-                } return NULL;
+                    LibMT_MsgRelease(msg);
+                } return NULL; //end of thread
 
                 case TIMER_ADD: {
                     DLLIST_INSERT_LAST(&jobsHead, timerMsg);
@@ -92,7 +107,32 @@ void *LibTimer_Thread(void *hdl)
                     {
                         if (currMsg->uniqueID == msg->id) {
                             DLLIST_REMOVE_NODE_SAFELY(&jobsHead, currMsg);
-                            free(currMsg);
+                            MEM_FREE(currMsg);
+                            break;
+                        }
+                    }
+                } break;
+
+                case TIMER_UPDATE: {
+                    Timer_Msg_t *currMsg;
+
+                    DLLIST_FOREACH(&jobsHead, currMsg, Timer_Msg_t)
+                    {
+                        if (currMsg->uniqueID == msg->id) {
+                            currMsg->data.sleep_time_in_ms_remain = msg->para1;
+                            currMsg->sleep_time_in_ms = msg->para1;
+                            break;
+                        }
+                    }
+                } break;
+
+                case TIMER_RELOAD: {
+                    Timer_Msg_t *currMsg;
+
+                    DLLIST_FOREACH(&jobsHead, currMsg, Timer_Msg_t)
+                    {
+                        if (currMsg->uniqueID == msg->id) {
+                            currMsg->data.sleep_time_in_ms_remain = currMsg->sleep_time_in_ms;
                             break;
                         }
                     }
@@ -104,7 +144,7 @@ void *LibTimer_Thread(void *hdl)
             }
             if (free_timer_msg) {
                 if (timerMsg != NULL) {
-                    free(timerMsg);
+                    MEM_FREE(timerMsg);
                 }
             }
             LibMT_MsgRelease(msg);
@@ -120,7 +160,7 @@ LibMT_ThreadInfo_t *LibTimer_Create(void)
 int LibTimer_Start(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_period_in_ms)
 {
     LibMT_Msg_t *msg = LibMT_MsgGet();
-    Timer_Msg_t *timerMsg = (Timer_Msg_t *)malloc(sizeof(Timer_Msg_t));
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
 
     msg->val = TIMER_INIT;
     msg->hdl = (void *)timerMsg;
@@ -146,7 +186,7 @@ u32 LibTimer_Add(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, Time
 {
     u32 uniqueID = LibUtil_GetUniqueU32();
     LibMT_Msg_t *msg = LibMT_MsgGet();
-    Timer_Msg_t *timerMsg = (Timer_Msg_t *)malloc(sizeof(Timer_Msg_t));
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
 
     msg->val = TIMER_ADD;
     msg->id  = uniqueID;
@@ -160,11 +200,11 @@ u32 LibTimer_Add(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, Time
     return uniqueID;
 }
 
-u32 LibTimer_AddEx(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, LibMT_ThreadInfo_t *callerThread, u32 toCallerMsgVal)
+u32 LibTimer_AddLite(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, LibMT_ThreadInfo_t *callerThread, u32 toCallerMsgVal)
 {
     u32 uniqueID = LibUtil_GetUniqueU32();
     LibMT_Msg_t *msg = LibMT_MsgGet();
-    Timer_Msg_t *timerMsg = (Timer_Msg_t *)malloc(sizeof(Timer_Msg_t));
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
 
     msg->val = TIMER_ADD;
     msg->id  = uniqueID;
@@ -173,6 +213,26 @@ u32 LibTimer_AddEx(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, Li
     timerMsg->sleep_time_in_ms = sleep_time_in_ms;
     timerMsg->data.sleep_time_in_ms_remain = sleep_time_in_ms;
     timerMsg->timesupCB = _LibTimer_TemplateCallback;
+    timerMsg->callerThread = callerThread;
+    timerMsg->toCallerMsgVal = toCallerMsgVal;
+
+    LibMT_MsgToThread(msg, timerThreadInfo);
+    return uniqueID;
+}
+
+u32 LibTimer_AddLite_WithTimerMsg(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, LibMT_ThreadInfo_t *callerThread, u32 toCallerMsgVal)
+{
+    u32 uniqueID = LibUtil_GetUniqueU32();
+    LibMT_Msg_t *msg = LibMT_MsgGet();
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
+
+    msg->val = TIMER_ADD;
+    msg->id  = uniqueID;
+    msg->hdl = (void *)timerMsg;
+    timerMsg->uniqueID = uniqueID;
+    timerMsg->sleep_time_in_ms = sleep_time_in_ms;
+    timerMsg->data.sleep_time_in_ms_remain = sleep_time_in_ms;
+    timerMsg->timesupCB = _LibTimer_TemplateCallback_WithTimerMsg;
     timerMsg->callerThread = callerThread;
     timerMsg->toCallerMsgVal = toCallerMsgVal;
 
@@ -191,56 +251,82 @@ int LibTimer_Remove(LibMT_ThreadInfo_t *timerThreadInfo, u32 uniqueID)
     return 0;
 }
 
-LibMT_ThreadInfo_t *gDemoTimerTask;
-LibMT_ThreadInfo_t *gDemoTimerTask2;
-void Demo_Timer_Timesup_CB(Timer_Msg_t *timerMsg)
+int LibTimer_Update(LibMT_ThreadInfo_t *timerThreadInfo, u32 uniqueID, u32 sleep_time_in_ms)
+{
+    LibMT_Msg_t *msg = LibMT_MsgGet();
+
+    msg->val = TIMER_UPDATE;
+    msg->id  = uniqueID;
+    msg->hdl = NULL;
+    msg->para1 = sleep_time_in_ms;
+    LibMT_MsgToThread(msg, timerThreadInfo);
+    return 0;
+}
+
+int LibTimer_Reload(LibMT_ThreadInfo_t *timerThreadInfo, u32 uniqueID)
+{
+    LibMT_Msg_t *msg = LibMT_MsgGet();
+
+    msg->val = TIMER_RELOAD;
+    msg->id  = uniqueID;
+    msg->hdl = NULL;
+    LibMT_MsgToThread(msg, timerThreadInfo);
+    return 0;
+}
+
+LibMT_ThreadInfo_t *gLibTimer_DemoTimer;
+LibMT_ThreadInfo_t *gLibTimer_DemoTimer2;
+int Demo_Timer_Timesup_CB(Timer_Msg_t *timerMsg)
 {
     SAFE_PRINT("xxx id:%d\n", timerMsg->uniqueID);
-    free(timerMsg);
+    return 1;
 }
 
 void LibTimer_Demo(void)
 {
     u32 id1, id2, id3, idx;
-    gDemoTimerTask = LibTimer_Create();
-    gDemoTimerTask2 = LibTimer_Create();
-    LibTimer_Start(gDemoTimerTask, 100);
-    LibTimer_Start(gDemoTimerTask2, 50);
-    id1 = LibTimer_Add(gDemoTimerTask, 1000, Demo_Timer_Timesup_CB);
-    id2 = LibTimer_Add(gDemoTimerTask, 2000, Demo_Timer_Timesup_CB);
-    id3 = LibTimer_Add(gDemoTimerTask, 3000, Demo_Timer_Timesup_CB);
-    idx = LibTimer_Add(gDemoTimerTask2, 4000, Demo_Timer_Timesup_CB);
+    gLibTimer_DemoTimer = LibTimer_Create();
+    gLibTimer_DemoTimer2 = LibTimer_Create();
+    LibTimer_Start(gLibTimer_DemoTimer, 100);
+    LibTimer_Start(gLibTimer_DemoTimer2, 50);
+    id1 = LibTimer_Add(gLibTimer_DemoTimer, 1000, Demo_Timer_Timesup_CB);
+    id2 = LibTimer_Add(gLibTimer_DemoTimer, 2000, Demo_Timer_Timesup_CB);
+    id3 = LibTimer_Add(gLibTimer_DemoTimer, 3000, Demo_Timer_Timesup_CB);
+    idx = LibTimer_Add(gLibTimer_DemoTimer2, 4000, Demo_Timer_Timesup_CB);
     SAFE_PRINT("id1:%d\n", id1);
     SAFE_PRINT("id2:%d\n", id2);
     SAFE_PRINT("id3:%d\n", id3);
     SAFE_PRINT("idx:%d\n", idx);
-    LibTimer_Remove(gDemoTimerTask, id2);
+    LibTimer_Remove(gLibTimer_DemoTimer, id2);
 
     LibOs_SleepMiliSeconds(5000);
     SAFE_PRINT("Demo over ... \n");
-    LibTimer_Destroy(gDemoTimerTask);
-    LibTimer_Destroy(gDemoTimerTask2);
+    LibTimer_Destroy(gLibTimer_DemoTimer);
+    LibTimer_Destroy(gLibTimer_DemoTimer2);
 
-    LibMT_WaitMainThreadAndDestroyAll(gDemoTimerTask);
+    LibMT_WaitMainThreadAndDestroyAll(gLibTimer_DemoTimer);
 }
 
-LibMT_ThreadInfo_t *gLibTimerDemoTask;
+LibMT_ThreadInfo_t *gLibTimer_DemoTask;
 
-int LibTimer_Demo_Thread(LibMT_Msg_t *msg)
+int LibTimer_DemoTask(LibMT_Msg_t *msg)
 {
     SAFE_PRINT("%s() %d\n", __func__, msg->val);
-    free(msg->hdl);
-    LibTimer_Destroy(gDemoTimerTask);
+    if (msg->hdl != NULL) {
+        MEM_FREE(msg->hdl);
+    }
+    LibTimer_Destroy(gLibTimer_DemoTimer);
     return 1;  //return true for end of thread
 }
 
 void LibTimer_DemoEx(void)
 {
     u32 id1;
-    gDemoTimerTask = LibTimer_Create();
-    gLibTimerDemoTask = LibMT_CreateThread(LibTimer_Demo_Thread);
-    LibTimer_Start(gDemoTimerTask, 100);
-    id1 = LibTimer_AddEx(gDemoTimerTask, 2000, gLibTimerDemoTask, 979);
+    gLibTimer_DemoTimer = LibTimer_Create();
+    gLibTimer_DemoTask = LibMT_CreateThread(LibTimer_DemoTask);
+    LibTimer_Start(gLibTimer_DemoTimer, 100);
+    id1 = LibTimer_AddLite(gLibTimer_DemoTimer, 2000, gLibTimer_DemoTask, 979);
     SAFE_PRINT("id1:%d\n", id1);
-    LibMT_WaitMainThreadAndDestroyAll(gLibTimerDemoTask);
+    LibMT_WaitMainThreadAndDestroyAll(gLibTimer_DemoTask);
+    MEM_ALLOC(8);
 }

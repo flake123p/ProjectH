@@ -93,6 +93,8 @@ typedef struct {
     size_t size;
     size_t real_size;
     size_t size_with_padding;
+    const char *callerFile;
+    int callerLine;
     u8 *data;
 } LibMem_Cell_t;
 

@@ -24,25 +24,36 @@ static const char *_LibMem_ErrorCodeString(int errorCode)
     return "NULL";
 }
 
-static LibMem_Cell_t *_LibMem_FindCellEntry(u8 *data_addr)
+static LibMem_Cell_t *_LibMem_FindCellEntry_NotSafe(u8 *data_addr)
 {
+    u32 loopCtr = 0;
+
     if (gLibMemCurr == NULL)
         return NULL;
 
-    LibMT_UtilMutex_Lock(&gLibMemLock);
     {
         LibMem_Cell_t *curr_cell = gLibMemCurr;
         while (1)
         {
+            if (loopCtr < 3) {
+                DUMPD(loopCtr);DUMPNA(curr_cell);
+            }
+
             if (_LIB_MEM_DATA(curr_cell) == data_addr) {
                 gLibMemCurr = curr_cell;
-                LibMT_UtilMutex_Unlock(&gLibMemLock);
                 return curr_cell;
             }
             if (curr_cell->entry.next == NULL) {
                 break;
             } else {
                 curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+            }
+            loopCtr++;
+            if (loopCtr < 3) {
+                DUMPD(loopCtr);DUMPNA(curr_cell);
+            }
+            if (loopCtr > 1000000) {
+                BASIC_ASSERT(0);
             }
         }
 
@@ -56,14 +67,52 @@ static LibMem_Cell_t *_LibMem_FindCellEntry(u8 *data_addr)
 
             if (_LIB_MEM_DATA(curr_cell) == data_addr) {
                 gLibMemCurr = curr_cell;
-                LibMT_UtilMutex_Unlock(&gLibMemLock);
                 return curr_cell;
+            }
+            loopCtr++;
+            if (loopCtr > 1000000) {
+                BASIC_ASSERT(0);
             }
         }
     }
-    LibMT_UtilMutex_Unlock(&gLibMemLock);
     return NULL;
 }
+
+static LibMem_Cell_t *_LibMem_FindCellEntry_ForFree_NotSafe(u8 *data_addr)
+{
+    u32 loopCtr = 0;
+
+    if (gLibMemHead.head == NULL)
+        return NULL;
+
+    {
+        LibMem_Cell_t *curr_cell = (LibMem_Cell_t *)gLibMemHead.head;
+        while (1)
+        {
+            if (loopCtr < 3) {
+                //DUMPD(loopCtr);DUMPNA(curr_cell);
+            }
+
+            if (_LIB_MEM_DATA(curr_cell) == data_addr) {
+                return curr_cell;
+            }
+            if (curr_cell->entry.next == NULL) {
+                break;
+            } else {
+                curr_cell = (LibMem_Cell_t *)curr_cell->entry.next;
+            }
+            loopCtr++;
+            if (loopCtr < 3) {
+                //DUMPD(loopCtr);DUMPNA(curr_cell);
+            }
+            if (loopCtr > 1000000) {
+                BASIC_ASSERT(0);
+            }
+        }
+    }
+    return NULL;
+}
+
 
 static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
 {
@@ -128,7 +177,7 @@ void LibMem_Uninit(void)
 
     DLLIST_WHILE_START(_LIB_MEM_HEAD, curr_cell, LibMem_Cell_t)
     {
-        printf("Unreleased meory:0x%p\n", curr_cell);
+        printf("Unreleased meory:0x%p, file:%s, line:%d\n", curr_cell, curr_cell->callerFile, curr_cell->callerLine);
         cell_to_free = curr_cell;
         DLLIST_WHILE_NEXT(curr_cell, LibMem_Cell_t);
         free(cell_to_free);
@@ -157,6 +206,7 @@ void *LibMem_Malloc(size_t size)
     curr_cell = (LibMem_Cell_t *)malloc(real_size);
     //printf("%s(), size=%u, size_with_padding=%u, real_size=%u\n", __func__, (unsigned int)size, (unsigned int)size_with_padding, (unsigned int)real_size);
     if (curr_cell == NULL) {
+        LibMT_UtilMutex_Unlock(&gLibMemLock);
         return NULL;
     }
     DLLIST_INSERT_LAST(_LIB_MEM_HEAD, curr_cell);
@@ -167,6 +217,8 @@ void *LibMem_Malloc(size_t size)
     curr_cell->size = size;
     curr_cell->real_size = real_size;
     curr_cell->size_with_padding = size_with_padding;
+    curr_cell->callerFile = "DUMMY_FILE";
+    curr_cell->callerLine = 999999;
 
     flag = _LIB_MEM_FLAG(curr_cell);
     memset(flag, 0, size);
@@ -181,22 +233,34 @@ void *LibMem_MallocEx(size_t size, const char *file_str, int line)
         printf("Can't allocate memory! Assert in file: %s, line: %d\n", file_str, line);
         BASIC_ASSERT(0);
     }
+    {
+        LibMem_Cell_t *cell;
+
+        cell = STRUCT_ENTRY(ret, LibMem_Cell_t, data);
+
+        cell->callerFile = file_str;
+        cell->callerLine = line;
+    }
     return ret;
 }
 
 int LibMem_Free(void *ptr)
 {
-    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntry((u8 *)ptr);
-
-    if (curr_cell == NULL)
-        return LIB_MEM_RC_CANT_FIND_CELL;
+    LibMem_Cell_t *curr_cell;
 
     LibMT_UtilMutex_Lock(&gLibMemLock);
+    curr_cell = _LibMem_FindCellEntry_ForFree_NotSafe((u8 *)ptr);
+    if (curr_cell == NULL) {
+        LibMT_UtilMutex_Unlock(&gLibMemLock);
+        SAFE_PRINT("Unknown address for free()\n");
+        BASIC_ASSERT(0);
+        return LIB_MEM_RC_CANT_FIND_CELL;
+    }
+    
     DLLIST_REMOVE_NODE(_LIB_MEM_HEAD, curr_cell);
-    LibMT_UtilMutex_Unlock(&gLibMemLock);
-
+    gLibMemCurr = (LibMem_Cell_t *)gLibMemHead.head;
     free(curr_cell);
-
+    LibMT_UtilMutex_Unlock(&gLibMemLock);
     return 0;
 }
 
@@ -209,8 +273,11 @@ int LibMem_RangeCheck(u8 *addr, u32 size, int do_read_check)
 
 int LibMem_KeyInit(u8 *cell_data_addr, u32 key)
 {
-    LibMem_Cell_t *curr_cell = _LibMem_FindCellEntry(cell_data_addr);
+    LibMem_Cell_t *curr_cell;
 
+    LibMT_UtilMutex_Lock(&gLibMemLock);
+    curr_cell = _LibMem_FindCellEntry_NotSafe(cell_data_addr);
+    LibMT_UtilMutex_Unlock(&gLibMemLock);
     if (curr_cell == NULL)
         return LIB_MEM_RC_CANT_FIND_CELL;
 

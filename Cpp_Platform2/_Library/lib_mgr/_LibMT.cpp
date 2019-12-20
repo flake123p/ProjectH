@@ -134,7 +134,7 @@ int _LibMT_DestroyMsgList(void)
     {
         prevMsg = currMsg;
         DLLIST_WHILE_NEXT(currMsg, LibMT_Msg_t);
-        free(prevMsg);
+        MEM_FREE(prevMsg);
     }
 
     return 0;
@@ -147,7 +147,7 @@ int _LibMT_CreateMsgList(void)
     DLLIST_HEAD_RESET(&gLibMT_MsgHead);
     FOREACH_I(LIB_MT_PREALLOCATE_MSG_NUM)
     {
-        msg = (LibMT_Msg_t *)malloc(sizeof(LibMT_Msg_t));
+        msg = (LibMT_Msg_t *)MEM_ALLOC(sizeof(LibMT_Msg_t));
         if (msg == NULL) {
             _LibMT_DestroyMsgList();
             return 1;
@@ -231,7 +231,7 @@ LibMT_Msg_t *LibMT_MsgGet(void)
         msg = (LibMT_Msg_t *)DLLIST_FIRST(&gLibMT_MsgHead);
         DLLIST_REMOVE_FIRST(&gLibMT_MsgHead);
     } else {
-        msg = (LibMT_Msg_t *)malloc(sizeof(LibMT_Msg_t));
+        msg = (LibMT_Msg_t *)MEM_ALLOC(sizeof(LibMT_Msg_t));
         msg->is_pre_allocate = 0;
     }
     LIB_MT_MSG_UNLOCK;
@@ -245,7 +245,7 @@ int LibMT_MsgRelease(LibMT_Msg_t *msg)
     if (msg->is_pre_allocate) {
         DLLIST_INSERT_LAST(&gLibMT_MsgHead, msg);
     } else {
-        free(msg);
+        MEM_FREE(msg);
     }
     LIB_MT_MSG_UNLOCK;
     return 0;
@@ -288,7 +288,7 @@ LibMT_ThreadInfo_t *LibMT_CreateThread(LibMT_EntryFunc func)
     LibMT_ThreadInfo_t *info;
 
     LIB_MT_THREAD_LOCK;
-    info = (LibMT_ThreadInfo_t *)malloc(sizeof(LibMT_ThreadInfo_t));
+    info = (LibMT_ThreadInfo_t *)MEM_ALLOC(sizeof(LibMT_ThreadInfo_t));
     DLLIST_INSERT_LAST(&gLibMT_ThreadHead, info);
 
     ASSERT_CHK( retVal, LibThread_NewHandle(&(info->threadHdl)) );
@@ -312,7 +312,7 @@ LibMT_ThreadInfo_t *LibMT_CreateThreadEx(ThreadEntryFunc func)
     LibMT_ThreadInfo_t *info;
 
     LIB_MT_THREAD_LOCK;
-    info = (LibMT_ThreadInfo_t *)malloc(sizeof(LibMT_ThreadInfo_t));
+    info = (LibMT_ThreadInfo_t *)MEM_ALLOC(sizeof(LibMT_ThreadInfo_t));
     DLLIST_INSERT_LAST(&gLibMT_ThreadHead, info);
 
     ASSERT_CHK( retVal, LibThread_NewHandle(&(info->threadHdl)) );
@@ -340,6 +340,7 @@ int LibMT_WaitThreadAndDestroy(LibMT_ThreadInfo_t *info)
     ASSERT_CHK( retVal, LibIPC_Mutex_Destroy(info->msgLock) );
     _LibMT_DestroyThreadMsgList(&(info->msgHead));
     DLLIST_REMOVE_NODE_SAFELY(&gLibMT_ThreadHead, info);
+    MEM_FREE(info);
     LIB_MT_THREAD_UNLOCK;
     return 0;
 }
