@@ -33,7 +33,7 @@
 
 
 #define FOREACH_I(max) for(unsigned int i=0;i<max;i++)
-
+#define FOR_I(max)     FOREACH_I(max)
 
 
 #include <stdint.h>

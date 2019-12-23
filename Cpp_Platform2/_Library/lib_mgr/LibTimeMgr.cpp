@@ -39,6 +39,26 @@ void LibTime_DemoClockTimer(void)
 	printf("\n");
 }
 
+void LibTime_DemoClockTimer2(void)
+{
+    u32 us;
+
+    LibTime_StartClock();
+    LibTime_StartMicroSecondClock();
+
+    int i;
+    for (i = 0; i<0x1FFFFFFF; i++) ;
+
+    us = LibTime_StopMicroSecondClock(1);
+    DUMPND(us);
+
+    for (i = 0; i<0x1FFFFFFF; i++) ;
+
+    us = LibTime_StopMicroSecondClock(1);
+    DUMPND(us);
+    LibTime_StopClock_ShowResult();
+}
+
 
 void LibTime_PrintUtcTime(void)
 {

@@ -37,17 +37,20 @@ int LibMT_UtilMutex_Unlock(LibMT_UtilMutex_t *mutex)
     return 0;
 }
 
-#define SHOW_RACE_CONDITION ( 1 )
+#define SHOW_RACE_CONDITION ( 0 )
 
-int race_condition = 100;
+volatile int race_condition = 100;
 LibMT_UtilMutex_t gTestUtilMutex1;
 void *LibMT_UtilMutex_Demo_Thread1(void *arg)
 {
-    FOREACH_I(1000000) {
+    LibOs_SleepMiliSeconds(1);
+    FOREACH_I(100000) {
 #if SHOW_RACE_CONDITION
 #else
         LibMT_UtilMutex_Lock(&gTestUtilMutex1);
 #endif
+        race_condition++;
+        race_condition++;
         race_condition++;
 #if SHOW_RACE_CONDITION
 #else
@@ -59,11 +62,13 @@ void *LibMT_UtilMutex_Demo_Thread1(void *arg)
 
 void *LibMT_UtilMutex_Demo_Thread2(void *arg)
 {
-    FOREACH_I(1000000) {
+    FOREACH_I(100000) {
 #if SHOW_RACE_CONDITION
 #else
         LibMT_UtilMutex_Lock(&gTestUtilMutex1);
 #endif
+        race_condition--;
+        race_condition--;
         race_condition--;
 #if SHOW_RACE_CONDITION
 #else
@@ -101,17 +106,6 @@ void LibMT_UtilMutex_Demo(void)
     LibMT_UtilMutex_Uninit(&gTestUtilMutex1);
 
     REMOVE_UNUSED_WRANING(retVal);
-}
-
-LibMT_UtilMutex_t gLibMT_PrintLock;
-int LibMT_Print_Lock(void)
-{
-    return LibMT_UtilMutex_Lock(&gLibMT_PrintLock);
-}
-
-int LibMT_Print_Unlock(void)
-{
-    return LibMT_UtilMutex_Unlock(&gLibMT_PrintLock);
 }
 
 LibMT_UtilMutex_t gLibMT_MsgLock;
@@ -200,11 +194,25 @@ int _LibMT_DestroyThreadMsgList(DLList_Head_t *head)
     return 0;
 }
 
+LibMT_UtilMutex_t gLibMT_Mutex_Array[MUTEX_TOTAL_NUM];
+int LibMT_Mutex_Lock(LIBMT_MUTEX_t index)
+{
+    return LibMT_UtilMutex_Lock(&(gLibMT_Mutex_Array[index]));
+}
+
+int LibMT_Mutex_Unlock(LIBMT_MUTEX_t index)
+{
+    return LibMT_UtilMutex_Unlock(&(gLibMT_Mutex_Array[index]));
+}
+
 int LibMT_Init(void)
 {
-    LibMT_UtilMutex_Init(&gLibMT_PrintLock);
     LibMT_UtilMutex_Init(&gLibMT_MsgLock);
     LibMT_UtilMutex_Init(&gLibMT_ThreadLock);
+
+    FOREACH_I(MUTEX_TOTAL_NUM) {
+        LibMT_UtilMutex_Init(&(gLibMT_Mutex_Array[i]));
+    }
 
     _LibMT_CreateMsgList();
     DLLIST_HEAD_RESET(&gLibMT_ThreadHead);
@@ -214,9 +222,12 @@ int LibMT_Init(void)
 
 int LibMT_Uninit(void)
 {
-    LibMT_UtilMutex_Uninit(&gLibMT_PrintLock);
     LibMT_UtilMutex_Uninit(&gLibMT_MsgLock);
     LibMT_UtilMutex_Uninit(&gLibMT_ThreadLock);
+
+    FOREACH_I(MUTEX_TOTAL_NUM) {
+        LibMT_UtilMutex_Uninit(&(gLibMT_Mutex_Array[i]));
+    }
 
     _LibMT_DestroyMsgList();
     return 0;
@@ -369,6 +380,10 @@ LibMT_ThreadInfo_t *taskH;
 LibMT_ThreadInfo_t *taskL;
 int LibMT_Demo_ThreadH(LibMT_Msg_t *msg)
 {
+    //additional demo
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ValueChange(0, 1);
+
     printf("%s() %d\n", __func__, msg->val);
 
     if (msg->val < 100) {
@@ -376,6 +391,11 @@ int LibMT_Demo_ThreadH(LibMT_Msg_t *msg)
         msgToL->val = msg->val;
         LibMT_MsgToThread(msgToL, taskL);
     }
+
+    //additional demo
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ValueChange(0, 0);
+
     if (msg->val == 999) {
         return 1;  //return true for end of thread
     } else {
@@ -385,17 +405,28 @@ int LibMT_Demo_ThreadH(LibMT_Msg_t *msg)
 
 int LibMT_Demo_ThreadL(LibMT_Msg_t *msg)
 {
-    LibMT_Msg_t *msgToH = LibMT_MsgGet();
+    LibMT_Msg_t *msgToH;
+
+    //additional demo
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ValueChange(1, 1);
+
+    msgToH = LibMT_MsgGet();
     if (msg->val == 49)
         msgToH->val = 999;
     else
         msgToH->val = msg->val + 100;
     LibMT_MsgToThread(msgToH, taskH);
 
-    if (msg->val == 49)
+    //additional demo
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ValueChange(1, 0);
+
+    if (msg->val == 49) {
         return 1;  //return true for end of thread
-    else
+    } else {
         return 0;
+    }
 }
 
 void LibMT_Demo(void)
@@ -406,6 +437,14 @@ void LibMT_Demo(void)
         printf("Demo single-threading mode now ...\n");
     }
 
+    //additional demo
+    LibVCD_WireInfo_t test[2] = {
+        {1, "H", VALUE_IN_FOLLOWING, 0},
+        {1, "L", VALUE_IN_FOLLOWING, 0},
+    };
+    LibVCD_Init("example.vcd", 1, TIME_UNIT_US, test, 2);
+    LibTime_StartMicroSecondClock();
+
     taskH = LibMT_CreateThread(LibMT_Demo_ThreadH);
     taskL = LibMT_CreateThread(LibMT_Demo_ThreadL);
     FOREACH_I(50) {
@@ -413,13 +452,22 @@ void LibMT_Demo(void)
         LibOs_SleepMiliSeconds(1);
     }
     LibMT_WaitMainThreadAndDestroyAll(taskH);
+
+    //additional demo
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock());
+    LibVCD_Uninit();
 }
 
+#define DEMO_SAFE_PRINT ( 0 )
 void *LibMT_Demo_Print1(void *dummy)
 {
     LibOs_SleepMiliSeconds(10);
     FOREACH_I(50) {
+#if DEMO_SAFE_PRINT
         SAFE_PRINT("%d\n", i);
+#else
+        printf("%d\n", i);
+#endif
     }
     return NULL;
 }
@@ -427,7 +475,11 @@ void *LibMT_Demo_Print1(void *dummy)
 void *LibMT_Demo_Print2(void *dummy)
 {
     FOREACH_I(50) {
-        SAFE_PRINT("%d\n", i+1000);
+#if DEMO_SAFE_PRINT
+        SAFE_PRINT("%d\n", i+100000000);
+#else
+        printf("%d\n", i+100000000);
+#endif
     }
     return NULL;
 }

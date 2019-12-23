@@ -740,3 +740,22 @@ void LibUtil_Demo2(void)
 
     id=id;ret=ret;
 }
+
+int LibUtil_AddInU64_TwoU32(u32 *high, u32 *low, u32 increment)
+{
+    int isCarryHappened = 0;
+    *low += increment;
+
+    if (*low < increment) {
+        isCarryHappened = 1;
+    }
+
+    if (isCarryHappened) {
+        *high += 1;
+        if (*high == 0) {
+            return 1;
+        }
+    }
+
+    return 0;
+}

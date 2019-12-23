@@ -258,7 +258,9 @@ int LibMem_Free(void *ptr)
     }
     
     DLLIST_REMOVE_NODE(_LIB_MEM_HEAD, curr_cell);
-    gLibMemCurr = (LibMem_Cell_t *)gLibMemHead.head;
+    if (gLibMemCurr == curr_cell) {
+        gLibMemCurr = (LibMem_Cell_t *)gLibMemHead.head;
+    }
     free(curr_cell);
     LibMT_UtilMutex_Unlock(&gLibMemLock);
     return 0;
@@ -515,7 +517,7 @@ bitwise write
 mutex
 */
 
-void LibMem_Demo(void)
+void LibMem_Demo(int do_init /*= 0*/)
 {
 typedef struct {
     u8 a;
@@ -529,7 +531,9 @@ typedef struct {
     testaaa *ptraaa;
     u32 ptr2_key = LibUtil_GetUniqueU32();
 
-    LibMem_Init();
+    if (do_init) {
+        LibMem_Init();
+    }
 
     ptr = (u8 *)MEM_ALLOC(3);
     ptr2 = (u8 *)MEM_ALLOC(9);
@@ -552,6 +556,8 @@ typedef struct {
     RWK(ptr2_key, ptraaa->a, =, 0x0f);
     DUMPNX(ptraaa->a);
 
-    LibMem_Uninit();
+    if (do_init) {
+        LibMem_Uninit();
+    }
 }
 

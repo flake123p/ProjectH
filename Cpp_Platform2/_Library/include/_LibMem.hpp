@@ -112,7 +112,7 @@ int LibMem_WriteCheck(u8 *any_addr, u32 len, u32 key, int do_write);
 int LibMem_WriteCheckEx(u8 *any_addr, u32 len, u32 key, int do_write, const char *file_str, int line);
 void LibMem_DumpCell(u8 *any_addr);
 void LibMem_Dump(void);
-void LibMem_Demo(void);
+void LibMem_Demo(int do_init = 0);
 
 
 

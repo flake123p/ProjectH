@@ -11,6 +11,26 @@
 // ============================== Debug ==============================
 
 // ============================== Define ==============================
+typedef enum {
+    MUTEX_SAFE_PRINT,
+    MUTEX_TEST,
+    MUTEX_LIB_VCD,
+    MUTEX_LIB_TIME,
+ 
+    MUTEX_TOTAL_NUM,
+} LIBMT_MUTEX_t;
+int LibMT_Mutex_Lock(LIBMT_MUTEX_t index);
+int LibMT_Mutex_Unlock(LIBMT_MUTEX_t index);
+#define MUTEX_SAFE_PRINT_LOCK   LibMT_Mutex_Lock(MUTEX_SAFE_PRINT)
+#define MUTEX_SAFE_PRINT_UNLOCK LibMT_Mutex_Unlock(MUTEX_SAFE_PRINT)
+#define MUTEX_TEST_LOCK         LibMT_Mutex_Lock(MUTEX_TEST)
+#define MUTEX_TEST_UNLOCK       LibMT_Mutex_Unlock(MUTEX_TEST)
+#define MUTEX_LIB_VCD_LOCK      LibMT_Mutex_Lock(MUTEX_LIB_VCD)
+#define MUTEX_LIB_VCD_UNLOCK    LibMT_Mutex_Unlock(MUTEX_LIB_VCD)
+#define MUTEX_LIB_TIME_LOCK      LibMT_Mutex_Lock(MUTEX_LIB_TIME)
+#define MUTEX_LIB_TIME_UNLOCK    LibMT_Mutex_Unlock(MUTEX_LIB_TIME)
+#define SAFE_PRINT(...) MUTEX_SAFE_PRINT_LOCK;printf(__VA_ARGS__);MUTEX_SAFE_PRINT_UNLOCK
+
 typedef struct {
     //int initiated;
     MUTEX_HANDLE_t handle;
@@ -44,10 +64,6 @@ int LibMT_UtilMutex_Uninit(LibMT_UtilMutex_t *mutex);
 int LibMT_UtilMutex_Lock(LibMT_UtilMutex_t *mutex);
 int LibMT_UtilMutex_Unlock(LibMT_UtilMutex_t *mutex);
 void LibMT_UtilMutex_Demo(void);
-
-int LibMT_Print_Lock(void);
-int LibMT_Print_Unlock(void);
-#define SAFE_PRINT(...) LibMT_Print_Lock();printf(__VA_ARGS__);LibMT_Print_Unlock()
 
 int LibMT_Init(void);
 int LibMT_Uninit(void);

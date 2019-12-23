@@ -29,12 +29,15 @@ int main(int argc, char *argv[])
     Lib_Init(LIB_MT_ENABLE);
 #endif
 
-    //LibMem_Demo();
 
-    //LibMT_Demo();
-    LibTimer_Demo();
-    //LibMT_Demo_Safe_Print();
+//    LibMem_Demo();
+//    LibMT_Demo();
+//    LibTimer_DemoEx();
+//    LibMT_UtilMutex_Demo();
 
+    LibMT_Demo();
+    //LibTime_DemoClockTimer2();
+    
 #if 0
     DUMPND(LibUtil_GetUniqueU32());
     DUMPND(LibUtil_GetUniqueU32());

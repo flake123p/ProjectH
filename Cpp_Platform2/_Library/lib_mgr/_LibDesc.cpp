@@ -4,7 +4,7 @@
 Lib_Desc_Head_t *LibDesc_CreateList(size_t size_of_head, u32 num_of_preallocate_desc, size_t size_of_desc)
 {
     size_t i;
-    Lib_Desc_Head_t *desc_head = (Lib_Desc_Head_t *)malloc(size_of_head);
+    Lib_Desc_Head_t *desc_head = (Lib_Desc_Head_t *)MEM_ALLOC(size_of_head);
     Lib_Desc_Info_t *desc;
 
     if (desc_head == NULL) {
@@ -16,7 +16,7 @@ Lib_Desc_Head_t *LibDesc_CreateList(size_t size_of_head, u32 num_of_preallocate_
     desc_head->size_of_desc = size_of_desc;
 
     for (i=0; i<num_of_preallocate_desc; i++) {
-        desc = (Lib_Desc_Info_t *)malloc(size_of_desc);
+        desc = (Lib_Desc_Info_t *)MEM_ALLOC(size_of_desc);
         if (desc == NULL) {
             LibDesc_DestroyList(desc_head, 1);
             return NULL;
@@ -40,19 +40,19 @@ int LibDesc_DestroyList(Lib_Desc_Head_t *desc_head, int do_free_head)
     {
         prev_desc = curr_desc;
         DLLIST_WHILE_NEXT(curr_desc, Lib_Desc_Info_t);
-        free(prev_desc);
+        MEM_FREE(prev_desc);
     }
 
     DLLIST_WHILE_START(&(desc_head->head_of_pool), curr_desc, Lib_Desc_Info_t)
     {
         prev_desc = curr_desc;
         DLLIST_WHILE_NEXT(curr_desc, Lib_Desc_Info_t);
-        free(prev_desc);
+        MEM_FREE(prev_desc);
     }
 
     if (do_free_head)
     {
-        free(desc_head);
+        MEM_FREE(desc_head);
     }
 
     return 0;
@@ -66,7 +66,7 @@ Lib_Desc_Info_t *LibDesc_GetDesc(Lib_Desc_Head_t *desc_head)
         desc = (Lib_Desc_Info_t *)DLLIST_FIRST(&(desc_head->head_of_pool));
         DLLIST_REMOVE_FIRST(&(desc_head->head_of_pool));
     } else {
-        desc = (Lib_Desc_Info_t *)malloc(desc_head->size_of_desc);
+        desc = (Lib_Desc_Info_t *)MEM_ALLOC(desc_head->size_of_desc);
         desc->is_pre_allocate = 0;
     }
 
@@ -84,7 +84,7 @@ int LibDesc_ReleaseDesc(Lib_Desc_Head_t *desc_head, Lib_Desc_Info_t *desc)
     }
     else
     {
-        free(desc);
+        MEM_FREE(desc);
     }
     return 0;
 }

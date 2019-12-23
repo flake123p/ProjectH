@@ -69,8 +69,9 @@ int LibFileIoClass::FileOpen(void)
 	this->fp = fopen(this->fileName.c_str(), this->openMode.c_str()); 
 
 	if (this->fp == NULL) {
-		if (printErrorMsg)
+		if (printErrorMsg) {
 			printf("[LibFileIoClass] Cannot open: %s in mode: %s.\n", this->fileName.c_str(), this->openMode.c_str());
+		}
 		return RC_FILE_OPEN_ERROR;
 	}
 
@@ -81,7 +82,7 @@ int LibFileIoClass::FileOpenForRead(u32 lineBufferSize /* = 0 */)
 {
 	int retVal = FileOpen();
 	RETURN_IF(retVal);
-	
+	 
 	if (lineBufferSize == 0) {
 		lineBufferSize = 1024;
 	}

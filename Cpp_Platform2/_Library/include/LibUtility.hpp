@@ -93,5 +93,8 @@ void LibUtil_Demo(void);
 void LibUtil_Demo2(void);
 
 
+int LibUtil_AddInU64_TwoU32(u32 *high, u32 *low, u32 increment);
+
+
 #define _LIB_UTILITY_HPP_INCLUDED_
 #endif//_LIB_UTILITY_HPP_INCLUDED_
