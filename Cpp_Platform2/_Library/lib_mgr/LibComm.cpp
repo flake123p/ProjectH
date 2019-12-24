@@ -33,6 +33,22 @@ void LibComm_RxOkClkUpdate(LibComm_ClkToSync_t *info, u32 currClk)
     }
 }
 
+typedef enum {
+    DO_NOT_COMPARE = 0,
+    DO_COMPARE     = 1,
+}COMPARE_FLAG_t;
+
+typedef struct {
+    u32 len;
+    u8 *flagArray; //COMPARE_FLAG_t
+    u8 *valueArray;
+} LibComm_CompareInfo_t;
+
+int LibComm_ArrayCompare(u8 *rule, u8 *dataForCompare)
+{
+    return 0;
+}
+
 void LibComm_Demo(void)
 {
     /*
