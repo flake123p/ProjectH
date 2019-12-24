@@ -57,6 +57,8 @@
 #include "LibEncrypt.hpp"
 #include "LibPacket.hpp"
 #include "LibMsg.hpp"
+#include "LibComm.hpp"
+#include "LibTDD.hpp"
 
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_
 #endif//_EVERYTHING_LIB_MGR_HPP_INCLUDED_

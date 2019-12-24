@@ -1,25 +1,23 @@
 /*
-
-[v] 1. LibThread or LibIPC ?? => Mutex utility
-[ ] 2. use mutex utility to update LibMem libUtil ...
-
+    Ideas:
+        1. Multi/Single Task switcher
+        2. libDesc enhance to 2 category
+            a. used between threads
+            b. used in single thread to store job
 
     TODO:
-        1.task message send/receive                [LibHiTask.cpp]
-            create task & trigger event
-            task go with message
-            wait task done with comeback message
-        2.thread-safe LibDesc                      [LibHiTask.cpp]
-        3.task pool (enable true multi-threading)  [LibHiTask.cpp]
-
-        libDesc LibUtil and ... add init mutex for hTask
-        LibVCD
-        Mod:SimClk SimChnl SimBT SimUSB SimWIFI Sim4G Sim5G Sim6G SimZB
+        1. LibComm:
+            a. compare array
+            b. clock sync
+        2. Mod:SimClk SimChnl SimBT SimUSB SimWIFI Sim4G Sim5G Sim6G SimZB
         SimClk -> SimParalell -> SimRTOS
         OS sim? task sim?
 */
 
 #include "Everything_App.hpp"
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -29,13 +27,12 @@ int main(int argc, char *argv[])
     Lib_Init(LIB_MT_ENABLE);
 #endif
 
-
-//    LibMem_Demo();
+    LibComm_Demo();
 //    LibMT_Demo();
 //    LibTimer_DemoEx();
 //    LibMT_UtilMutex_Demo();
 
-    LibMT_Demo();
+    //LibTDD_Demo();
     //LibTime_DemoClockTimer2();
     
 #if 0
