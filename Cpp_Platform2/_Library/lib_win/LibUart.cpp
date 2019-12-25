@@ -1,24 +1,42 @@
 
 #include "Everything_Lib_Win.hpp"
 
-HANDLE g_hComm;                     // Handle to the Serial port
-char   g_ComPortName[30] = {0};     // Name of the Serial port(May Change) to be opened,
-BOOL   g_Status;
-int g_SniffEnable = 0;
+typedef struct {
+    char   comPortName[30];     // Name of the Serial port(May Change) to be opened,
+    int    sniffEnable;
+    HANDLE hComm;               // Handle to the Serial port
+} LibUart_Desc_Windows_t;
 
-int LibUart_SniffSetting(int initVal)
+UART_HANDLE_t LibUartHdl_HandleCreate(void)
 {
-	g_SniffEnable = initVal;
-	return g_SniffEnable;
+    LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)MM_ALLOC(sizeof(LibUart_Desc_Windows_t));
+    return (UART_HANDLE_t)desc;
 }
 
-int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel /* = 0 */, uint8_t byteSize /* = 8 */, STOP_BITS stopBits /* = STOP_BITS_1 */, PARITY parity /* = PARITY__NONE */)
+int LibUartHdl_HandleDestroy(UART_HANDLE_t hdl)
 {
-	strcpy(g_ComPortName, "\\\\.\\");
-	strcat(g_ComPortName, comPortName);
+    MM_FREE(hdl);
+    return 0;
+}
+
+int LibUartHdl_SniffSetting(UART_HANDLE_t hdl, int val)
+{
+    LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)hdl;
+
+	desc->sniffEnable = val;
+	return desc->sniffEnable;
+}
+
+int LibUartHdl_InitComPort(UART_HANDLE_t hdl, const char *comPortName, uint32_t baudRate, int quickReadLevel /* = 0 */, uint8_t byteSize /* = 8 */, STOP_BITS stopBits /* = STOP_BITS_1 */, PARITY parity /* = PARITY__NONE */)
+{
+    BOOL status;
+    LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)hdl;
+
+	strcpy(desc->comPortName, "\\\\.\\");
+	strcat(desc->comPortName, comPortName);
 
 	/*----------------------------------- Opening the Serial Port --------------------------------------------*/
-	g_hComm = CreateFile( g_ComPortName,                   // Name of the Port to be Opened
+	desc->hComm = CreateFile( desc->comPortName,                   // Name of the Port to be Opened
 						GENERIC_READ | GENERIC_WRITE,      // Read/Write Access
 						0,                                 // No Sharing, ports cant be shared
 						NULL,                              // No Security
@@ -26,23 +44,23 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 						0,                                 // Non Overlapped I/O
 						NULL);                             // Null for Comm Devices
 
-	if (g_hComm == INVALID_HANDLE_VALUE)
+	if (desc->hComm == INVALID_HANDLE_VALUE)
 	{
-		UART_ERR_MSG("\n   Error! - Port %s can't be opened\n", g_ComPortName);
+		UART_ERR_MSG("\n   Error! - Port %s can't be opened\n", desc->comPortName);
 		return -1;
 	}
 	else 
 	{
-		UART_LOG_MSG("\n   Port %s Opened\n ", g_ComPortName);
+		UART_LOG_MSG("\n   Port %s Opened\n ", desc->comPortName);
 	}
 
 	/*------------------------------- Setting the Parameters for the SerialPort ------------------------------*/
 	DCB dcbSerialParams = { 0 };                        // Initializing DCB structure
 	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
 	
-	g_Status = GetCommState(g_hComm, &dcbSerialParams);     //retreives  the current settings
+	status = GetCommState(desc->hComm, &dcbSerialParams);     //retreives  the current settings
 
-	if (g_Status == FALSE)
+	if (status == FALSE)
 	{
 		UART_ERR_MSG("\n   Error! in GetCommState()\n");
 		return -1;
@@ -106,9 +124,9 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 
 	dcbSerialParams.ByteSize = byteSize;      // Setting ByteSize = 8
 
-	g_Status = SetCommState(g_hComm, &dcbSerialParams);  //Configuring the port according to settings in DCB 
+	status = SetCommState(desc->hComm, &dcbSerialParams);  //Configuring the port according to settings in DCB 
 
-	if (g_Status == FALSE)
+	if (status == FALSE)
 	{
 		UART_ERR_MSG("\n   Error! in Setting DCB Structure\n");
 		return -1;
@@ -150,7 +168,7 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 		timeouts.WriteTotalTimeoutMultiplier = 1;
 	}
 	
-	if (SetCommTimeouts(g_hComm, &timeouts) == FALSE)
+	if (SetCommTimeouts(desc->hComm, &timeouts) == FALSE)
 	{
 		UART_ERR_MSG("\n   Error! in Setting Time Outs\n");
 		return -1;
@@ -161,9 +179,9 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 	}
 
 	/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
-	g_Status = SetCommMask(g_hComm, EV_RXCHAR); //Configure Windows to Monitor the serial device for Character Reception
+	status = SetCommMask(desc->hComm, EV_RXCHAR); //Configure Windows to Monitor the serial device for Character Reception
 
-	if (g_Status == FALSE)
+	if (status == FALSE)
 	{
 		UART_ERR_MSG("\n\n    Error! in Setting CommMask\n");
 		return -1;
@@ -178,9 +196,12 @@ int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickRea
 	return 0;
 }
 
-int LibUart_Send(uint8_t *buffer, uint32_t length)
+int LibUartHdl_Send(UART_HANDLE_t hdl, uint8_t *buffer, uint32_t length)
 {
-	if (g_SniffEnable || UART_LOG) {
+    BOOL status;
+    LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)hdl;
+
+	if (desc->sniffEnable || UART_LOG) {
 		printf("\n\n    [ %s() - SNIFF ] ", __func__);
 		for (uint32_t i = 0; i < length; i++) {
 			printf("%02X ", buffer[i]);
@@ -191,13 +212,13 @@ int LibUart_Send(uint8_t *buffer, uint32_t length)
 	/*----------------------------- Writing a Character to Serial Port----------------------------------------*/
 	DWORD  dNoOfBytesWritten = 0;          // No of bytes written to the port
 
-	g_Status = WriteFile(g_hComm,               // Handle to the Serialport
+	status = WriteFile(desc->hComm,               // Handle to the Serialport
 					   buffer,              // Data to be written to the port 
 					   (DWORD)length,   // No of bytes to write into the port
 					   &dNoOfBytesWritten,  // No of bytes written to the port
 					   NULL);
 	
-	if (g_Status == TRUE)
+	if (status == TRUE)
 	{
 		;
 	}
@@ -211,17 +232,19 @@ int LibUart_Send(uint8_t *buffer, uint32_t length)
 	return 0;
 }
 
-int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
+int LibUartHdl_Receive(UART_HANDLE_t hdl, uint8_t *buffer, uint32_t *receivedLength)
 {
+    BOOL status;
+    LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)hdl;
 	DWORD dwEventMask;                     // Event mask to trigger
 
 	*receivedLength = 0; // Clear output variable
 	
 	/*-------------------------- Program will Wait here till a Character is received ------------------------*/				
 	//printf("\n\n    Waiting for Data Reception");
-	g_Status = WaitCommEvent(g_hComm, &dwEventMask, NULL); //Wait for the character to be received
+	status = WaitCommEvent(desc->hComm, &dwEventMask, NULL); //Wait for the character to be received
 	
-	if (g_Status == FALSE)
+	if (status == FALSE)
 	{
 		UART_ERR_MSG("\n    Error! in Setting WaitCommEvent()\n");
 	}
@@ -234,18 +257,18 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 		UART_LOG_MSG("\n\n    Characters Received");
 		do
 		{
-			g_Status = ReadFile(g_hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
+			status = ReadFile(desc->hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
 			buffer[i] = TempChar;
 			i++;
 		}
 		while (NoBytesRead > 0);
 		*receivedLength = i - 1; // Set output variable
 #else
-		g_Status = ReadFile(g_hComm, buffer, 40, (DWORD *)receivedLength, NULL);
+		status = ReadFile(desc->hComm, buffer, 40, (DWORD *)receivedLength, NULL);
 #endif
 		/*------------Printing the RXed String to Console----------------------*/
 
-		if (g_SniffEnable || UART_LOG) {
+		if (desc->sniffEnable || UART_LOG) {
 			printf("\n\n    [ %s() - SNIFF ] ", __func__);
 			int j =0;
 			for (j = 0; j < i-1; j++)		// j < i-1 to remove the dupliated last character
@@ -260,14 +283,18 @@ int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
 	return 0;
 }
 
-int LibUart_UninitComPort(void)
+int LibUartHdl_UninitComPort(UART_HANDLE_t hdl)
 {
-	CloseHandle(g_hComm);//Closing the Serial Port
+    LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)hdl;
+
+	CloseHandle(desc->hComm);//Closing the Serial Port
 	return 0;
 }
 
-int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength)
+int LibUartHdl_ReceiveEx(UART_HANDLE_t hdl, uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength)
 {
+    BOOL status;
+    LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)hdl;
 	DWORD dwEventMask;                     // Event mask to trigger
 
 	*receivedLength = 0; // Clear output variable
@@ -275,9 +302,9 @@ int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t single
 	/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
 	/*-------------------------- Program will Wait here till a Character is received ------------------------*/				
 	UART_LOG_MSG("\n\n    Waiting for Data Reception");
-	g_Status = WaitCommEvent(g_hComm, &dwEventMask, NULL); //Wait for the character to be received
+	status = WaitCommEvent(desc->hComm, &dwEventMask, NULL); //Wait for the character to be received
 	
-	if (g_Status == FALSE)
+	if (status == FALSE)
 	{
 		UART_ERR_MSG("\n    Error! in Setting WaitCommEvent()\n");
 	}
@@ -290,7 +317,7 @@ int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t single
 		UART_LOG_MSG("\n\n    Characters Received");
 		do
 		{
-			g_Status = ReadFile(g_hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
+			status = ReadFile(desc->hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
 			buffer[i] = TempChar;
 			i++;
 		}
@@ -301,11 +328,11 @@ int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t single
 		UART_LOG_MSG("ReadFile START. singleReadlength=%d\n", singleReadlength);
 		#endif
 
-		g_Status = ReadFile(g_hComm, buffer, singleReadlength, (DWORD *)receivedLength, NULL);
+		status = ReadFile(desc->hComm, buffer, singleReadlength, (DWORD *)receivedLength, NULL);
 #endif
 		/*------------Printing the RXed String to Console----------------------*/
 
-		if (g_SniffEnable || UART_LOG) {
+		if (desc->sniffEnable || UART_LOG) {
 			printf("\n\n    [ %s() - SNIFF ] ", __func__);
 			uint32_t j =0;
 			for (j = 0; j < *receivedLength; j++)		// j < i-1 to remove the dupliated last character

@@ -52,12 +52,26 @@ typedef enum {
 	PARITY__SPACE,
 } PARITY;
 
-int LibUart_SniffSetting(int initVal);
+int LibUart_SniffSetting(int val);
 int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel = 0, uint8_t byteSize = 8, STOP_BITS stopBits = STOP_BITS_1, PARITY parity = PARITY__NONE);
 int LibUart_UninitComPort(void);
 int LibUart_Send(uint8_t *buffer, uint32_t length);
 int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength);
 int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength);
+
+typedef void * UART_HANDLE_t;
+
+// Windows / Linux adaptor
+UART_HANDLE_t LibUartHdl_HandleCreate(void);
+int LibUartHdl_HandleDestroy(UART_HANDLE_t hdl);
+
+int LibUartHdl_SniffSetting(UART_HANDLE_t hdl, int val);
+int LibUartHdl_InitComPort(UART_HANDLE_t hdl, const char *comPortName, uint32_t baudRate, int quickReadLevel = 0, uint8_t byteSize = 8, STOP_BITS stopBits = STOP_BITS_1, PARITY parity = PARITY__NONE);
+int LibUartHdl_UninitComPort(UART_HANDLE_t hdl);
+int LibUartHdl_Send(UART_HANDLE_t hdl, uint8_t *buffer, uint32_t length);
+int LibUartHdl_Receive(UART_HANDLE_t hdl, uint8_t *buffer, uint32_t *receivedLength);
+int LibUartHdl_ReceiveEx(UART_HANDLE_t hdl, uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength);
+
 
 #include <string>
 class LibUartClass {

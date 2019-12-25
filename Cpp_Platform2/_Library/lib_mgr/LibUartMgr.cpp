@@ -231,6 +231,41 @@ int LibUartClass::ReceiveWithLength(u32 maxRxLen, u32 singleReadlength /* = 80 *
 	return 0;
 }
 
+UART_HANDLE_t gLibUartMgrHdl;
+
+int LibUart_SniffSetting(int val)
+{
+    return LibUartHdl_SniffSetting(gLibUartMgrHdl, val);
+}
+
+int LibUart_InitComPort(const char *comPortName, uint32_t baudRate, int quickReadLevel /* = 0 */, uint8_t byteSize /* = 8 */, STOP_BITS stopBits /* = STOP_BITS_1 */, PARITY parity /* = PARITY__NONE */)
+{
+    gLibUartMgrHdl = LibUartHdl_HandleCreate();
+    return LibUartHdl_InitComPort(gLibUartMgrHdl, comPortName, baudRate, quickReadLevel, byteSize, stopBits, parity);
+}
+
+int LibUart_Send(uint8_t *buffer, uint32_t length)
+{
+    return LibUartHdl_Send(gLibUartMgrHdl, buffer, length);
+}
+
+int LibUart_Receive(uint8_t *buffer, uint32_t *receivedLength)
+{
+    return LibUartHdl_Receive(gLibUartMgrHdl, buffer, receivedLength);
+}
+
+int LibUart_UninitComPort(void)
+{
+    int ret = LibUartHdl_UninitComPort(gLibUartMgrHdl);
+    LibUartHdl_HandleDestroy(gLibUartMgrHdl);
+    return ret;
+}
+
+int LibUart_ReceiveEx(uint8_t *buffer, uint32_t *receivedLength, uint32_t singleReadlength)
+{
+    return LibUartHdl_ReceiveEx(gLibUartMgrHdl, buffer, receivedLength, singleReadlength);
+}
+
 void UartRx_Simple_Demo(void)
 {
 	LibUart_SniffSetting(1);

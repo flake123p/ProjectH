@@ -16,6 +16,7 @@
 
 // ====== Platform Library ======
 #include "_LibError.hpp"
+#include "_LibMem.hpp"
 #include "LibUart.hpp"
 #include "LibThread.hpp"
 
