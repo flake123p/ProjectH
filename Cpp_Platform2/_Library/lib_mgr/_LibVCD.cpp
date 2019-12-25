@@ -66,7 +66,7 @@ int LibVCD_Init(const char *outFileName, u32 timescale, TIME_UNIT_t unit, LibVCD
     //store all info
     gLibVCD_TimeScale = timescale;
     gLibVCD_TimeUnit = unit;
-    gLibVCD_InfoArry = (_LibVCD_WireInfo_Internal_t *)MEM_ALLOC(sizeof(_LibVCD_WireInfo_Internal_t) * num_of_info);
+    gLibVCD_InfoArry = (_LibVCD_WireInfo_Internal_t *)MM_ALLOC(sizeof(_LibVCD_WireInfo_Internal_t) * num_of_info);
     FOR_I(num_of_info) {
         WT(gLibVCD_InfoArry[i].ori.num_of_bits , info[i].num_of_bits);
         WT(gLibVCD_InfoArry[i].ori.wire_name , info[i].wire_name);
@@ -120,7 +120,7 @@ int LibVCD_Uninit(void)
     fprintf(gLibVCD_fp, "#%d\n", gLibVCD_ClkLow);
 
     if (gLibVCD_InfoArry != NULL) {
-        MEM_FREE(gLibVCD_InfoArry);
+        MM_FREE(gLibVCD_InfoArry);
     }
 
     if (gLibVCD_fp != NULL) {
@@ -163,7 +163,7 @@ int LibVCD_DumpAllCurrValues(void)
             }
             else
             {
-                MEM_FREE(prev_desc);
+                MM_FREE(prev_desc);
             }
         }
         fprintf(gLibVCD_fp, "\n");

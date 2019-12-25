@@ -7,7 +7,7 @@ int Lib_Init(LIB_FLAG_t flags /* = LIB_NONE_ENABLE */)
 {
     gLibFlags = flags; //keep this before first
 
-    MEM_INIT(); //keep this at first
+    MM_INIT(); //keep this at first
 
     if (FLG_CHK(gLibFlags, LIB_MT_ENABLE)) {
         LibMT_Init();
@@ -26,7 +26,7 @@ int Lib_Uninit(void)
         LibMT_Uninit();
     }
 
-    MEM_UNINIT(); //keep this at last
+    MM_UNINIT(); //keep this at last
     return 0;
 }
 

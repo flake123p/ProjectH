@@ -535,21 +535,21 @@ typedef struct {
         LibMem_Init();
     }
 
-    ptr = (u8 *)MEM_ALLOC(3);
-    ptr2 = (u8 *)MEM_ALLOC(9);
+    ptr = (u8 *)MM_ALLOC(3);
+    ptr2 = (u8 *)MM_ALLOC(9);
     ptraaa = (testaaa *)ptr2;
 
-    MEM_KEY_INIT(ptr, 2);
+    MM_KEY_INIT(ptr, 2);
 
-    MEM_DUMP();
+    MM_DUMP();
 
-    MEM_KEY_INIT(ptr2, ptr2_key);
-    MEM_CONFIG(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
-    MEM_CONFIG((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
+    MM_KEY_INIT(ptr2, ptr2_key);
+    MM_CONFIG(&ptraaa->a, sizeof(ptraaa->a), ptr2_key, LIB_MEM_READ_PROTECT_ON);
+    MM_CONFIG((u8 *)&ptraaa->b, sizeof(ptraaa->b), ptr2_key, LIB_MEM_WRITE_PROTECT_ON);
 
-    MEM_SETK(ptr2_key, ptraaa, 2, sizeof(testaaa));
+    MM_SETK(ptr2_key, ptraaa, 2, sizeof(testaaa));
     WTK(0, ptraaa->a, 0x78);
-    MEM_DUMP_CELL(ptr2);
+    MM_DUMP_CELL(ptr2);
     u8 x;
     RDK(ptr2_key, x, ptraaa->a);
     DUMPNX(x);

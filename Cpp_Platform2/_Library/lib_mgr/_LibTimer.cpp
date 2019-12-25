@@ -40,7 +40,7 @@ void *LibTimer_Thread(void *hdl)
 
     timerMsg = (Timer_Msg_t *)msg->hdl;
     sleep_period_in_ms = timerMsg->data.sleep_period_in_ms;
-    MEM_FREE(timerMsg);
+    MM_FREE(timerMsg);
     LibMT_MsgRelease(msg);
 
     DLLIST_HEAD_RESET(&jobsHead);
@@ -58,7 +58,7 @@ void *LibTimer_Thread(void *hdl)
             if (prevMsg->data.sleep_time_in_ms_remain < sleep_period_in_ms) {
                 DLLIST_REMOVE_NODE_SAFELY(&jobsHead, prevMsg);
                 if ( (*(prevMsg->timesupCB))(prevMsg) ) {
-                    MEM_FREE(prevMsg);
+                    MM_FREE(prevMsg);
                 }
             } else {
                 prevMsg->data.sleep_time_in_ms_remain -= sleep_period_in_ms;
@@ -87,10 +87,10 @@ void *LibTimer_Thread(void *hdl)
                     {
                         prevMsg = currMsg;
                         DLLIST_WHILE_NEXT(currMsg, Timer_Msg_t);
-                        MEM_FREE(prevMsg);
+                        MM_FREE(prevMsg);
                     }
                     if (timerMsg != NULL) {
-                        MEM_FREE(timerMsg);
+                        MM_FREE(timerMsg);
                     }
                     LibMT_MsgRelease(msg);
                 } return NULL; //end of thread
@@ -107,7 +107,7 @@ void *LibTimer_Thread(void *hdl)
                     {
                         if (currMsg->uniqueID == msg->id) {
                             DLLIST_REMOVE_NODE_SAFELY(&jobsHead, currMsg);
-                            MEM_FREE(currMsg);
+                            MM_FREE(currMsg);
                             break;
                         }
                     }
@@ -144,7 +144,7 @@ void *LibTimer_Thread(void *hdl)
             }
             if (free_timer_msg) {
                 if (timerMsg != NULL) {
-                    MEM_FREE(timerMsg);
+                    MM_FREE(timerMsg);
                 }
             }
             LibMT_MsgRelease(msg);
@@ -160,7 +160,7 @@ LibMT_ThreadInfo_t *LibTimer_Create(void)
 int LibTimer_Start(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_period_in_ms)
 {
     LibMT_Msg_t *msg = LibMT_MsgGet();
-    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MM_ALLOC(sizeof(Timer_Msg_t));
 
     msg->val = TIMER_INIT;
     msg->hdl = (void *)timerMsg;
@@ -186,7 +186,7 @@ u32 LibTimer_Add(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, Time
 {
     u32 uniqueID = LibUtil_GetUniqueU32();
     LibMT_Msg_t *msg = LibMT_MsgGet();
-    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MM_ALLOC(sizeof(Timer_Msg_t));
 
     msg->val = TIMER_ADD;
     msg->id  = uniqueID;
@@ -204,7 +204,7 @@ u32 LibTimer_AddLite(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep_time_in_ms, 
 {
     u32 uniqueID = LibUtil_GetUniqueU32();
     LibMT_Msg_t *msg = LibMT_MsgGet();
-    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MM_ALLOC(sizeof(Timer_Msg_t));
 
     msg->val = TIMER_ADD;
     msg->id  = uniqueID;
@@ -224,7 +224,7 @@ u32 LibTimer_AddLite_WithTimerMsg(LibMT_ThreadInfo_t *timerThreadInfo, u32 sleep
 {
     u32 uniqueID = LibUtil_GetUniqueU32();
     LibMT_Msg_t *msg = LibMT_MsgGet();
-    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MEM_ALLOC(sizeof(Timer_Msg_t));
+    Timer_Msg_t *timerMsg = (Timer_Msg_t *)MM_ALLOC(sizeof(Timer_Msg_t));
 
     msg->val = TIMER_ADD;
     msg->id  = uniqueID;
@@ -313,7 +313,7 @@ int LibTimer_DemoTask(LibMT_Msg_t *msg)
 {
     SAFE_PRINT("%s() %d\n", __func__, msg->val);
     if (msg->hdl != NULL) {
-        MEM_FREE(msg->hdl);
+        MM_FREE(msg->hdl);
     }
     LibTimer_Destroy(gLibTimer_DemoTimer);
     return 1;  //return true for end of thread
@@ -328,5 +328,5 @@ void LibTimer_DemoEx(void)
     id1 = LibTimer_AddLite(gLibTimer_DemoTimer, 2000, gLibTimer_DemoTask, 979);
     SAFE_PRINT("id1:%d\n", id1);
     LibMT_WaitMainThreadAndDestroyAll(gLibTimer_DemoTask);
-    MEM_ALLOC(8);
+    MM_ALLOC(8);
 }
