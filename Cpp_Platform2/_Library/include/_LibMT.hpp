@@ -6,7 +6,7 @@
 #include "_LibLinkedList.hpp" //LinkedListClass
 
 #include "LibThread.hpp"
-#include "_LibDesc.hpp"
+//#include "_LibDesc.hpp"
 
 // ============================== Debug ==============================
 

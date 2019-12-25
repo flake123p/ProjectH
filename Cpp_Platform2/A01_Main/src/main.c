@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     Lib_Init(LIB_MT_ENABLE);
 #endif
 
-    LibComm_Demo();
+    LibDesc_DemoMT();
 //    LibMT_Demo();
 //    LibTimer_DemoEx();
 //    LibMT_UtilMutex_Demo();

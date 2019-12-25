@@ -71,7 +71,7 @@ void LibComm_Demo(void)
     u32 a;
     int is_before;
     u32 diff;
-    u32 before = 0xFFFFFFFA;
+//    u32 before = 0xFFFFFFFA;
     u32 after = 0x19;
 
     a = 0xFFFFFFFF;

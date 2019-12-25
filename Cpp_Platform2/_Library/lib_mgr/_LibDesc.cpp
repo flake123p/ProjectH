@@ -110,7 +110,100 @@ int LibDesc_Dump(Lib_Desc_Head_t *desc_head)
     return 0;
 }
 
+Lib_DescMT_Head_t *LibDescMT_CreateList(u32 num_of_preallocate_desc, size_t size_of_desc)
+{
+    size_t i;
+    Lib_DescMT_Head_t *head = (Lib_DescMT_Head_t *)MM_ALLOC(sizeof(Lib_DescMT_Head_t));
+    Lib_Desc_Info_t *desc;
 
+    if (head == NULL) {
+        return NULL;
+    }
+
+    LibMT_UtilMutex_Init(&(head->lock));
+
+    DLLIST_HEAD_RESET(&(head->head_entry));
+    head->size_of_desc = size_of_desc;
+
+    for (i=0; i<num_of_preallocate_desc; i++) {
+        desc = (Lib_Desc_Info_t *)MM_ALLOC(size_of_desc);
+        if (desc == NULL) {
+            LibDescMT_DestroyList(head);
+            return NULL;
+        }
+
+        desc->is_pre_allocate = 1;
+
+        //Add to list
+        DLLIST_INSERT_LAST(&(head->head_entry), desc);
+    }
+
+    return head;
+}
+
+int LibDescMT_DestroyList(Lib_DescMT_Head_t *head)
+{
+    Lib_Desc_Info_t *prev_desc;
+    Lib_Desc_Info_t *curr_desc;
+
+    DLLIST_WHILE_START(&(head->head_entry), curr_desc, Lib_Desc_Info_t)
+    {
+        prev_desc = curr_desc;
+        DLLIST_WHILE_NEXT(curr_desc, Lib_Desc_Info_t);
+        MM_FREE(prev_desc);
+    }
+
+    LibMT_UtilMutex_Uninit(&(head->lock));
+    MM_FREE(head);
+
+    return 0;
+}
+
+Lib_Desc_Info_t *LibDescMT_GetDesc(Lib_DescMT_Head_t *head)
+{
+    Lib_Desc_Info_t *desc;
+
+    LibMT_UtilMutex_Lock(&(head->lock));
+    if (DLLIST_IS_NOT_EMPTY(&(head->head_entry))) {
+        desc = (Lib_Desc_Info_t *)DLLIST_FIRST(&(head->head_entry));
+        DLLIST_REMOVE_FIRST(&(head->head_entry));
+    } else {
+        desc = (Lib_Desc_Info_t *)MM_ALLOC(head->size_of_desc);
+        desc->is_pre_allocate = 0;
+    }
+    LibMT_UtilMutex_Unlock(&(head->lock));
+
+    return desc;
+}
+
+int LibDescMT_ReleaseDesc(Lib_DescMT_Head_t *head, Lib_Desc_Info_t *desc)
+{
+    LibMT_UtilMutex_Lock(&(head->lock));
+    if (desc->is_pre_allocate)
+    {
+        DLLIST_INSERT_LAST(&(head->head_entry), desc);
+    }
+    else
+    {
+        MM_FREE(desc);
+    }
+    LibMT_UtilMutex_Unlock(&(head->lock));
+
+    return 0;
+}
+
+int LibDescMT_Dump(Lib_DescMT_Head_t *head)
+{
+    Lib_Desc_Info_t *curr_desc;
+
+    DLLIST_FOREACH(&(head->head_entry), curr_desc, Lib_Desc_Info_t)
+    {
+        printf("%d -> ", curr_desc->is_pre_allocate);
+    }
+    printf("\n");
+
+    return 0;
+}
 
 
 typedef struct {
@@ -139,4 +232,15 @@ void LibDesc_Demo(void)
     LibDesc_Dump((Lib_Desc_Head_t *)mod_1);
 
     LibDesc_DestroyList((Lib_Desc_Head_t *)mod_1, 1);
+}
+
+void LibDesc_DemoMT(void)
+{
+    Lib_DescMT_Head_t *head = LibDescMT_CreateList(6, 20);
+    Lib_Desc_Info_t *desc = LibDescMT_GetDesc(head);
+    LibDescMT_ReleaseDesc(head, desc);
+
+    LibDescMT_Dump(head);
+
+    LibDescMT_DestroyList(head);
 }
