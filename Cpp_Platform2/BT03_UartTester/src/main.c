@@ -1,46 +1,46 @@
-/*
 
-[v] 1. LibThread or LibIPC ?? => Mutex utility
-[ ] 2. use mutex utility to update LibMem libUtil ...
-
-
-    TODO:
-        1.task message send/receive                [LibHiTask.cpp]
-            create task & trigger event
-            task go with message
-            wait task done with comeback message
-        2.thread-safe LibDesc                      [LibHiTask.cpp]
-        3.task pool (enable true multi-threading)  [LibHiTask.cpp]
-
-        libDesc LibUtil and ... add init mutex for hTask
-        LibVCD
-        Mod:SimClk SimChnl SimBT SimUSB SimWIFI Sim4G Sim5G Sim6G SimZB
-        SimClk -> SimParalell -> SimRTOS
-        OS sim? task sim?
-*/
 
 #include "Everything_App.hpp"
 
+UART_HANDLE_t gUartIUT;
+
+void UartTester_Main(int test_case_index)
+{
+    char comName[50];
+    uint32_t baudRate;
+    gUartIUT = LibUartHdl_HandleCreate();
+
+    LibUartMgr_GetComPortConfigFrom_INI_File("Uart_IUT.ini", comName, &baudRate);
+    LibUartHdl_InitComPort(gUartIUT, comName, baudRate);
+    LibUartHdl_SniffSetting(gUartIUT, 1);
+    u8 cmd_r[] = {0x01, 0x03, 0x0C, 0x00};
+    u8 rx_buf[80];
+    u32 rx_len;
+    LibUartHdl_Send(gUartIUT, cmd_r, sizeof(cmd_r));
+    LibUartHdl_ReceiveEx(gUartIUT, rx_buf, &rx_len, 80);
+    DUMPND(rx_len);
+
+    LibUartHdl_UninitComPort(gUartIUT);
+    LibUartHdl_HandleDestroy(gUartIUT);
+}
+
 int main(int argc, char *argv[])
 {
-#if ( 0 )
-    Lib_Init();
-#else
     Lib_Init(LIB_MT_ENABLE);
-#endif
 
-    //LibMem_Demo();
-
-    //LibMT_Demo();
-    LibTimer_Demo();
-    //LibMT_Demo_Safe_Print();
-
-#if 0
-    DUMPND(LibUtil_GetUniqueU32());
-    DUMPND(LibUtil_GetUniqueU32());
-    DUMPND(LibUtil_GetUniqueU32());
-    DUMPND(LibUtil_GetUniqueU32());
-#endif
+    int test_case_index;
+    do {
+        if (argc == 1) {
+            test_case_index = 0;
+        } else if (argc == 2) {
+            test_case_index = argv[1][0] - '0';
+        } else {
+            printf("too many arguments! do nothing ...\n");
+            break;
+        }
+        DUMPND(test_case_index);
+        UartTester_Main(test_case_index);
+    } while (0);
 
     Lib_Uninit();
     return 0;
