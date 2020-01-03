@@ -10,6 +10,7 @@ typedef struct {
 UART_HANDLE_t LibUartHdl_HandleCreate(void)
 {
     LibUart_Desc_Windows_t *desc = (LibUart_Desc_Windows_t *)MM_ALLOC(sizeof(LibUart_Desc_Windows_t));
+    desc->sniffEnable = 0;
     return (UART_HANDLE_t)desc;
 }
 

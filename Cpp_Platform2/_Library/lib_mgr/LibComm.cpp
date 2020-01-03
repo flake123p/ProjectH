@@ -33,19 +33,27 @@ void LibComm_RxOkClkUpdate(LibComm_ClkToSync_t *info, u32 currClk)
     }
 }
 
-typedef enum {
-    DO_NOT_COMPARE = 0,
-    DO_COMPARE     = 1,
-}COMPARE_FLAG_t;
-
-typedef struct {
-    u32 len;
-    u8 *flagArray; //COMPARE_FLAG_t
-    u8 *valueArray;
-} LibComm_CompareInfo_t;
-
-int LibComm_ArrayCompare(u8 *rule, u8 *dataForCompare)
+int LibComm_ArrayCompare(u16 *ruleArray, u32 ruleLen, u8 *dataForCompare, u32 dataLen, int print_log /* = 1 */)
 {
+    if (ruleLen != dataLen) {
+        if (print_log) {
+            printf("length error, ruleLen:%d, dataLen:%d\n", ruleLen, dataLen);
+        }
+        return 1;
+    }
+
+    FOR_I(ruleLen) {
+        if (ruleArray[i] & 0x8000)
+            continue; //skip compare this byte
+
+        if ((ruleArray[i] & 0xFF) != dataForCompare[i]) {
+            if (print_log) {
+                printf("data error in index:%d, ruleArray[i]:0x%02X, dataForCompare[i]:0x%02X\n", i, (ruleArray[i] & 0xFF), dataForCompare[i]);
+            }
+            return 2;
+        }
+    }
+
     return 0;
 }
 

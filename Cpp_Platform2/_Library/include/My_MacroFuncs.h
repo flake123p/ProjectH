@@ -34,6 +34,8 @@
 
 #define FOREACH_I(max) for(unsigned int i=0;i<max;i++)
 #define FOR_I(max)     FOREACH_I(max)
+#define FOREACH_J(max) for(unsigned int j=0;j<max;j++)
+#define FOR_J(max)     FOREACH_J(max)
 
 
 #include <stdint.h>

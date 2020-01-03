@@ -42,7 +42,7 @@ void LibTime_StopMicroSecondClock_ShowResult(int do_print_nextline /* = 0 */)
     MUTEX_LIB_TIME_UNLOCK;
 }
 
-u32 LibTime_StopMicroSecondClock(int do_auto_reload /*= 0*/)
+u32 LibTime_StopMicroSecondClock(void)
 {
     u32 microSecond;
 
@@ -59,7 +59,7 @@ u32 LibTime_StopMicroSecondClock(int do_auto_reload /*= 0*/)
         microSecond = ((t2.tv_sec - t1.tv_sec) * 1000000) + ((t1.tv_usec - t2.tv_usec)) - 1000000;
     }
 
-    if (do_auto_reload) {
+    {
         t1 = t2;
     }
     MUTEX_LIB_TIME_UNLOCK;

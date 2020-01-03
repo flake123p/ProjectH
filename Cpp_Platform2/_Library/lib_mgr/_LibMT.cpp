@@ -381,7 +381,7 @@ LibMT_ThreadInfo_t *taskL;
 int LibMT_Demo_ThreadH(LibMT_Msg_t *msg)
 {
     //additional demo
-    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock());
     LibVCD_ValueChange(0, 1);
 
     printf("%s() %d\n", __func__, msg->val);
@@ -393,7 +393,7 @@ int LibMT_Demo_ThreadH(LibMT_Msg_t *msg)
     }
 
     //additional demo
-    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock());
     LibVCD_ValueChange(0, 0);
 
     if (msg->val == 999) {
@@ -408,7 +408,7 @@ int LibMT_Demo_ThreadL(LibMT_Msg_t *msg)
     LibMT_Msg_t *msgToH;
 
     //additional demo
-    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock());
     LibVCD_ValueChange(1, 1);
 
     msgToH = LibMT_MsgGet();
@@ -419,7 +419,7 @@ int LibMT_Demo_ThreadL(LibMT_Msg_t *msg)
     LibMT_MsgToThread(msgToH, taskH);
 
     //additional demo
-    LibVCD_ClockAdd(LibTime_StopMicroSecondClock(1));
+    LibVCD_ClockAdd(LibTime_StopMicroSecondClock());
     LibVCD_ValueChange(1, 0);
 
     if (msg->val == 49) {

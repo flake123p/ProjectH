@@ -51,7 +51,7 @@ void LibTime_StopMicroSecondClock_ShowResult(int do_print_nextline /* = 0 */)
     MUTEX_LIB_TIME_UNLOCK;
 }
 
-u32 LibTime_StopMicroSecondClock(int do_auto_reload /*= 0*/)
+u32 LibTime_StopMicroSecondClock(void)
 {
     u32 microSecond;
 
@@ -74,7 +74,7 @@ u32 LibTime_StopMicroSecondClock(int do_auto_reload /*= 0*/)
     ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
 
     microSecond = (u32)ElapsedMicroseconds.QuadPart;
-    if (do_auto_reload) {
+    {
         gLibTimeLinux_IsStarted = 1;
         StartingTime = EndingTime;
     }

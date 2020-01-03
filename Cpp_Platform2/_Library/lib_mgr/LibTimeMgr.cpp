@@ -49,12 +49,12 @@ void LibTime_DemoClockTimer2(void)
     int i;
     for (i = 0; i<0x1FFFFFFF; i++) ;
 
-    us = LibTime_StopMicroSecondClock(1);
+    us = LibTime_StopMicroSecondClock();
     DUMPND(us);
 
     for (i = 0; i<0x1FFFFFFF; i++) ;
 
-    us = LibTime_StopMicroSecondClock(1);
+    us = LibTime_StopMicroSecondClock();
     DUMPND(us);
     LibTime_StopClock_ShowResult();
 }

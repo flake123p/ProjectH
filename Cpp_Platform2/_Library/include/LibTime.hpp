@@ -24,7 +24,7 @@ void LibTime_PrintLocalTime(void);
 // ============================== Library: Platform Dependant ==============================
 void LibTime_StartMicroSecondClock(void);
 void LibTime_StopMicroSecondClock_ShowResult(int do_print_nextline = 0);
-u32 LibTime_StopMicroSecondClock(int do_auto_reload = 0);
+u32 LibTime_StopMicroSecondClock(void);
 
 #define _LIB_TIME_HPP_INCLUDED_
 #endif//_LIB_TIME_HPP_INCLUDED_
