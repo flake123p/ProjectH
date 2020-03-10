@@ -31,7 +31,22 @@ def OpendFileAndGetList(fileName, mode = 'r'): # mode : 'r', 'w', ...
 	fp = OpenFile(fileName, mode)
 	list = []
 	for each_line in fp:
-		list.append(each_line.strip())
+		if each_line[0] == '#':
+			str = ''
+			startCapture = 0
+			for eachChar in each_line:
+				if startCapture == 0:
+					if eachChar == '"':
+						startCapture = 1
+				elif startCapture == 1:
+					if eachChar == '.':
+						startCapture = 2
+					else:
+						str = str + eachChar
+			print("->", str)
+			list.append(str.strip())
+		else:
+			list.append(each_line.strip())
 	fp.close()
 	return list
 

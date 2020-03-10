@@ -215,12 +215,14 @@ void LibVCD_Demo(void)
     printf("%s()\n", __func__);
 
     LibVCD_WireInfo_t test[3] = {
-        {1, "ax", VALUE_IS_DONT_CARE, 0},
+        {1, "ax", VALUE_IN_FOLLOWING, 1},
         {2, "bx", VALUE_IS_DONT_CARE, 0},
         {8, "cx", VALUE_IN_FOLLOWING, 0},
     };
     LibVCD_Init("example.vcd", 1, TIME_UNIT_US, test, 3);
-    LibVCD_ClockAdd(500);
+    LibVCD_ClockAdd(300);
+    LibVCD_ValueChange(0, 0);
+    LibVCD_ClockAdd(200);
     LibVCD_ValueChangeToDontCare(2);
     LibVCD_ClockAdd(100);
     LibVCD_ValueChange(2, 255);

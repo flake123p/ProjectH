@@ -12,6 +12,22 @@
         2. Mod:SimClk SimChnl SimBT SimUSB SimWIFI Sim4G Sim5G Sim6G SimZB
         SimClk -> SimParalell -> SimRTOS
         OS sim? task sim?
+
+    20200202
+        2+ process simulator is required
+        self/predetermined execution time is required
+        use single thread in core scheme
+        porting BlueZ to my simulator
+        It should be able to interact with human (interact mode - HOW?, target is 2 blueZ commuticate to each other)
+            What would VCD dump work like in interact mode??
+        How to simulate dozens peers scheme (MESH)
+        get my note!!!!!!!!!!!!!!!!!!!!!!!
+
+    VCD dump: LA like, trigger condition & trigger position
+
+    USB
+        L1 - SYNC / PID - "End point"
+        L2 - pipe (4 transfers)
 */
 
 #include "Everything_App.hpp"
@@ -27,7 +43,8 @@ int main(int argc, char *argv[])
     Lib_Init(LIB_MT_ENABLE);
 #endif
 
-    LibDesc_DemoMT();
+    //LibDesc_DemoMT();
+    LibVCD_Demo();
 //    LibMT_Demo();
 //    LibTimer_DemoEx();
 //    LibMT_UtilMutex_Demo();
