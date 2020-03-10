@@ -5,6 +5,7 @@ int LibMT_UtilMutex_Init(LibMT_UtilMutex_t *mutex)
 {
     if (Lib_IsMT()) {
         int retVal;
+        BASIC_ASSERT(mutex->handle == NULL);
         ASSERT_CHK( retVal, LibIPC_Mutex_Create(&(mutex->handle)) );
     }
     return 0;
@@ -14,6 +15,7 @@ int LibMT_UtilMutex_Uninit(LibMT_UtilMutex_t *mutex)
 {
     if (Lib_IsMT()) {
         int retVal;
+        BASIC_ASSERT(mutex->handle != NULL);
         ASSERT_CHK( retVal, LibIPC_Mutex_Destroy(mutex->handle) );
     }
     return 0;
@@ -23,6 +25,7 @@ int LibMT_UtilMutex_Lock(LibMT_UtilMutex_t *mutex)
 {
     if (Lib_IsMT()) {
         int retVal;
+        BASIC_ASSERT(mutex->handle != NULL);
         ASSERT_CHK( retVal, LibIPC_Mutex_Lock(mutex->handle) );
     }
     return 0;
@@ -32,6 +35,7 @@ int LibMT_UtilMutex_Unlock(LibMT_UtilMutex_t *mutex)
 {
     if (Lib_IsMT()) {
         int retVal;
+        BASIC_ASSERT(mutex->handle != NULL);
         ASSERT_CHK( retVal, LibIPC_Mutex_Unlock(mutex->handle) );
     }
     return 0;

@@ -67,6 +67,9 @@ extern u16 gCONN_LATENCY;
 extern u16 gCONN_MAX_CE_LEN;
 extern u16 gCONN_MIN_CE_LEN;
 
+int _RAW_Send_(UART_Info_t *info, u8 *buf, u32 len);
+int _RAW_Receive_(UART_Info_t *info);
+
 int _CMD_(UART_Info_t *info, const char *funcStr, u8 *cmd, u32 cmdLen, u16 *answer, u32 answerLen);
 int _EVENT_(UART_Info_t *info, const char *funcStr, u16 *answer, u32 answerLen);
 
@@ -77,11 +80,16 @@ int CMD_LE_Set_Event_Mask(UART_Info_t *info);
 int CMD_LE_Write_Advertising_Parameters(UART_Info_t *info);
 int CMD_LE_Write_Advertise_Enable(UART_Info_t *info);
 int CMD_LE_Create_Connection(UART_Info_t *info);
+int CMD_LE_Create_Connection_WithBdAddr(UART_Info_t *info, u8 *bd_addr);
 int CMD_Disconnect(UART_Info_t *info, u16 connHdl, u8 reason);
 int CMD_Disconnect_NoWait(UART_Info_t *info, u16 connHdl, u8 reason);
 int CMD_VENDOR_SetBdAddress(UART_Info_t *info, u8 *addr);
+int CMD_LE_Set_PHY(UART_Info_t *info, u16 connHdl, u8 all_phys, u8 tx_phys, u8 rx_phys, u16 phy_options);
 
 int EVT_LE_Connection_Complete(UART_Info_t *info, u16 *outConnHdl);
+int EVT_LE_Enhanced_Connection_Complete(UART_Info_t *info, u16 *outConnHdl);
+int EVT_LE_PHY_Update_Complete_Event(UART_Info_t *info, u16 connHdl);
+
 int EVT_Disconnect_Complete(UART_Info_t *info, u16 connHdl, u16 reasonAnswer);
 
 #define _EVERYTHING_APP_HPP_INCLUDED_

@@ -11,9 +11,12 @@ u16 gCONN_MAX_CE_LEN = 0x0020;
 u16 gCONN_MIN_CE_LEN = 0x0010;
 UART_Info_t gIUT;
 UART_Info_t gTester;
+UART_Info_t gTester2;
+
 
 u16 gIutConnHdl = 0xFFFF;
 u16 gTesterConnHdl = 0xFFFF;
+u16 gTester2ConnHdl = 0xFFFF;
 
 //u32 gLoopMax = 0xFFFFFFFF;
 u32 gLoopMax = 5;
@@ -115,31 +118,86 @@ void _TestCase_0_CreateConnection(void)
 {
     printf("%s() ...\n", __func__);
 
-    gCONN_INTERVAL = 0x0006;
+    gCONN_INTERVAL = 0x0028;
     gCONN_LATENCY = 0;
-    gCONN_TIMEOUT = 0x0018;
+    gCONN_TIMEOUT = 0x0050;
     gCONN_MAX_CE_LEN = 0x0020;
     gCONN_MIN_CE_LEN = 0x0010;
 
-    CMD_RESET(&gIUT);
-    CMD_RESET(&gTester);
+    //CMD_RESET(&gIUT);
+    //CMD_RESET(&gTester);
 
-    u8 addr[] = {0xff, 0x93, 0x93, 0x67, 0x11, 0x00};
+    u8 addr[] = {0xff, 0x93, 0x93, 0x67, 0x11, 0xFF};
     CMD_VENDOR_SetBdAddress(&gIUT, addr);
 
     CMD_Set_Event_Mask(&gIUT);
     CMD_LE_Set_Event_Mask(&gIUT);
+    CMD_Set_Event_Mask(&gTester2);
+    CMD_LE_Set_Event_Mask(&gTester2);
+
     CMD_LE_Write_Advertising_Parameters(&gIUT);
     CMD_LE_Write_Advertise_Enable(&gIUT);
 
-    CMD_RESET(&gTester);
-    CMD_LE_Create_Connection(&gTester);
-    EVT_LE_Connection_Complete(&gTester, &gTesterConnHdl);
+    CMD_LE_Create_Connection(&gTester2);
+    //EVT_LE_Connection_Complete(&gTester, &gTesterConnHdl);
+    EVT_LE_Enhanced_Connection_Complete(&gTester2, &gTesterConnHdl);
     DUMPNX(gTesterConnHdl);
 
     //EVT_LE_Connection_Complete(&gIUT, &gIutConnHdl);
-    //DUMPNX(gIutConnHdl);
-    EVENT_IUT_ContinueReceive(&gIUT);
+    EVT_LE_Enhanced_Connection_Complete(&gIUT, &gIutConnHdl);
+    DUMPNX(gIutConnHdl);
+
+    //EVENT_IUT_ContinueReceive(&gIUT);
+    while(1) {
+        _RAW_Receive_(&gTester2);
+    }
+    return;
+
+//Change PHY
+#if 0
+    LibOs_SleepMiliSeconds(500);
+    /*
+    All_PHYs
+    0 The Host has no preference among the transmitter PHYs supported by the Controller
+    1 The Host has no preference among the receiver PHYs supported by the Controller
+    All other bits - Reserved for future use
+    
+    TX_PHYs: 
+    0 The Host prefers to use the LE 1M transmitter PHY (possibly among others) 
+    1 The Host prefers to use the LE 2M transmitter PHY (possibly among others) 
+    2 The Host prefers to use the LE Coded transmitter PHY (possibly among others)
+    
+    RX_PHYs:
+    0 The Host prefers to use the LE 1M receiver PHY (possibly among others) 
+    1 The Host prefers to use the LE 2M receiver PHY (possibly among others) 
+    2 The Host prefers to use the LE Coded receiver PHY (possibly among others) 
+    
+    PHY_Options:
+    0 to 1
+        0 = the Host has no preferred coding when transmitting on the LE Coded PHY
+        1 = the Host prefers that S=2 coding be used when transmitting on the LE Coded PHY
+        2 = the Host prefers that S=8 coding be used when transmitting on the LE Coded PHY
+        3 = Reserved for future use
+    */
+    CMD_LE_Set_PHY(&gIUT, gIutConnHdl, 0, 4, 4, 0);
+    EVT_LE_PHY_Update_Complete_Event(&gIUT, gIutConnHdl);
+    LibOs_SleepMiliSeconds(500);
+#endif
+
+//ACL
+#if 1
+    {
+        #define ACL_LEN (27+4)
+        u8 buf[ACL_LEN + 5] = {0x02, (u8)gTesterConnHdl, (u8)(gTesterConnHdl>>8), ACL_LEN, 0};
+        FOR_I(ACL_LEN) {
+            buf[i+5]=0xA0+i;
+        }
+        _RAW_Send_(&gTester, buf, sizeof(buf));
+        _RAW_Receive_(&gIUT);
+        _RAW_Receive_(&gIUT);
+        _RAW_Receive_(&gTester);
+    }
+#endif
 
     CMD_Disconnect(&gIUT, gIutConnHdl, 0x13);
     EVT_Disconnect_Complete(&gIUT, gIutConnHdl, 0x16);
@@ -216,25 +274,85 @@ void _TestCase_0_CreateConnection_MAS(void)
     gCONN_TIMEOUT = 0x0018;
     gCONN_MAX_CE_LEN = 0x0020;
     gCONN_MIN_CE_LEN = 0x0010;
+    //LibUartHdl_SniffSetting(gIUT.hdl, 1);
 
     CMD_RESET(&gIUT);
     CMD_RESET(&gTester);
+
+    u8 addr[] = {0xff, 0x93, 0x93, 0x67, 0x11, 0xFF};
+    CMD_VENDOR_SetBdAddress(&gIUT, addr);
 
     CMD_Set_Event_Mask(&gIUT);
     CMD_LE_Set_Event_Mask(&gIUT);
     CMD_Set_Event_Mask(&gTester);
     CMD_LE_Set_Event_Mask(&gTester);
 
-    u8 addr[] = {0xff, 0x93, 0x93, 0x67, 0x11, 0x00};
-    CMD_VENDOR_SetBdAddress(&gTester, addr);
     CMD_LE_Write_Advertising_Parameters(&gTester);
     CMD_LE_Write_Advertise_Enable(&gTester);
 
-    CMD_LE_Create_Connection(&gIUT);
-    EVT_LE_Connection_Complete(&gIUT, &gIutConnHdl);
+    {
+        u8 addr2[] = {0x70, 0x2D, 0xFB, 0x2E, 0xF6, 0xD4};
+        CMD_LE_Create_Connection_WithBdAddr(&gIUT, addr2);
+    }
+    EVT_LE_Enhanced_Connection_Complete(&gIUT, &gIutConnHdl);
     DUMPNX(gIutConnHdl);
 
+    //EVT_LE_Connection_Complete(&gTester, &gTesterConnHdl);
+    EVT_LE_Enhanced_Connection_Complete(&gTester, &gTesterConnHdl);
+    DUMPNX(gTesterConnHdl);
+
+    //EVENT_IUT_ContinueReceive(&gIUT);
+
+//Change PHY
+#if 1
+    LibOs_SleepMiliSeconds(500);
+    /*
+    All_PHYs
+    0 The Host has no preference among the transmitter PHYs supported by the Controller
+    1 The Host has no preference among the receiver PHYs supported by the Controller
+    All other bits - Reserved for future use
+    
+    TX_PHYs: 
+    0 The Host prefers to use the LE 1M transmitter PHY (possibly among others) 
+    1 The Host prefers to use the LE 2M transmitter PHY (possibly among others) 
+    2 The Host prefers to use the LE Coded transmitter PHY (possibly among others)
+    
+    RX_PHYs:
+    0 The Host prefers to use the LE 1M receiver PHY (possibly among others) 
+    1 The Host prefers to use the LE 2M receiver PHY (possibly among others) 
+    2 The Host prefers to use the LE Coded receiver PHY (possibly among others) 
+    
+    PHY_Options:
+    0 to 1
+        0 = the Host has no preferred coding when transmitting on the LE Coded PHY
+        1 = the Host prefers that S=2 coding be used when transmitting on the LE Coded PHY
+        2 = the Host prefers that S=8 coding be used when transmitting on the LE Coded PHY
+        3 = Reserved for future use
+    */
+    //LibUartHdl_SniffSetting(gIUT.hdl, 1);
+    CMD_LE_Set_PHY(&gIUT, gIutConnHdl, 0, 0, 4, 0);
+    EVT_LE_PHY_Update_Complete_Event(&gIUT, gIutConnHdl);
+    LibOs_SleepMiliSeconds(500);
+#endif
+
+//ACL
+#if 1
+    {
+        u8 buf[27 + 5] = {0x02, (u8)gTesterConnHdl, (u8)(gTesterConnHdl>>8), 27, 0};
+        FOR_I(27) {
+            buf[i+5]=0xA0+i;
+        }
+        _RAW_Send_(&gTester, buf, sizeof(buf));
+        _RAW_Receive_(&gIUT);
+        _RAW_Receive_(&gTester);
+    }
+#endif
+
+    CMD_Disconnect(&gIUT, gIutConnHdl, 0x13);
+    EVT_Disconnect_Complete(&gIUT, gIutConnHdl, 0x16);
+    EVT_Disconnect_Complete(&gTester, gTesterConnHdl, 0x13);
 }
+
 
 void _TestCase_1_ResetALL(void)
 {
@@ -242,6 +360,7 @@ void _TestCase_1_ResetALL(void)
 
     CMD_RESET(&gIUT);
     CMD_RESET(&gTester);
+    CMD_RESET(&gTester2);
 }
 
 
@@ -256,13 +375,20 @@ void uart_init(void)
     //LibUartHdl_SniffSetting(gIUT.hdl, 1);
 
     gTester.hdl = LibUartHdl_HandleCreate();
-    LibString_Copy(gTester.aliasName, "Tester", 6);
+    LibString_Copy(gTester.aliasName, "Tstr_1", 6);
     gTester.rx_buf_len = 350;
     LibUartMgr_GetComPortConfigFrom_INI_File("Uart_Tester.ini", gTester.comName, &gTester.baudRate);
     LibUartHdl_InitComPort(gTester.hdl, gTester.comName, gTester.baudRate);
 
+    gTester2.hdl = LibUartHdl_HandleCreate();
+    LibString_Copy(gTester2.aliasName, "Tstr_2", 6);
+    gTester2.rx_buf_len = 350;
+    LibUartMgr_GetComPortConfigFrom_INI_File("Uart_Tester2.ini", gTester2.comName, &gTester2.baudRate);
+    LibUartHdl_InitComPort(gTester2.hdl, gTester2.comName, gTester2.baudRate);
+
     hci_uart_rx_init(&gIUT);
     hci_uart_rx_init(&gTester);
+    hci_uart_rx_init(&gTester2);
 }
 
 void uart_uninit(void)
@@ -278,6 +404,45 @@ void uart_uninit(void)
 
 
 
+void ACL_2_Slaves(void)
+{
+#define ACL_LENX (27+0)
+
+    printf("%s() ...\n", __func__);
+
+    while (1) {
+//ACL
+#if 1
+        if (gTesterConnHdl != 0xFF)
+        {
+            
+            u8 buf[ACL_LENX + 5] = {0x02, (u8)gTesterConnHdl, (u8)(gTesterConnHdl>>8), ACL_LENX, 0};
+            FOR_I(ACL_LENX) {
+                buf[i+5]=0xA0+i;
+            }
+            _RAW_Send_(&gTester, buf, sizeof(buf));
+            _RAW_Receive_(&gIUT);
+            _RAW_Receive_(&gTester);
+        }
+#endif
+#if 1
+        if (gTester2ConnHdl != 0xFF)
+        {
+            u8 buf[ACL_LENX + 5] = {0x02, (u8)gTester2ConnHdl, (u8)(gTester2ConnHdl>>8), ACL_LENX, 0};
+            FOR_I(ACL_LENX) {
+                buf[i+5]=0xA0+i;
+            }
+            _RAW_Send_(&gTester2, buf, sizeof(buf));
+            _RAW_Receive_(&gIUT);
+            _RAW_Receive_(&gTester2);
+        }
+#endif
+        NEWLINE;
+        LibOs_SleepMiliSeconds(1000);
+    }
+
+
+}
 
 
 
@@ -286,11 +451,12 @@ void UartTester_Main(int test_case_index)
     //msg_buf_init();
     uart_init();
     //thread_init();
-
-#if 1
+    //ACL_2_Slaves();
+    _TestCase_0_CreateConnection();
+#if 0
     switch (test_case_index) {
         case 0:
-            _TestCase_0_CreateConnection_MAS();
+            _TestCase_0_CreateConnection();
             break;
         case 1:
             _TestCase_1_ResetALL();
@@ -309,22 +475,37 @@ void UartTester_Main(int test_case_index)
     //msg_buf_uninit();
 }
 
+#define HEX2INT(x,c) if(c>='a'&&c<='f'){x=c-'a'+10;}else if(c>='A'&&c<='F'){x=c-'A'+10;}else{x=c-'0';}
 int main(int argc, char *argv[])
 {
     Lib_Init(LIB_MT_ENABLE);
 
-    int test_case_index;
     do {
-        if (argc == 1) {
-            test_case_index = 0;
-        } else if (argc == 2) {
-            test_case_index = argv[1][0] - '0';
-        } else {
-            printf("too many arguments! do nothing ...\n");
-            break;
+        if (argc != 4) {
+            //printf("arguments error! do nothing ...\n");
+            //break;
         }
-        DUMPND(test_case_index);
-        UartTester_Main(test_case_index);
+        //DUMPND(test_case_index);
+
+        #if 0
+        {
+            int temp, temp2;
+            HEX2INT(temp, argv[1][0]);
+            HEX2INT(temp2, argv[1][1]);
+            gIutConnHdl = (temp << 4) + temp2;
+            HEX2INT(temp, argv[2][0]);
+            HEX2INT(temp2, argv[2][1]);
+            gTesterConnHdl = (temp << 4) + temp2;
+            HEX2INT(temp, argv[3][0]);
+            HEX2INT(temp2, argv[3][1]);
+            gTester2ConnHdl = (temp << 4) + temp2;
+            DUMPNX(gIutConnHdl);
+            DUMPNX(gTesterConnHdl);
+            DUMPNX(gTester2ConnHdl);
+        }
+        #endif
+        UartTester_Main(0);
+        
     } while (0);
 
     Lib_Uninit();

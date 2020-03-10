@@ -293,9 +293,9 @@ u32 hci_uart_rx_one_packet(UART_Info_t *uartInfo)
                     hciUart->lenCtr++;
                     hciUart->currPkt->len = hciUart->lenCtr;
                     if (hciUart->lenCtr == 5) {
-                        hciUart->lenMax = hciUart->currPkt->buf[5];
+                        hciUart->lenMax = hciUart->currPkt->buf[4];
                         hciUart->lenMax = hciUart->lenMax << 8;
-                        hciUart->lenMax += hciUart->currPkt->buf[4];
+                        hciUart->lenMax += hciUart->currPkt->buf[3];
                     }
                     if (hciUart->lenMax != 0xFFFFFFFF) {
                         if (hciUart->lenCtr == hciUart->lenMax+5) {

@@ -34,3 +34,22 @@ int Lib_IsMT(void)
 {
     return FLG_CHK(gLibFlags, LIB_MT_ENABLE) ? 1 : 0;
 }
+
+LibInit::LibInit(LIB_FLAG_t flags /* = LIB_NONE_ENABLE */, int isVerbose /*= 0*/) 
+{
+    is_verbose = isVerbose;
+
+    if (is_verbose)
+        printf("%s()\n", __func__);
+
+    Lib_Init(flags);
+};
+
+LibInit::~LibInit(void)
+{
+    if (is_verbose)
+        printf("%s()\n", __func__);
+
+    Lib_Uninit();
+}
+

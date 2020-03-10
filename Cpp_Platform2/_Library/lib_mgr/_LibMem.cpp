@@ -8,7 +8,7 @@
 
 DLList_Head_t gLibMemHead = DLLIST_HEAD_INIT(_LIB_MEM_HEAD);
 LibMem_Cell_t *gLibMemCurr = NULL;
-LibMT_UtilMutex_t gLibMemLock;
+LibMT_UtilMutex_t gLibMemLock = {NULL};
 
 static const char *_LibMem_ErrorCodeString(int errorCode)
 {
