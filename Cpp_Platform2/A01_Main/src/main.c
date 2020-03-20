@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 #endif
 
     //LibDesc_DemoMT();
-    LibVCD_Demo();
+    LibVCD_LA_Demo();
 //    LibMT_Demo();
 //    LibTimer_DemoEx();
 //    LibMT_UtilMutex_Demo();
