@@ -39,3 +39,5 @@ SET loopCtr=0
 
 CALL env_win.bat
 CD %currentDir%
+
+@SET Path=D:\Anaconda3;D:\Anaconda3\DLLs;D:\Anaconda3\Scripts;D:\Anaconda3\Library\bin;%Path%

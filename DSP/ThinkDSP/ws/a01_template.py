@@ -24,4 +24,9 @@ if __name__ == "__main__":
 	#mix = cos_sig
 	wave = mix.make_wave(duration=0.007, start=0, framerate=11025)
 	wave.plot()
+	#pyplot.show()
+	wave1 = cos_sig.make_wave(duration=0.007, start=0, framerate=11025)
+	wave1.plot()
+	wave2 = sin_sig.make_wave(duration=0.007, start=0, framerate=11025)
+	wave2.plot()
 	pyplot.show()
