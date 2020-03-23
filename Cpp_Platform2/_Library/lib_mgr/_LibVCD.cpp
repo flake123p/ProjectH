@@ -152,7 +152,7 @@ int LibVCD_DumpAllCurrValues(void)
                 fprintf(gLibVCD_fp,
                     "%s%c\n",
                     _LibVCD_StringOfValue(gLibVCD_InfoArry[index].ori.num_of_bits,
-                                              prev_desc->data.isValueDontCare,
+                                              prev_desc->data.flag & LIB_VCD_IS_VAL_DONT_CARE,
                                               prev_desc->data.value),
                     gLibVCD_InfoArry[index].ch_symbol);
             }
@@ -190,7 +190,7 @@ int LibVCD_ValueChangeToDontCare(u32 index)
     MUTEX_LIB_VCD_LOCK;
     desc = (_LibVCD_WireValueDesc_t *)LibDesc_GetDesc(gLibVCD_JobHead);
     desc->data.index = index;
-    desc->data.isValueDontCare = 1;
+    desc->data.flag = LIB_VCD_IS_VAL_DONT_CARE;
     desc->data.value = 0;
     gLibVCD_IsValueNotPrintYet = 1;
     MUTEX_LIB_VCD_UNLOCK;
@@ -203,7 +203,7 @@ int LibVCD_ValueChange(u32 index, u32 value)
     MUTEX_LIB_VCD_LOCK;
     desc = (_LibVCD_WireValueDesc_t *)LibDesc_GetDesc(gLibVCD_JobHead);
     desc->data.index = index;
-    desc->data.isValueDontCare = 0;
+    desc->data.flag = LIB_VCD_FLAG_NULL;
     desc->data.value = value;
     gLibVCD_IsValueNotPrintYet = 1;
     MUTEX_LIB_VCD_UNLOCK;
@@ -215,12 +215,14 @@ void LibVCD_Demo(void)
     printf("%s()\n", __func__);
 
     LibVCD_WireInfo_t test[3] = {
-        {1, "ax", VALUE_IS_DONT_CARE, 0},
+        {1, "ax", VALUE_IN_FOLLOWING, 1},
         {2, "bx", VALUE_IS_DONT_CARE, 0},
         {8, "cx", VALUE_IN_FOLLOWING, 0},
     };
     LibVCD_Init("example.vcd", 1, TIME_UNIT_US, test, 3);
-    LibVCD_ClockAdd(500);
+    LibVCD_ClockAdd(300);
+    LibVCD_ValueChange(0, 0);
+    LibVCD_ClockAdd(200);
     LibVCD_ValueChangeToDontCare(2);
     LibVCD_ClockAdd(100);
     LibVCD_ValueChange(2, 255);
@@ -228,3 +230,144 @@ void LibVCD_Demo(void)
     LibVCD_ClockAdd(100);
     LibVCD_Uninit();
 }
+
+
+
+/*
+clock -> wire -> wire -> wire
+|
+clock -> wire
+|
+clock
+|
+clock -> wire -> wire
+*/
+typedef struct {
+    LIB_VCD_FLAG_t flag;
+    union {
+        struct {
+            u32 value;
+            u32 index;
+            DLList_Entry_t wireEntry;
+        } wire;
+        struct {
+            u32 clocksToAdd;
+            DLList_Head_t wireHead;
+            DLList_Entry_t clockEntry;
+        } clock;
+    } unidata;
+} LibVCD_LA_Cell_t;
+
+DLList_Head_t gAllRecords = DLLIST_HEAD_INIT(&gAllRecords);
+
+int LibVCD_LA_Init(const char *outFileName, u32 timescale, TIME_UNIT_t unit, LibVCD_WireInfo_t *info, u32 num_of_info)
+{
+    const char *unitStr;
+    BASIC_ASSERT(num_of_info <= 0x7E - 0x21 + 1);
+
+    //store all info
+    gLibVCD_TimeScale = timescale;
+    gLibVCD_TimeUnit = unit;
+    gLibVCD_InfoArry = (_LibVCD_WireInfo_Internal_t *)MM_ALLOC(sizeof(_LibVCD_WireInfo_Internal_t) * num_of_info);
+    FOR_I(num_of_info) {
+        WT(gLibVCD_InfoArry[i].ori.num_of_bits , info[i].num_of_bits);
+        WT(gLibVCD_InfoArry[i].ori.wire_name , info[i].wire_name);
+        WT(gLibVCD_InfoArry[i].ch_symbol , 0x21 + i);
+    }
+    //write init data to file
+    gLibVCD_fp = fopen(outFileName, "w+b");
+    BASIC_ASSERT(gLibVCD_fp != NULL);
+    switch (unit) {
+        case TIME_UNIT_PS: unitStr = "ps"; break;
+        case TIME_UNIT_NS: unitStr = "ns"; break;
+        case TIME_UNIT_US: unitStr = "us"; break;
+        case TIME_UNIT_S:  unitStr = "s"; break;
+        default: BASIC_ASSERT(0); break;
+    }
+    fprintf(gLibVCD_fp, "$timescale\n");
+    fprintf(gLibVCD_fp, "    %d%s\n", timescale, unitStr);
+    fprintf(gLibVCD_fp, "$end\n\n");
+
+    fprintf(gLibVCD_fp, "$scope module M1 $end\n");
+    FOR_I(num_of_info) {
+        fprintf(gLibVCD_fp,
+            "$var wire %d %c %s $end\n",
+            gLibVCD_InfoArry[i].ori.num_of_bits,
+            gLibVCD_InfoArry[i].ch_symbol,
+            gLibVCD_InfoArry[i].ori.wire_name);
+    }
+    fprintf(gLibVCD_fp, "$upscope $end\n\n");
+
+    fprintf(gLibVCD_fp, "#0\n");
+    FOR_I(num_of_info) {
+        fprintf(gLibVCD_fp,
+            "%s%c\n",
+            _LibVCD_StringOfValue(info[i].num_of_bits, info[i].isInitValueDontCare, info[i].initValue),
+            gLibVCD_InfoArry[i].ch_symbol);
+    }
+    fprintf(gLibVCD_fp, "\n");
+
+    //wait for event, and store it
+    //if time move on, write all stored events to file
+    gLibVCD_JobHead = LibDesc_CreateList(sizeof(Lib_Desc_Head_t), num_of_info, sizeof(_LibVCD_WireValueDesc_t));
+
+    //wait for uninit
+
+    return 0;
+}
+
+int LibVCD_LA_Uninit(void)
+{
+    BASIC_ASSERT(gLibVCD_ClkHigh == 0); //not implement u64 print
+    fprintf(gLibVCD_fp, "#%d\n", gLibVCD_ClkLow);
+
+    if (gLibVCD_InfoArry != NULL) {
+        MM_FREE(gLibVCD_InfoArry);
+    }
+
+    if (gLibVCD_fp != NULL) {
+        fclose(gLibVCD_fp);
+    }
+
+    LibDesc_DestroyList(gLibVCD_JobHead, 1);
+
+    return 0;
+}
+
+int LibVCD_LA_ClockAdd(u32 clocksToAdd)
+{
+    MUTEX_LIB_VCD_LOCK;
+    if (clocksToAdd) {
+        if ()
+        LibVCD_DumpAllCurrValues();
+
+        LibUtil_AddInU64_TwoU32(&gLibVCD_ClkHigh, &gLibVCD_ClkLow, clocksToAdd);
+    }
+    MUTEX_LIB_VCD_UNLOCK;
+    return 0;
+}
+
+void LibVCD_LA_Demo(void)
+{
+    printf("%s()\n", __func__);
+
+    LibVCD_WireInfo_t test[3] = {
+        {1, "ax", VALUE_IN_FOLLOWING, 1},
+        {2, "bx", VALUE_IS_DONT_CARE, 0},
+        {8, "cx", VALUE_IN_FOLLOWING, 0},
+    };
+    LibVCD_LA_Init("example.vcd", 1, TIME_UNIT_US, test, 3);
+    LibVCD_ClockAdd(300);
+    /*
+    LibVCD_ClockAdd(300);
+    LibVCD_ValueChange(0, 0);
+    LibVCD_ClockAdd(200);
+    LibVCD_ValueChangeToDontCare(2);
+    LibVCD_ClockAdd(100);
+    LibVCD_ValueChange(2, 255);
+    LibVCD_ValueChange(1, 2);
+    LibVCD_ClockAdd(100);
+    */
+    LibVCD_LA_Uninit();
+}
+
