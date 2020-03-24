@@ -338,7 +338,7 @@ int LibVCD_LA_ClockAdd(u32 clocksToAdd)
 {
     MUTEX_LIB_VCD_LOCK;
     if (clocksToAdd) {
-        if ()
+        //if ()
         LibVCD_DumpAllCurrValues();
 
         LibUtil_AddInU64_TwoU32(&gLibVCD_ClkHigh, &gLibVCD_ClkLow, clocksToAdd);
