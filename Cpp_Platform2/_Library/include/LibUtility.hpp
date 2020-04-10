@@ -96,5 +96,13 @@ void LibUtil_Demo2(void);
 int LibUtil_AddInU64_TwoU32(u32 *high, u32 *low, u32 increment);
 
 
+typedef struct {
+    u32 high;
+    u32 low;
+} LibU64_t;
+int LibU64_AddU32(LibU64_t *p_u64Data, u32 increment); //return 1 if u64 overflow
+void LibU64_Demo(void);
+
+
 #define _LIB_UTILITY_HPP_INCLUDED_
 #endif//_LIB_UTILITY_HPP_INCLUDED_

@@ -759,3 +759,52 @@ int LibUtil_AddInU64_TwoU32(u32 *high, u32 *low, u32 increment)
 
     return 0;
 }
+
+int LibU64_AddU32(LibU64_t *p_u64Data, u32 increment) //return 1 if u64 overflow
+{
+    int isCarryHappened = 0;
+    p_u64Data->low+= increment;
+
+    if (p_u64Data->low < increment) {
+        isCarryHappened = 1;
+    }
+
+    if (isCarryHappened) {
+        p_u64Data->high += 1;
+        if (p_u64Data->high == 0) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void LibU64_Demo(void)
+{
+    LibU64_t u64Data = {
+        .high = 0x00000010,
+        .low  = 0xFFFFFFFE
+    };
+    DUMPNX(u64Data.high);
+    DUMPNX(u64Data.low);
+
+    printf("add 1\n");
+    LibU64_AddU32(&u64Data, 1);
+    DUMPNX(u64Data.high);
+    DUMPNX(u64Data.low);
+
+    printf("add 1\n");
+    LibU64_AddU32(&u64Data, 1);
+    DUMPNX(u64Data.high);
+    DUMPNX(u64Data.low);
+
+    printf("add 0xFFFFFFFF\n");
+    LibU64_AddU32(&u64Data, 0xFFFFFFFF);
+    DUMPNX(u64Data.high);
+    DUMPNX(u64Data.low);
+
+    printf("add 0xFFFFFFFF\n");
+    LibU64_AddU32(&u64Data, 0xFFFFFFFF);
+    DUMPNX(u64Data.high);
+    DUMPNX(u64Data.low);
+}
