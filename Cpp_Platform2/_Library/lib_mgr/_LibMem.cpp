@@ -165,8 +165,13 @@ static LibMem_Cell_t *_LibMem_FindCellEntryByAnyAddr(u8 *any_addr, u32 len)
     return NULL;
 }
 
+static int gLibMemIsInited = 0;
 void LibMem_Init(void)
 {
+    if (gLibMemIsInited) {
+        return;
+    }
+    gLibMemIsInited = 1;
     LibMT_UtilMutex_Init(&gLibMemLock);
 }
 
@@ -174,6 +179,8 @@ void LibMem_Uninit(void)
 {
     LibMem_Cell_t *curr_cell;
     LibMem_Cell_t *cell_to_free;
+
+    BASIC_ASSERT(gLibMemIsInited == 1);
 
     DLLIST_WHILE_START(_LIB_MEM_HEAD, curr_cell, LibMem_Cell_t)
     {

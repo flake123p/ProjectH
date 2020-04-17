@@ -27,11 +27,12 @@ int gLibVCD_IsValueNotPrintYet = 0;
 //
 //  LA global variables (time node & value change node)
 //
+#define VCD_LA_HEAD (&gLibVCD_LA_Head)
 DLList_Head_t gLibVCD_LA_Head;
 typedef struct {
     DLList_Entry_t next;
     DLList_Entry_t valueChangeEntry;
-    u32 clockToAdd;
+    u32 clocksToAdd;
 } _LibVCD_LA_TimeNode_t;
 typedef struct {
     DLList_Entry_t next;
@@ -44,6 +45,10 @@ u32 gLibVCD_LA_ClocksAfter;
 u32 gLibVCD_LA_TriggerClkLow;
 u32 gLibVCD_LA_TriggerClkHigh;
 int gLibVCD_LA_IsTriggered = 0;
+LibU64_t gLibVCD_StartClks = {0};
+LibU64_t gLibVCD_CurrClks = {0};
+LibU64_t gLibVCD_TriggerClks = {0};
+
 
 char *_LibVCD_StringOfValue(u32 num_of_bits, int isValueDontCare, u32 value)
 {
@@ -279,8 +284,6 @@ void LibVCD_Demo(void)
     LibVCD_Uninit();
 }
 
-
-
 /*
 clock -> wire -> wire -> wire
 |
@@ -290,6 +293,7 @@ clock
 |
 clock -> wire -> wire
 */
+#if 0
 typedef struct {
     LIB_VCD_FLAG_t flag;
     union {
@@ -305,15 +309,21 @@ typedef struct {
         } clock;
     } unidata;
 } LibVCD_LA_Cell_t;
+#endif
 
 DLList_Head_t gAllRecords = DLLIST_HEAD_INIT(&gAllRecords);
 
 int LibVCD_LA_Init(const char *outFileName, u32 timescale, TIME_UNIT_t unit, LibVCD_WireInfo_t *info, u32 num_of_info)
 {
-    DLLIST_HEAD_RESET(&gLibVCD_LA_Head);
+    DLLIST_HEAD_RESET(VCD_LA_HEAD);
     _LibVCD_Init_0_InitList(num_of_info);
     _LibVCD_Init_1_SaveToGlobal(outFileName, timescale, unit, info, num_of_info);
     _LibVCD_Init_2_DumpFileHeader();
+
+    _LibVCD_LA_TimeNode_t *newTimeNode = (_LibVCD_LA_TimeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_TimeNode_t));
+    DLLIST_INSERT_LAST(VCD_LA_HEAD, newTimeNode);
+
+    newTimeNode->clocksToAdd = 0;
 
     return 0;
 }
@@ -346,13 +356,9 @@ void LibVCD_LA_Demo(void)
         {2, "bx", VALUE_IS_DONT_CARE, 0},
         {8, "cx", VALUE_IN_FOLLOWING, 0},
     };
+
     LibVCD_LA_Init("example.vcd", 1, TIME_UNIT_US, test, 3);
 
-    LibVCD_ClockAdd(300);
-    LibVCD_ValueChange(0, 0);
-    LibVCD_ClockAdd(300);
-    LibVCD_ValueChange(0, 1);
-    LibVCD_ClockAdd(300);
     /*
     LibVCD_ClockAdd(300);
     LibVCD_ValueChange(0, 0);
