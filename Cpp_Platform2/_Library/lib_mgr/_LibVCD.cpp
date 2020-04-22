@@ -40,14 +40,14 @@ typedef struct {
     u32 index;
     u32 value;
 } _LibVCD_LA_ValueChangeNode_t;
-u32 gLibVCD_LA_ClocksBefore;
-u32 gLibVCD_LA_ClocksAfter;
-u32 gLibVCD_LA_TriggerClkLow;
-u32 gLibVCD_LA_TriggerClkHigh;
+u32 gLibVCD_LA_ClocksBefore; //input
+u32 gLibVCD_LA_ClocksAfter;  //input
+//u32 gLibVCD_LA_TriggerClkLow;
+//u32 gLibVCD_LA_TriggerClkHigh;
 int gLibVCD_LA_IsTriggered = 0;
-LibU64_t gLibVCD_StartClks = {0};
-LibU64_t gLibVCD_CurrClks = {0};
-LibU64_t gLibVCD_TriggerClks = {0};
+LibU64_t gLibVCD_StartClks = {0}; //increase only when trigger clock buffer is full
+LibU64_t gLibVCD_CurrClks = {0}; //increase in every "clocks add".
+LibU64_t gLibVCD_TriggerClks = {0}; //save trigger clocks
 
 
 char *_LibVCD_StringOfValue(u32 num_of_bits, int isValueDontCare, u32 value)
@@ -333,8 +333,12 @@ int LibVCD_LA_Uninit(void)
     return LibVCD_Uninit();
 }
 
+//TODO
 int LibVCD_LA_ClockAdd(u32 clocksToAdd)
 {
+    // 1.malloc & insert time node
+    // 2.scan & clear old node that is before trigger limits (curr)
+/*
     MUTEX_LIB_VCD_LOCK;
     if (clocksToAdd) {
         //if ()
@@ -344,6 +348,25 @@ int LibVCD_LA_ClockAdd(u32 clocksToAdd)
         //LibUtil_AddInU64_TwoU32(&gLibVCD_ClkHigh, &gLibVCD_ClkLow, clocksToAdd);
     }
     MUTEX_LIB_VCD_UNLOCK;
+*/
+    return 0;
+}
+
+int LibVCD_LA_ValueChangeToDontCare(u32 index)
+{
+    // 1.find current time node
+    // 2.malloc vc node
+    // 3.insert last into vc list in time node
+/*
+    _LibVCD_WireValueDesc_t *desc;
+    MUTEX_LIB_VCD_LOCK;
+    desc = (_LibVCD_WireValueDesc_t *)LibDesc_GetDesc(gLibVCD_JobHead);
+    desc->data.index = index;
+    desc->data.flag = LIB_VCD_IS_VAL_DONT_CARE;
+    desc->data.value = 0;
+    gLibVCD_IsValueNotPrintYet = 1;
+    MUTEX_LIB_VCD_UNLOCK;
+*/
     return 0;
 }
 
