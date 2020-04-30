@@ -83,6 +83,66 @@ typedef int64_t s64;
 #define DO_ENDIAN_SWAP (true)
 #define NO_ENDIAN_SWAP (false)
 
+
+#define INDENT01 "    "
+#define INDENT02 "        "
+#define INDENT03 "            "
+#define INDENT04 "                "
+#define INDENT05 "                    "
+#define INDENT06 "                        "
+
+#define INDENTS1 "  "
+#define INDENTS2 "    "
+#define INDENTS3 "      "
+#define INDENTS4 "        "
+#define INDENTS5 "          "
+#define INDENTS6 "            "
+
+#define INDENTSS1 " "
+#define INDENTSS2 "  "
+#define INDENTSS3 "   "
+#define INDENTSS4 "    "
+#define INDENTSS5 "     "
+#define INDENTSS6 "      "
+
+#define INDENTT1 "\t"
+#define INDENTT2 "\t\t"
+#define INDENTT3 "\t\t\t"
+#define INDENTT4 "\t\t\t\t"
+#define INDENTT5 "\t\t\t\t\t"
+#define INDENTT6 "\t\t\t\t\t\t"
+
+#define PRINT01(...) printf(INDENT01 __VA_ARGS__)
+#define PRINT02(...) printf(INDENT02 __VA_ARGS__)
+#define PRINT03(...) printf(INDENT03 __VA_ARGS__)
+#define PRINT04(...) printf(INDENT04 __VA_ARGS__)
+#define PRINT05(...) printf(INDENT05 __VA_ARGS__)
+#define PRINT06(...) printf(INDENT06 __VA_ARGS__)
+
+
+
+
+
+#if 0
+//Copy from here
+#if 0
+#define MY_INDENT01 INDENT01
+#define MY_INDENT02 INDENT02
+#define MY_INDENT03 INDENT03
+#define MY_INDENT04 INDENT04
+#define MY_INDENT05 INDENT05
+#define MY_INDENT06 INDENT06
+#else
+#define MY_INDENT01 INDENTS1
+#define MY_INDENT02 INDENTS2
+#define MY_INDENT03 INDENTS3
+#define MY_INDENT04 INDENTS4
+#define MY_INDENT05 INDENTS5
+#define MY_INDENT06 INDENTS6
+#endif
+//Copy till here
+#endif
+
 #define _MY_TYPES_H_INCLUDED_
 #endif//_MY_TYPES_H_INCLUDED_
 

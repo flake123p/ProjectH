@@ -152,10 +152,10 @@ typedef struct {
     void *head;
     void *tail_or_self; //pointer to head struct when list is empty
 } DLList_Head_t;
-#define DLLIST_NEXT(node) ((DLList_Entry_t *)node)->next
-#define DLLIST_PREV(node) ((DLList_Entry_t *)node)->prev
-#define DLLIST_HEAD(node) ((DLList_Head_t *)node)->head
-#define DLLIST_TAIL(node) ((DLList_Head_t *)node)->tail_or_self
+#define DLLIST_NEXT(pNode) ((DLList_Entry_t *)pNode)->next
+#define DLLIST_PREV(pNode) ((DLList_Entry_t *)pNode)->prev
+#define DLLIST_HEAD(pHead) ((DLList_Head_t *)pHead)->head
+#define DLLIST_TAIL(pHead) ((DLList_Head_t *)pHead)->tail_or_self
 #define DLLIST_TAIL_IS_VALID(head,tail) ((void *)tail != (void *)head) /*tail_or_self is a pointer to head struct when list is empty*/
 
 #define DLLIST_IS_EMPTY(head) (DLLIST_HEAD(head)==NULL)
