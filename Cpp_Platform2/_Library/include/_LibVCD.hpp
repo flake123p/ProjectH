@@ -48,6 +48,9 @@ void LibVCD_Demo(void);
 int LibVCD_LA_ValueChangeToDontCare(u32 index);
 int LibVCD_LA_ValueChange(u32 index, u32 value);
 
+void LibVCD_LA_Test0(void);
+void LibVCD_LA_Test1(void);
+
 void LibVCD_LA_Demo(void);
 
 #define __LIB_VCD_HPP_INCLUDED_

@@ -101,6 +101,8 @@ typedef struct {
     u32 low;
 } LibU64_t;
 int LibU64_AddU32(LibU64_t *p_u64Data, u32 increment); //return 1 if u64 overflow
+int LibU64_AddU64(LibU64_t *p_u64Data, LibU64_t *p_increment); //return 1 if u64 overflow
+
 void LibU64_Demo(void);
 
 
