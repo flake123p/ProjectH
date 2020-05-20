@@ -67,6 +67,8 @@ u32 gLibVCD_LA_VcdStartClks = 0; //increase only when trigger clock buffer is fu
 u32 gLibVCD_LA_CurrClks = 0; //increase in every "clocks add".
 u32 gLibVCD_LA_TriggerClks = 0; //save trigger clocks
 
+u32 gLibVCD_LA_TriggerIndex; //last index
+
 
 char *_LibVCD_StringOfValue(u32 num_of_bits, int isValueDontCare, u32 value)
 {
@@ -368,11 +370,15 @@ int LibVCD_LA_DumpAll(void)
     _LibVCD_LA_ValueChangeNode_t *currValueNode;
 
     printf("////// %s() //////\n", __func__);
-    printf("BeforeClks   =%d\n", gLibVCD_LA_BeforeClks);
-    printf("AfterClks    =%d\n", gLibVCD_LA_AfterClks);
-    printf("VcdStartClks =%d\n", gLibVCD_LA_VcdStartClks);
-    printf("CurrClks     =%d\n", gLibVCD_LA_CurrClks);
-    printf("TriggerClks  =%d. (usingTrigger:%d/isTriggered:%d)\n", gLibVCD_LA_TriggerClks, gLibVCD_LA_IsUsingTrigger, gLibVCD_LA_IsTriggered);
+    printf("BeforeClks   =%u\n", gLibVCD_LA_BeforeClks);
+    printf("AfterClks    =%u\n", gLibVCD_LA_AfterClks);
+    printf("VcdStartClks =%u\n", gLibVCD_LA_VcdStartClks);
+    printf("CurrClks     =%u\n", gLibVCD_LA_CurrClks);
+    printf("TriggerClks  =%u. (usingTrigger:%d/isTriggered:%d/AfterClksFull:%d)\n", 
+        gLibVCD_LA_TriggerClks, 
+        gLibVCD_LA_IsUsingTrigger, 
+        gLibVCD_LA_IsTriggered, 
+        gLibVCD_LA_IsAfterClksFull);
     
     DLLIST_FOREACH(VCD_LA_HEAD,currTimeNode,_LibVCD_LA_TimeNode_t)
     {
@@ -434,9 +440,25 @@ int LibVCD_LA_FlushAll(void)
 
 int LibVCD_LA_Init(const char *outFileName, u32 timescale, TIME_UNIT_t unit, LibVCD_WireInfo_t *info, u32 num_of_info)
 {
+    //add trigger indicate wire
+    LibVCD_WireInfo_t *myInfo = (LibVCD_WireInfo_t *)MM_ALLOC(sizeof(LibVCD_WireInfo_t) * (num_of_info+1));
+
+    FOR_I(num_of_info) {
+        WT(myInfo[i].num_of_bits , info[i].num_of_bits);
+        WT(myInfo[i].wire_name , info[i].wire_name);
+        WT(myInfo[i].isInitValueDontCare , info[i].isInitValueDontCare);
+        WT(myInfo[i].initValue , info[i].initValue);
+    }
+    //last one is trigger index
+    myInfo[num_of_info].num_of_bits = 1;
+    myInfo[num_of_info].wire_name = "Trigger";
+    myInfo[num_of_info].isInitValueDontCare = 0;
+    myInfo[num_of_info].initValue =0;
+    gLibVCD_LA_TriggerIndex = num_of_info;
+
     DLLIST_HEAD_RESET(VCD_LA_HEAD);
     _LibVCD_Init_0_InitList(num_of_info);
-    _LibVCD_Init_1_SaveToGlobal(outFileName, timescale, unit, info, num_of_info);
+    _LibVCD_Init_1_SaveToGlobal(outFileName, timescale, unit, myInfo, num_of_info+1);
     _LibVCD_Init_2_DumpFileHeader();
 
     _LibVCD_LA_TimeNode_t *newTimeNode = (_LibVCD_LA_TimeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_TimeNode_t));
@@ -444,13 +466,15 @@ int LibVCD_LA_Init(const char *outFileName, u32 timescale, TIME_UNIT_t unit, Lib
     newTimeNode->clocksToAdd = 0;
     DLLIST_INSERT_LAST(VCD_LA_HEAD, newTimeNode);
 
-    FOR_I(num_of_info) {
-        if (info[i].isInitValueDontCare) {
+    FOR_I(num_of_info+1) {
+        if (myInfo[i].isInitValueDontCare) {
             LibVCD_LA_ValueChangeToDontCare(i);
         } else {
-            LibVCD_LA_ValueChange(i, info[i].initValue);
+            LibVCD_LA_ValueChange(i, myInfo[i].initValue);
         }
     }
+
+    MM_FREE(myInfo);
 
     return 0;
 }
@@ -469,6 +493,9 @@ int LibVCD_LA_Trigger(void)
 {
     BASIC_ASSERT(gLibVCD_LA_IsUsingTrigger == 1);
     gLibVCD_LA_IsTriggered = 1;
+
+    gLibVCD_LA_TriggerClks = gLibVCD_LA_CurrClks;
+    LibVCD_LA_ValueChange(gLibVCD_LA_TriggerIndex, 1);
     return 0;
 }
 
@@ -530,73 +557,113 @@ int LibVCD_LA_ClockAdd(u32 clocksToAdd)
 {
     // 1.malloc & insert time node
     // 2.scan & clear old node that is before trigger limits (curr)
+    int ret = 0;
 
     if (clocksToAdd)
     {
         MUTEX_LIB_VCD_LOCK;
-        {
-            _LibVCD_LA_TimeNode_t *newTimeNode = (_LibVCD_LA_TimeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_TimeNode_t));
-            DLLIST_HEAD_RESET(&(newTimeNode->valueChangeHead));
-            newTimeNode->clocksToAdd = clocksToAdd;
-            DLLIST_INSERT_LAST(VCD_LA_HEAD, newTimeNode);
+        do {
 
-            LibVCD_LA_ClockAdd_BeforeCurrClockAdjust(clocksToAdd);
-            LibVCD_LA_ClockAdd_CurrClockAdjust();
-        }
-        
+            if (gLibVCD_LA_IsAfterClksFull) {
+                ret = 1;
+                break;
+            }
+
+            if (gLibVCD_LA_IsTriggered) {
+                u32 remainClks = gLibVCD_LA_AfterClks - (gLibVCD_LA_CurrClks - gLibVCD_LA_TriggerClks);
+
+                if (remainClks <= clocksToAdd) {
+                    gLibVCD_LA_IsAfterClksFull = 1;
+                    clocksToAdd = remainClks;
+                    ret = 1;
+                }
+            }
+
+            {
+                _LibVCD_LA_TimeNode_t *newTimeNode = (_LibVCD_LA_TimeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_TimeNode_t));
+                DLLIST_HEAD_RESET(&(newTimeNode->valueChangeHead));
+                newTimeNode->clocksToAdd = clocksToAdd;
+                DLLIST_INSERT_LAST(VCD_LA_HEAD, newTimeNode);
+
+                LibVCD_LA_ClockAdd_BeforeCurrClockAdjust(clocksToAdd);
+                if (gLibVCD_LA_IsTriggered == 0) {
+                    LibVCD_LA_ClockAdd_CurrClockAdjust();
+                }
+            }
+        } while (0);
         MUTEX_LIB_VCD_UNLOCK;
     }
 
-    return 0;
+    return ret;
 }
 
 int LibVCD_LA_ValueChangeToDontCare(u32 index)
 {
+    int ret = 0;
+
     MUTEX_LIB_VCD_LOCK;
+    do
     {
-        // 1.find current time node
-        // 2.malloc vc node
-        // 3.insert last into vc list in time node
+        if (gLibVCD_LA_IsAfterClksFull) {
+            ret = 1;
+            break;
+        }
 
-        _LibVCD_LA_TimeNode_t *lastTimeNode = (_LibVCD_LA_TimeNode_t *)VCD_LA_TAIL;
-        _LibVCD_LA_ValueChangeNode_t *newValueNode = (_LibVCD_LA_ValueChangeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_ValueChangeNode_t));
+        {
+            // 1.find current time node
+            // 2.malloc vc node
+            // 3.insert last into vc list in time node
 
-        LIB_VCD_ASSERT( DLLIST_IS_NOT_EMPTY(VCD_LA_HEAD) );
-        //DUMPNP(lastTimeNode);
-        
-        newValueNode->index = index;
-        newValueNode->isDontCare = 1;
+            _LibVCD_LA_TimeNode_t *lastTimeNode = (_LibVCD_LA_TimeNode_t *)VCD_LA_TAIL;
+            _LibVCD_LA_ValueChangeNode_t *newValueNode = (_LibVCD_LA_ValueChangeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_ValueChangeNode_t));
 
-        DLLIST_INSERT_LAST(&(lastTimeNode->valueChangeHead), newValueNode);
-    }
+            LIB_VCD_ASSERT( DLLIST_IS_NOT_EMPTY(VCD_LA_HEAD) );
+            //DUMPNP(lastTimeNode);
+            
+            newValueNode->index = index;
+            newValueNode->isDontCare = 1;
+
+            DLLIST_INSERT_LAST(&(lastTimeNode->valueChangeHead), newValueNode);
+        }
+    } while (0);
     MUTEX_LIB_VCD_UNLOCK;
 
-    return 0;
+    return ret;
 }
 
 int LibVCD_LA_ValueChange(u32 index, u32 value)
 {
+    int ret = 0;
+
     MUTEX_LIB_VCD_LOCK;
+    do
     {
-        // 1.find current time node
-        // 2.malloc vc node
-        // 3.insert last into vc list in time node
+        if (gLibVCD_LA_IsAfterClksFull) {
+            ret = 1;
+            break;
+        }
 
-        _LibVCD_LA_TimeNode_t *lastTimeNode = (_LibVCD_LA_TimeNode_t *)VCD_LA_TAIL;
-        _LibVCD_LA_ValueChangeNode_t *newValueNode = (_LibVCD_LA_ValueChangeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_ValueChangeNode_t));
+        {
+            // 1.find current time node
+            // 2.malloc vc node
+            // 3.insert last into vc list in time node
 
-        LIB_VCD_ASSERT( DLLIST_IS_NOT_EMPTY(VCD_LA_HEAD) );
-        //DUMPNP(lastTimeNode);
-        
-        newValueNode->index = index;
-        newValueNode->isDontCare = 0;
-        newValueNode->value = value;
+            _LibVCD_LA_TimeNode_t *lastTimeNode = (_LibVCD_LA_TimeNode_t *)VCD_LA_TAIL;
+            _LibVCD_LA_ValueChangeNode_t *newValueNode = (_LibVCD_LA_ValueChangeNode_t *)MM_ALLOC(sizeof(_LibVCD_LA_ValueChangeNode_t));
 
-        DLLIST_INSERT_LAST(&(lastTimeNode->valueChangeHead), newValueNode);
-    }
+            LIB_VCD_ASSERT( DLLIST_IS_NOT_EMPTY(VCD_LA_HEAD) );
+            //DUMPNP(lastTimeNode);
+            
+            newValueNode->index = index;
+            newValueNode->isDontCare = 0;
+            newValueNode->value = value;
+
+            DLLIST_INSERT_LAST(&(lastTimeNode->valueChangeHead), newValueNode);
+        }
+    } while (0);
     MUTEX_LIB_VCD_UNLOCK;
 
-    return 0;
+    return ret;
 }
 
 void LibVCD_LA_Test0(void)
@@ -610,7 +677,8 @@ void LibVCD_LA_Test0(void)
     };
 
     LibVCD_LA_Init("example.vcd", 1, TIME_UNIT_US, test, 3);
-    LibVCD_LA_InitTrigger(250,100);
+    LibVCD_LA_InitTrigger(0,0xffffffff);
+    //LibVCD_LA_InitTrigger(250,300);
     LibVCD_LA_ClockAdd(0);
     LibVCD_LA_ClockAdd(100);
     LibVCD_LA_ValueChange(2, 7);
