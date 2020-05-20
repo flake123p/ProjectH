@@ -61,8 +61,8 @@ typedef struct {
     
     u32 T0_SLOT_TIMER;
 
-    u8 RXENABLE; //1 for immediate, 2 for TIFS
-    u8 TXENABLE; //1 for immediate, 2 for TIFS
+    u8 RXENABLE; // 1 for immediate, 2 for TIFS
+    u8 TXENABLE; // 1 for immediate, 2 for TIFS
 
     u8 is_prepare_rf;
 

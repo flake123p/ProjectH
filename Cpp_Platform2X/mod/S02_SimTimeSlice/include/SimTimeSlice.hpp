@@ -30,6 +30,8 @@ typedef struct {
     Simple_CB_t post_cb;
 }Time_Slice_Descriptor2_Ext;
 
+typedef int (*SimTimeSlice_TimeAdd_CB_t)(u32 timeToAdd);
+
 int SimTimeSlice_Demo_Old(void);
 int SimTimeSlice1_Demo(void);
 int SimTimeSlice2_Demo(void);
@@ -40,6 +42,8 @@ void SimTimeSlice_TimeStampGet(u32 *outTimeStamp1, u32 *outTimeStamp2);
 void SimTimeSlice_TimeStampSet(u32 inTimeStamp1, u32 inTimeStamp2);
 
 int SimTimeSlice_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number);
+int SimTimeSlice_RegisterTimeAddCallback(SimTimeSlice_TimeAdd_CB_t timeAdd_CB);
+
 int SimTimeSlice_Start(void);
 
 Time_Slice_Descriptor2 *SimTimeSlice2_GetLastStandaloneDes(void);

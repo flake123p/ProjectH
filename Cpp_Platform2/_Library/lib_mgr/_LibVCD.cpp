@@ -124,6 +124,8 @@ int _LibVCD_Init_1_SaveToGlobal(const char *outFileName, u32 timescale, TIME_UNI
     FOR_I(num_of_info) {
         WT(gLibVCD_InfoArry[i].ori.num_of_bits , info[i].num_of_bits);
         WT(gLibVCD_InfoArry[i].ori.wire_name , info[i].wire_name);
+        WT(gLibVCD_InfoArry[i].ori.isInitValueDontCare , info[i].isInitValueDontCare);
+        WT(gLibVCD_InfoArry[i].ori.initValue , info[i].initValue);
         WT(gLibVCD_InfoArry[i].ch_symbol , 0x21 + i);
     }
     gLibVCD_FileName = outFileName;

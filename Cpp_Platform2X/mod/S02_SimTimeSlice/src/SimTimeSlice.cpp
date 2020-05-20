@@ -137,6 +137,8 @@ int SimTimeSlice_Demo_Old(void)
 	return 0;
 }
 
+SimTimeSlice_TimeAdd_CB_t gSimTimeSlice_TimeAdd_CB = NULL;
+
 static Time_Slice_Descriptor *g_descriptor_table = NULL;
 static u32 g_table_number = 0;
 static u32 gTimeStampHigh = 0;
@@ -152,6 +154,9 @@ static void SimTimeSlice_UpdateTimeStamp(u32 inTimeStamp)
     }
 
     gTimeStampLow += inTimeStamp;
+    if (gSimTimeSlice_TimeAdd_CB != NULL) {
+        (*gSimTimeSlice_TimeAdd_CB)(inTimeStamp);
+    }
 }
 
 u32 SimTimeSlice_TimeStamp_Low_Get(void)
@@ -184,6 +189,12 @@ int SimTimeSlice_Init(Time_Slice_Descriptor *descriptor_table, u32 table_number)
     g_descriptor_table = descriptor_table;
     g_table_number = table_number;
 
+    return 0;
+}
+
+int SimTimeSlice_RegisterTimeAddCallback(SimTimeSlice_TimeAdd_CB_t timeAdd_CB)
+{
+    gSimTimeSlice_TimeAdd_CB = timeAdd_CB;
     return 0;
 }
 

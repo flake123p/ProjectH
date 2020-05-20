@@ -74,6 +74,7 @@ void Peer1_InitSimAir(void)
     SimAir_Request(&(g_curr_phy_info->air_info[SIM_AIR_TASK_CLKB]));
 
     g_ll_info_peer1.phy_info = (void *)&g_phy_info_1;
+    g_ll_info_peer1.vcdIndex = 2;
     Peer1_ChangeLLInfo();//lc_conn_state_ll_info_set(&g_ll_info_peer1);
     lc_conn_state_init();
 

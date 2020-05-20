@@ -50,6 +50,8 @@ u32 BT_Phy_Start_Tx__Buffer_Copy(SimAir_Info_t *info)
 
 void BT_Phy_Start_Tx(SimAir_Info_t *info)
 {
+    LibVCD_ValueChange(info->upper_msg*2, 1);
+
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
     u32 total_tx_bytes = BT_Phy_Start_Tx__Buffer_Copy(info);
 
@@ -61,6 +63,8 @@ void BT_Phy_Start_Tx(SimAir_Info_t *info)
 
 void BT_Phy_Start_Rx(SimAir_Info_t *info)
 {
+    LibVCD_ValueChange((info->upper_msg*2)+1, 1);
+
     BT_PHY_Info_t *phy_info = (BT_PHY_Info_t *)info->upper_hdl;
 
     phy_info->rx_state = BT_PHY_RX_0_COMPARE_PREAMBLE;
@@ -228,6 +232,7 @@ int BT_Phy_Tx(SimAir_Info_t *info)
 
     if (info->response.resp_type == SIM_AIR_TX_DONE)
     {
+        LibVCD_ValueChange((info->upper_msg*2)+0, 0);
         printf("LC_CONN_STT_EVT_TX_DONE\n");
         (*(Void_CB_t)(info->upper_cb))();
         lc_conn_state_machine(phy_info->rf_dev, LC_CONN_STT_EVT_TX_DONE);
@@ -251,6 +256,7 @@ int BT_Phy_Rx(SimAir_Info_t *info)
     switch (info->response.resp_type)
     {
         case SIM_AIR_RX_DONE:{
+            LibVCD_ValueChange((info->upper_msg*2)+1, 0);
             if (phy_info->rx_state != BT_PHY_RX_4_COMPARE_CRC) {
                 //RX timeout
                 (*(Void_CB_t)(info->upper_cb))();

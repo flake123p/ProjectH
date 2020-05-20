@@ -71,6 +71,7 @@ typedef struct {
     u32 rx_pld_buf_curr_index;
 
     void *phy_info;
+    u32 vcdIndex;
 } LL_Info_t;
 
 typedef struct Conn_State_Tx_Request_t{

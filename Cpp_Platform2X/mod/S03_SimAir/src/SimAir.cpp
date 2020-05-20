@@ -206,8 +206,11 @@ static void SimAir_Init_AddDescriptor_InternalTRx(void)
     gSimAir_Handle_Ctr++;
 }
 
-int SimAir_Start(void)
+int SimAir_Start(int enableLibVCD /*= 0*/)
 {
+    if (enableLibVCD) {
+        SimTimeSlice_RegisterTimeAddCallback(LibVCD_ClockAdd);
+    }
     SimAir_Init_AddDescriptor_InternalTRx();
     SimTimeSlice2_Start();
     return 0;
