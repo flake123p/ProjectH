@@ -2,19 +2,27 @@
 
 #include "Everything_App.hpp"
 
+#define BUILD_2_ACL       (0)
+#define ENABLE_UART_SNIFF (0)
+
+
 //u16 gCONN_INTERVAL = 0x000A; //0x0006~0x0C80
 //u16 gCONN_TIMEOUT = 0x0020; //0x000A~0x0C80
-u16 gCONN_INTERVAL = 0x0006; //0x0006~0x0C80
-u16 gCONN_TIMEOUT = 0x0C80; //0x000A~0x0C80
-u16 gCONN_LATENCY = 1; //0~0x01F3 (1F3=499)
+u32 gCONN_INTERVAL = 0x0006; //0x0006~0x0C80
+u32 gCONN_TIMEOUT = 0x0C80; //0x000A~0x0C80
+u32 gCONN_LATENCY = 1; //0~0x01F3 (1F3=499)
 u16 gCONN_MAX_CE_LEN = 0x0020;
 u16 gCONN_MIN_CE_LEN = 0x0010;
 UART_Info_t gIUT;
 UART_Info_t gTester;
 UART_Info_t gTester2;
 
+u32 gSkipAdv = 0;
+
+u32 gIUT_BD_ADDR[6];
 
 u16 gIutConnHdl = 0xFFFF;
+u16 gIutConnHdl2 = 0xFFFF;
 u16 gTesterConnHdl = 0xFFFF;
 u16 gTester2ConnHdl = 0xFFFF;
 
@@ -118,40 +126,49 @@ void _TestCase_0_CreateConnection(void)
 {
     printf("%s() ...\n", __func__);
 
-    gCONN_INTERVAL = 0x0028;
-    gCONN_LATENCY = 0;
-    gCONN_TIMEOUT = 0x0050;
+    //gCONN_INTERVAL = 0x0028;
+    //gCONN_INTERVAL = 0x0006;
+    //gCONN_LATENCY = 0;
+    //gCONN_TIMEOUT = 0x0050;
     gCONN_MAX_CE_LEN = 0x0020;
     gCONN_MIN_CE_LEN = 0x0010;
 
     //CMD_RESET(&gIUT);
-    //CMD_RESET(&gTester);
+    CMD_RESET(&gTester);
 
-    u8 addr[] = {0xff, 0x93, 0x93, 0x67, 0x11, 0xFF};
-    CMD_VENDOR_SetBdAddress(&gIUT, addr);
+    u8 addr[] = {(u8)gIUT_BD_ADDR[0], (u8)gIUT_BD_ADDR[1], (u8)gIUT_BD_ADDR[2], (u8)gIUT_BD_ADDR[3], (u8)gIUT_BD_ADDR[4], (u8)gIUT_BD_ADDR[5]};
 
-    CMD_Set_Event_Mask(&gIUT);
-    CMD_LE_Set_Event_Mask(&gIUT);
-    CMD_Set_Event_Mask(&gTester2);
-    CMD_LE_Set_Event_Mask(&gTester2);
+    if (gSkipAdv == 0) {
+        CMD_VENDOR_SetBdAddress(&gIUT, addr);
 
-    CMD_LE_Write_Advertising_Parameters(&gIUT);
-    CMD_LE_Write_Advertise_Enable(&gIUT);
+        CMD_Set_Event_Mask(&gIUT);
+        CMD_LE_Set_Event_Mask(&gIUT);
+    }
+    CMD_Set_Event_Mask(&gTester);
+    CMD_LE_Set_Event_Mask(&gTester);
 
-    CMD_LE_Create_Connection(&gTester2);
-    //EVT_LE_Connection_Complete(&gTester, &gTesterConnHdl);
-    EVT_LE_Enhanced_Connection_Complete(&gTester2, &gTesterConnHdl);
+    if (gSkipAdv == 0) {
+        CMD_LE_Write_Advertising_Parameters(&gIUT);
+        CMD_LE_Write_Advertise_Enable(&gIUT);
+    }
+    CMD_LE_Create_Connection_WithBdAddr(&gTester, addr);
+    //ARRAYDUMPX2(addr, 6);
+    //EVT_LE_Connection_Complete(&gTester2, &gTesterConnHdl);
+    EVT_LE_Enhanced_Connection_Complete(&gTester, &gTesterConnHdl);
     DUMPNX(gTesterConnHdl);
 
     //EVT_LE_Connection_Complete(&gIUT, &gIutConnHdl);
     EVT_LE_Enhanced_Connection_Complete(&gIUT, &gIutConnHdl);
     DUMPNX(gIutConnHdl);
 
+    return;
+#if 0
     //EVENT_IUT_ContinueReceive(&gIUT);
     while(1) {
         _RAW_Receive_(&gTester2);
     }
     return;
+#endif
 
 //Change PHY
 #if 0
@@ -185,7 +202,7 @@ void _TestCase_0_CreateConnection(void)
 #endif
 
 //ACL
-#if 1
+#if 0
     {
         #define ACL_LEN (27+4)
         u8 buf[ACL_LEN + 5] = {0x02, (u8)gTesterConnHdl, (u8)(gTesterConnHdl>>8), ACL_LEN, 0};
@@ -203,6 +220,7 @@ void _TestCase_0_CreateConnection(void)
     EVT_Disconnect_Complete(&gIUT, gIutConnHdl, 0x16);
     EVT_Disconnect_Complete(&gTester, gTesterConnHdl, 0x13);
 }
+
 
 void _TestCase_0_CreateConnection_Multi(void)
 {
@@ -368,27 +386,36 @@ void _TestCase_1_ResetALL(void)
 void uart_init(void)
 {
     gIUT.hdl = LibUartHdl_HandleCreate();
-    LibString_Copy(gIUT.aliasName, "IUT   ", 6);
+    //LibString_Copy(gIUT.aliasName, "IUT   ", 6);
     gIUT.rx_buf_len = 350;
-    LibUartMgr_GetComPortConfigFrom_INI_File("Uart_IUT.ini", gIUT.comName, &gIUT.baudRate);
+    //LibUartMgr_GetComPortConfigFrom_INI_File("Uart_IUT.ini", gIUT.comName, &gIUT.baudRate);
     LibUartHdl_InitComPort(gIUT.hdl, gIUT.comName, gIUT.baudRate);
     //LibUartHdl_SniffSetting(gIUT.hdl, 1);
 
     gTester.hdl = LibUartHdl_HandleCreate();
-    LibString_Copy(gTester.aliasName, "Tstr_1", 6);
+    //LibString_Copy(gTester.aliasName, "Tstr_1", 6);
     gTester.rx_buf_len = 350;
-    LibUartMgr_GetComPortConfigFrom_INI_File("Uart_Tester.ini", gTester.comName, &gTester.baudRate);
+    ///LibUartMgr_GetComPortConfigFrom_INI_File("Uart_Tester.ini", gTester.comName, &gTester.baudRate);
     LibUartHdl_InitComPort(gTester.hdl, gTester.comName, gTester.baudRate);
+    //LibUartHdl_SniffSetting(gTester.hdl, 1);
 
+/*
     gTester2.hdl = LibUartHdl_HandleCreate();
     LibString_Copy(gTester2.aliasName, "Tstr_2", 6);
     gTester2.rx_buf_len = 350;
     LibUartMgr_GetComPortConfigFrom_INI_File("Uart_Tester2.ini", gTester2.comName, &gTester2.baudRate);
     LibUartHdl_InitComPort(gTester2.hdl, gTester2.comName, gTester2.baudRate);
+    //LibUartHdl_SniffSetting(gTester2.hdl, 1);
+*/
+#if ENABLE_UART_SNIFF
+    LibUartHdl_SniffSetting(gIUT.hdl, 1);
+    LibUartHdl_SniffSetting(gTester.hdl, 1);
+//    LibUartHdl_SniffSetting(gTester2.hdl, 1);
+#endif
 
     hci_uart_rx_init(&gIUT);
     hci_uart_rx_init(&gTester);
-    hci_uart_rx_init(&gTester2);
+//    hci_uart_rx_init(&gTester2);
 }
 
 void uart_uninit(void)
@@ -404,41 +431,104 @@ void uart_uninit(void)
 
 
 
-void ACL_2_Slaves(void)
+void ACL_2_Conn(void)
 {
 #define ACL_LENX (27+0)
-
+    int increment = 37;
+    int ctr = 0;
     printf("%s() ...\n", __func__);
 
     while (1) {
 //ACL
 #if 1
+        if (gIutConnHdl != 0xFF)
+        {
+            u8 buf[ACL_LENX + 5] = {0x02, (u8)gIutConnHdl, (u8)(gIutConnHdl>>8), ACL_LENX, 0};
+            FOR_I(ACL_LENX) {
+                buf[i+5]=(u8)(increment*i+i);
+            }
+            _RAW_Send_(&gIUT, buf, sizeof(buf));
+            _RAW_Receive_(&gIUT);
+            _RAW_Receive_(&gTester, 0);
+            if (gTester.rxPacket->len != ACL_LENX+5) {
+                printf("len error!\n");
+                BASIC_ASSERT(0);
+            }
+            if (0 != memcmp(&(buf[5]), &(gTester.rxPacket->buf[5]), ACL_LENX)) {
+                printf("data error!\n");
+                BASIC_ASSERT(0);
+            }
+            MM_FREE(gTester.rxPacket);
+            increment += 97;
+        }
         if (gTesterConnHdl != 0xFF)
         {
-            
             u8 buf[ACL_LENX + 5] = {0x02, (u8)gTesterConnHdl, (u8)(gTesterConnHdl>>8), ACL_LENX, 0};
             FOR_I(ACL_LENX) {
-                buf[i+5]=0xA0+i;
+                buf[i+5]=(u8)(increment*i+i);
             }
             _RAW_Send_(&gTester, buf, sizeof(buf));
-            _RAW_Receive_(&gIUT);
             _RAW_Receive_(&gTester);
+            _RAW_Receive_(&gIUT, 0);
+            if (gIUT.rxPacket->len != ACL_LENX+5) {
+                printf("len error!\n");
+                BASIC_ASSERT(0);
+            }
+            if (0 != memcmp(&(buf[5]), &(gIUT.rxPacket->buf[5]), ACL_LENX)) {
+                printf("data error!\n");
+                BASIC_ASSERT(0);
+            }
+            MM_FREE(gIUT.rxPacket);
+            increment += 97;
         }
 #endif
 #if 1
+        if (gIutConnHdl2 != 0xFF)
+        {
+            u8 buf[ACL_LENX + 5] = {0x02, (u8)gIutConnHdl2, (u8)(gIutConnHdl2>>8), ACL_LENX, 0};
+            FOR_I(ACL_LENX) {
+                buf[i+5]=(u8)(increment*i+i);
+            }
+            _RAW_Send_(&gIUT, buf, sizeof(buf));
+            _RAW_Receive_(&gIUT);
+            _RAW_Receive_(&gTester2, 0);
+            if (gTester2.rxPacket->len != ACL_LENX+5) {
+                printf("len error!\n");
+                BASIC_ASSERT(0);
+            }
+            if (0 != memcmp(&(buf[5]), &(gTester2.rxPacket->buf[5]), ACL_LENX)) {
+                printf("data error!\n");
+                BASIC_ASSERT(0);
+            }
+            MM_FREE(gTester2.rxPacket);
+            increment += 97;
+        }
         if (gTester2ConnHdl != 0xFF)
         {
             u8 buf[ACL_LENX + 5] = {0x02, (u8)gTester2ConnHdl, (u8)(gTester2ConnHdl>>8), ACL_LENX, 0};
             FOR_I(ACL_LENX) {
-                buf[i+5]=0xA0+i;
+                buf[i+5]=(u8)(increment*i+i);
             }
             _RAW_Send_(&gTester2, buf, sizeof(buf));
-            _RAW_Receive_(&gIUT);
             _RAW_Receive_(&gTester2);
+            _RAW_Receive_(&gIUT, 0);
+            if (gIUT.rxPacket->len != ACL_LENX+5) {
+                printf("len error!\n");
+                BASIC_ASSERT(0);
+            }
+            if (0 != memcmp(&(buf[5]), &(gIUT.rxPacket->buf[5]), ACL_LENX)) {
+                printf("data error!\n");
+                BASIC_ASSERT(0);
+            }
+            MM_FREE(gIUT.rxPacket);
+            increment += 97;
         }
 #endif
         NEWLINE;
-        LibOs_SleepMiliSeconds(1000);
+        LibTime_PrintLocalTime();
+        DUMPND(ctr);
+        ctr++;
+        LibOs_SleepMiliSeconds(200);
     }
 
 
@@ -451,8 +541,12 @@ void UartTester_Main(int test_case_index)
     //msg_buf_init();
     uart_init();
     //thread_init();
-    //ACL_2_Slaves();
+
+#if BUILD_2_ACL
+    ACL_2_Conn();
+#else
     _TestCase_0_CreateConnection();
+#endif
 #if 0
     switch (test_case_index) {
         case 0:
@@ -487,21 +581,76 @@ int main(int argc, char *argv[])
         }
         //DUMPND(test_case_index);
 
-        #if 0
+        #if BUILD_2_ACL
+        if (argc == 5)
         {
             int temp, temp2;
             HEX2INT(temp, argv[1][0]);
             HEX2INT(temp2, argv[1][1]);
             gIutConnHdl = (temp << 4) + temp2;
-            HEX2INT(temp, argv[2][0]);
+            HEX2INT(tebmp, argv[2][0]);
             HEX2INT(temp2, argv[2][1]);
             gTesterConnHdl = (temp << 4) + temp2;
+
             HEX2INT(temp, argv[3][0]);
             HEX2INT(temp2, argv[3][1]);
+            gIutConnHdl2 = (temp << 4) + temp2;
+            HEX2INT(temp, argv[4][0]);
+            HEX2INT(temp2, argv[4][1]);
             gTester2ConnHdl = (temp << 4) + temp2;
             DUMPNX(gIutConnHdl);
+            DUMPNX(gIutConnHdl2);
             DUMPNX(gTesterConnHdl);
             DUMPNX(gTester2ConnHdl);
+        } else {
+            printf("argc is not 5, exit.\n");
+            break;
+        }
+        #else
+        if (argc != 2) {
+            printf("ERROR: argc=%d.   Example: aout.exe t1.ini\n", argc);
+            break;
+        }
+        else
+        {
+            LibFile_INI ini_file(argv[1], "r+b");
+            EXIT_CHK( rc, ini_file.StartParse() );
+            //ini_file.Dump();
+            EXIT_CHK( rc, ini_file.GetValueU32("[info]", "CONN_INTERVAL", gCONN_INTERVAL) );
+            DUMPNX(gCONN_INTERVAL);
+            EXIT_CHK( rc, ini_file.GetValueU32("[info]", "CONN_LATENCY", gCONN_LATENCY) );
+            DUMPNX(gCONN_LATENCY);
+            EXIT_CHK( rc, ini_file.GetValueU32("[info]", "CONN_TIMEOUT", gCONN_TIMEOUT) );
+            DUMPNX(gCONN_TIMEOUT);
+
+            EXIT_CHK( rc, ini_file.GetValueString("[info]", "IUT_NAME", gIUT.aliasName); );
+            DUMPNS(gIUT.aliasName);
+            EXIT_CHK( rc, ini_file.GetValueString("[info]", "IUT_ComPortName", gIUT.comName); );
+            DUMPNS(gIUT.comName);
+            EXIT_CHK( rc, ini_file.GetValueU32("[info]", "IUT_BaudRate", gIUT.baudRate); );
+            DUMPND(gIUT.baudRate);
+
+            EXIT_CHK( rc, ini_file.GetValueString("[info]", "TESTER_NAME", gTester.aliasName); );
+            DUMPNS(gTester.aliasName);
+            EXIT_CHK( rc, ini_file.GetValueString("[info]", "TESTER_ComPortName", gTester.comName); );
+            DUMPNS(gTester.comName);
+            EXIT_CHK( rc, ini_file.GetValueU32("[info]", "TESTER_BaudRate", gTester.baudRate); );
+            DUMPND(gTester.baudRate);
+
+            EXIT_CHK( rc, ini_file.GetValueU32("[info]", "SKIP_ADV", gSkipAdv); );
+            DUMPND(gSkipAdv);
+        }
+        {
+            LibFile_INI ini_file("bt.ini", "r+b");
+            EXIT_CHK( rc, ini_file.StartParse() );
+
+            EXIT_CHK( rc, ini_file.GetValueU32("[bt_info]", "IUT_BD_ADDR_0", gIUT_BD_ADDR[0]) );
+            EXIT_CHK( rc, ini_file.GetValueU32("[bt_info]", "IUT_BD_ADDR_1", gIUT_BD_ADDR[1]) );
+            EXIT_CHK( rc, ini_file.GetValueU32("[bt_info]", "IUT_BD_ADDR_2", gIUT_BD_ADDR[2]) );
+            EXIT_CHK( rc, ini_file.GetValueU32("[bt_info]", "IUT_BD_ADDR_3", gIUT_BD_ADDR[3]) );
+            EXIT_CHK( rc, ini_file.GetValueU32("[bt_info]", "IUT_BD_ADDR_4", gIUT_BD_ADDR[4]) );
+            EXIT_CHK( rc, ini_file.GetValueU32("[bt_info]", "IUT_BD_ADDR_5", gIUT_BD_ADDR[5]) );
+            ARRAYDUMPX2(gIUT_BD_ADDR, 6);
         }
         #endif
         UartTester_Main(0);

@@ -1,0 +1,46 @@
+Description:
+[ ]thread simutanious read/write
+[ ]function call, function which receive input in script, LOOPBACK mode!!(middle ware:uart/usb...)
+[ ]switchable middle ware syntax!!
+[ ]auto test, test case friendly
+[ ]is this a script language??
+[ ]Can this transform to a script language??
+[ ]open file, save file syntax!! <= implement with sw interface
+
+//
+// Channel_Info_Source : External or Inherit or This
+//
+[GLOBAL_FLAGS_S]
+Channel_Info_Source=This
+
+[GLOBAL_FLAGS_E]
+
+[Channel_INFO_S]
+<user define handle> : <uart> <com port string> <baud rate> ... <TBD>
+<user define handle> : <usb> ... <TBD>
+<user define handle> : <sw> <sw_func_id> <para_str_1> <para_str_2> ...
+[Channel_INFO_E]
+
+Example:
+[Channel_INFO_S]
+u1 : uart COM14 115200
+u2 : uart COM4  115200
+u3 : uart -f uart.ini
+[Channel_INFO_E]
+
+//
+//	syntax:
+//  	<user define handle> <single character flags> <flags start with dash(-)> <parameter...>
+//
+//	single character flag:
+//  	w : default channel write/output/tx
+//  	r : default channel read/input/rx 
+//
+//	flags start with dash(-):
+//		-x : parameter in simple hex array, e.g.: 01 03 0c fF 0B 2 7 c
+//		-d : parameter in simple decimal array, e.g.: 01 03 09 77 0 2 7 9
+//
+[CONTENT_S]
+u1 w -x 01 03 0c 00
+u1 r -x 01 03 0c 00
+[CONTENT_E]

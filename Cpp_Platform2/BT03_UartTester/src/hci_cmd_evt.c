@@ -9,14 +9,16 @@ int _RAW_Send_(UART_Info_t *info, u8 *buf, u32 len)
     return LibUartHdl_Send(info->hdl, buf, len);
 }
 
-int _RAW_Receive_(UART_Info_t *info)
+int _RAW_Receive_(UART_Info_t *info, int autoFree /*= 1*/)
 {
     printf("[%6s][%6s] %s() start\n", info->comName, info->aliasName, __func__);
 
     hci_uart_rx_one_packet(info);
     ARRAYDUMPX2(info->rxPacket->buf, info->rxPacket->len);
 
-    MM_FREE(info->rxPacket);
+    if (autoFree) {
+        MM_FREE(info->rxPacket);
+    }
     return 0;
 }
 
@@ -117,7 +119,7 @@ int CMD_LE_Write_Advertise_Enable(UART_Info_t *info)
 
 int CMD_LE_Create_Connection(UART_Info_t *info)
 {
-    u8 cmd[] = {0x01, 0x0d, 0x20, 0x19, 0x20, 0x00, 0x20, 0x00, 0x00, 0x00, 0xff, 0x93, 0x93, 0x67, 0x11, 0xff, 0x00, (u8)gCONN_INTERVAL, (u8)(gCONN_INTERVAL>>8), (u8)gCONN_INTERVAL, (u8)(gCONN_INTERVAL>>8), (u8)gCONN_LATENCY, (u8)(gCONN_LATENCY>>8), (u8)gCONN_TIMEOUT, (u8)(gCONN_TIMEOUT>>8), (u8)gCONN_MIN_CE_LEN, (u8)(gCONN_MIN_CE_LEN>>8), (u8)gCONN_MAX_CE_LEN, (u8)(gCONN_MAX_CE_LEN>>8)};
+    u8 cmd[] = {0x01, 0x0d, 0x20, 0x19, 0x20, 0x00, 0x20, 0x00, 0x00, 0x00, 0x13, 0x93, 0x93, 0x67, 0x11, 0xf5, 0x00, (u8)gCONN_INTERVAL, (u8)(gCONN_INTERVAL>>8), (u8)gCONN_INTERVAL, (u8)(gCONN_INTERVAL>>8), (u8)gCONN_LATENCY, (u8)(gCONN_LATENCY>>8), (u8)gCONN_TIMEOUT, (u8)(gCONN_TIMEOUT>>8), (u8)gCONN_MIN_CE_LEN, (u8)(gCONN_MIN_CE_LEN>>8), (u8)gCONN_MAX_CE_LEN, (u8)(gCONN_MAX_CE_LEN>>8)};
     u16 answer[] = {0x04, 0x0F, 0x04, 0x00, 0x01, 0x0D, 0x20};
 
     return _CMD_(info, __func__, cmd, sizeof(cmd), answer, sizeof(answer)/sizeof(u16));
@@ -160,7 +162,9 @@ int CMD_VENDOR_SetBdAddress(UART_Info_t *info, u8 *addr)
     u8 cmd[] = {0x01, 0x0d, 0xfc, 0x06, 0xfe, 0x95, 0x95, 0x65, 0x15, 0x05};
     u16 answer[] = {0x04, 0x0E, 0x04, 0x01, 0x0D, 0xFC, 0x00};
 
-    LibString_Copy((char *)&(cmd[4]), (const char *)addr, 6);
+    //ARRAYDUMPX2(addr, 6);
+    memcpy((char *)&(cmd[4]), (const char *)addr, 6);
+    //ARRAYDUMPX2(cmd, sizeof(cmd));
     return _CMD_(info, __func__, cmd, sizeof(cmd), answer, sizeof(answer)/sizeof(u16));
 }
 

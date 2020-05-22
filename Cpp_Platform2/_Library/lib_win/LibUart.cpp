@@ -100,7 +100,8 @@ int LibUartHdl_InitComPort(UART_HANDLE_t hdl, const char *comPortName, uint32_t 
 		case 110:    dcbSerialParams.BaudRate = CBR_110;    break;
 
 		default:
-			BASIC_ASSERT(0);
+			dcbSerialParams.BaudRate = baudRate;
+			break;
 	}
 
 	switch (stopBits) {

@@ -302,6 +302,12 @@ char * LibString_Copy(char * destination, const char * source, int num /* = -1 *
 		Copies the first num characters of source to destination. 
 		If the end of the source C string (which is signaled by a null-character) is found before num characters have been copied.
 		*/
+		/*
+		for (int i = 0; i < num; i++) {
+		    destination[i] = source[i];
+		}
+		return 0;
+		*/
 		return strncpy(destination, source, (size_t)num);
 	}
 }

@@ -61,14 +61,14 @@ void hci_uart_rx_uninit(UART_Info_t *uartInfo);
 // return number of rest packets in 1 uart rx
 u32 hci_uart_rx_one_packet(UART_Info_t *uartInfo);
 
-extern u16 gCONN_INTERVAL;
-extern u16 gCONN_TIMEOUT;
-extern u16 gCONN_LATENCY;
+extern u32 gCONN_INTERVAL;
+extern u32 gCONN_TIMEOUT;
+extern u32 gCONN_LATENCY;
 extern u16 gCONN_MAX_CE_LEN;
 extern u16 gCONN_MIN_CE_LEN;
 
 int _RAW_Send_(UART_Info_t *info, u8 *buf, u32 len);
-int _RAW_Receive_(UART_Info_t *info);
+int _RAW_Receive_(UART_Info_t *info, int autoFree = 1);
 
 int _CMD_(UART_Info_t *info, const char *funcStr, u8 *cmd, u32 cmdLen, u16 *answer, u32 answerLen);
 int _EVENT_(UART_Info_t *info, const char *funcStr, u16 *answer, u32 answerLen);
