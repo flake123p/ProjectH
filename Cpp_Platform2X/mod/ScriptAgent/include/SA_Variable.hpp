@@ -1,0 +1,13 @@
+
+
+#ifndef _SA_VARIABLE_HPP_INCLUDED_
+
+
+
+
+
+#define _SA_VARIABLE_HPP_INCLUDED_
+#endif//_SA_VARIABLE_HPP_INCLUDED_
+
+
+

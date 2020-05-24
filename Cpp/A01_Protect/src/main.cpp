@@ -3,6 +3,17 @@
 #include <iostream>
 #include <My_Basics.hpp>
 
+/*
+          ↗ private ---> NOT AVAILABLE
+  private -> protected -> NOT AVAILABLE
+          ↘ public ----> NOT AVAILABLE
+          ↗ private ---> private
+protected -> protected -> protected
+          ↘ public ----> protected
+          ↗ private ---> private
+   public -> protected -> protected
+          ↘ public ----> public
+*/
 class abc {
 	private:
 		int a;

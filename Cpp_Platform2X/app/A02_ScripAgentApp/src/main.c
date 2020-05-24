@@ -3,8 +3,8 @@
 
 int main(int argc, char *argv[])
 {
-	SimAir_Demo();
-	
-	return 0;
+    ScriptAgent_Demo();
+
+    return 0;
 }
 
