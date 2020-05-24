@@ -10,6 +10,9 @@
 // ============================== Define ==============================
 #define LIB_MEM_ASSERT_ENABLE ( 1 )
 
+#define SAFE_FREE(ptr) if(ptr!=NULL){MM_FREE(ptr);}
+#define SAFE_DELETE(ptr) if(ptr!=NULL){delete(ptr);}
+
 #define LIB_MEM_READ_CHECK(addr,len,key) LibMem_ReadCheckEx((u8 *)(addr),len,key,__FILE__,__LINE__)
 #define LIB_MEM_WRITE_CHECK(addr,len,key,doWrite) LibMem_WriteCheckEx((u8 *)(addr),len,key,doWrite,__FILE__,__LINE__)
 
@@ -17,7 +20,7 @@
 #define MM_INIT()                    LibMem_Init()
 #define MM_UNINIT()                  LibMem_Uninit()
 #define MM_ALLOC(size)               LibMem_MallocEx(size,__FILE__,__LINE__)
-#define MM_ALLOC2(size,log)          LibMem_MallocEx(size,log,0)
+#define MM_ALLOC2(size,log)          LibMem_MallocEx(size,log,99999)
 #define MM_FREE(ptr)                 LibMem_Free(ptr)
 #define MM_KEY_INIT(addr,key)        LibMem_KeyInit(addr,key)
 #define MM_CONFIG(addr,len,key,flag) LibMem_ConfigureProtection(addr,len,key,flag)

@@ -60,6 +60,38 @@
 #include "LibComm.hpp"
 #include "LibTDD.hpp"
 
+
+
+//
+// Objects Tracer Class
+//
+#define NULLIFY_TRACER_FOR_SPEED_UP ( 0 )
+//constructor arument
+#define DISABLE_TRACER (1)
+class Tracer {
+public:
+#if NULLIFY_TRACER_FOR_SPEED_UP
+    Tracer(const char *from, int disableTracer){};
+    ~Tracer(){};
+#else
+    const char *_from;
+    void *ptr;
+    Tracer(const char *from=NULL, int disableTracer=0)
+    {
+        _from=from;
+        if (disableTracer) {
+            ptr=NULL;
+        } else {
+            BASIC_ASSERT(_from!=NULL);
+            ptr=MM_ALLOC2(4,_from);
+        }
+    };
+    ~Tracer(){if(ptr!=NULL)MM_FREE(ptr);};
+#endif
+};
+
+
+
 #define _EVERYTHING_LIB_MGR_HPP_INCLUDED_
 #endif//_EVERYTHING_LIB_MGR_HPP_INCLUDED_
 
