@@ -11,6 +11,9 @@
 #include "SA_String.hpp"
 #include "SA_Content.hpp"
 
+#include "UniVariable.hpp"
+
+
 class ScriptAgent: virtual public Tracer {
 public:
     class LibFileIoClass *file;

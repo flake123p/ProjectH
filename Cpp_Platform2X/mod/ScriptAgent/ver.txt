@@ -32,7 +32,14 @@ $_: MSByte first if needed
 
 @var $a u8 ary %x 01 03 0c $_interval 2 7 c @end (save to variable a)
 
-@var $b u8 ary %x 01 03 @_var $a u32 0x00001234 @end 2 7 c @end (save to variables a and b, b contains a with MSB order)
+@var $b u8 ary %x 01 03 @var $_a u32 0x00001234 @end 2 7 c @end (save to variables a and b, b contains a with MSB order)
+//below 2 lines are equivalent to above 1 line
+@var $a u32 0x00001234
+@var $b u8 ary %x 01 03 $_a 2 7 c @end (save to variables a and b, b contains a with MSB order)
+
+ary - auto complete rest length:
+
+
 
 thread call back:
 	typedef void *Handle_t;
