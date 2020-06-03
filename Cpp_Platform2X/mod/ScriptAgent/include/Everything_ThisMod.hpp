@@ -5,6 +5,7 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
+#include "UniVariable.hpp"
 
 #include "ScriptAgent.hpp"
 

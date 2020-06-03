@@ -1,7 +1,7 @@
 
 #include "Everything_ThisMod.hpp"
 
-ScriptAgent::ScriptAgent(int disableTracer) : Tracer("ScriptAgent", disableTracer)
+ScriptAgent::ScriptAgent(int disableTracer /* = 0*/) : Tracer("ScriptAgent", disableTracer)
 {
     file = NULL;
 }
