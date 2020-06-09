@@ -33,6 +33,22 @@
 #define VAR_S16_ARRAY   (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_16BITS)
 #define VAR_S32_ARRAY   (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_32BITS)
 
+typedef enum {
+    UNI_VAR_DYNAMIC_ARRAY,
+}UNI_VAR_FEATURE_ID_t;
+
+//extended feature
+typedef struct UniVar_Features_t {
+    struct UniVar_Features_t *next;
+    UNI_VAR_FEATURE_ID_t id;
+} UniVar_Features_t;
+typedef struct {
+    UniVar_Features_t hdr; //id = UNI_VAR_DYNAMIC_ARRAY
+    //feature variable
+    u32 allocIncrement;
+    u32 usedLenInBytes;
+    u32 allocLenInBytes;
+} UniVar_DynamicArray_t;
 /********************
 string to array
 array to string
@@ -45,16 +61,64 @@ public:
     //u32 retCode;
     u32 varLen; //The length of c string not includes /0 byte
     void* p_var;
+    UniVar_Features_t *feature;
 
     UniVariable(u32 inType = VAR_IS_UNINITED, const void *p_inVar = NULL, u32 inAryLen = 0/*only used in array type*/);
-    UniVariable(u8 *in){ InitEx(in); };
+    UniVariable(const char *str){ _constructor(); Init(str); };
+    UniVariable(char *str){ _constructor(); Init(str); };
+    UniVariable(std::string *str){ _constructor(); Init(str); };
+    UniVariable(std::string str){ _constructor(); Init(str); };
+    UniVariable(u8 in){ _constructor(); Init(in); };
+    UniVariable(u16 in){ _constructor(); Init(in); };
+    UniVariable(u32 in){ _constructor(); Init(in); };
+    UniVariable(s8 in){ _constructor(); Init(in); };
+    UniVariable(s16 in){ _constructor(); Init(in); };
+    UniVariable(s32 in){ _constructor(); Init(in); };
+    UniVariable(u8 *in){ _constructor(); Init(in); };
+    UniVariable(u16 *in){ _constructor(); Init(in); };
+    UniVariable(u32 *in){ _constructor(); Init(in); };
+    UniVariable(s8 *in){ _constructor(); Init(in); };
+    UniVariable(s16 *in){ _constructor(); Init(in); };
+    UniVariable(s32 *in){ _constructor(); Init(in); };
+    UniVariable(u8 *in, u32 inAryLen){ _constructor(); Init(in, inAryLen); };
+    UniVariable(u16 *in, u32 inAryLen){ _constructor(); Init(in, inAryLen); };
+    UniVariable(u32 *in, u32 inAryLen){ _constructor(); Init(in, inAryLen); };
+    UniVariable(s8 *in, u32 inAryLen){ _constructor(); Init(in, inAryLen); };
+    UniVariable(s16 *in, u32 inAryLen){ _constructor(); Init(in, inAryLen); };
+    UniVariable(s32 *in, u32 inAryLen){ _constructor(); Init(in, inAryLen); };
     ~UniVariable(void);
+    void _constructor(void){type=VAR_IS_UNINITED;p_var=NULL;varLen=0;feature=NULL;};
     void Uninit(void);
-    void Init(u32 inType = VAR_IS_UNINITED, const void *p_inVar = NULL, u32 inAryLen = 0/*only used in array type*/);
-    void InitEx(u8 *in){ Init(VAR_U8, (void *)in); };
-    void InitEx(u16 *in);
-    
+    void InitEx(u32 inType = VAR_IS_UNINITED, const void *p_inVar = NULL, u32 inAryLen = 0/*only used in array type*/);
+    void Init(const char *str){ InitEx(VAR_IS_C_STRING, (const void *)str); };
+    void Init(char *str){ InitEx(VAR_IS_C_STRING, (const void *)str); };
+    void Init(std::string *str){ InitEx(VAR_IS_CPP_STRING, (const void *)str); };
+    void Init(std::string str){ InitEx(VAR_IS_CPP_STRING, (const void *)&str); };
+    void Init(u8 in){ InitEx(VAR_U8, (const void *)&in); };
+    void Init(u16 in){ InitEx(VAR_U16, (const void *)&in); };
+    void Init(u32 in){ InitEx(VAR_U32, (const void *)&in); };
+    void Init(s8 in){ InitEx(VAR_S8, (const void *)&in); };
+    void Init(s16 in){ InitEx(VAR_S16, (const void *)&in); };
+    void Init(s32 in){ InitEx(VAR_S32, (const void *)&in); };
+    void Init(u8 *in){ InitEx(VAR_U8, (const void *)in); };
+    void Init(u16 *in){ InitEx(VAR_U16, (const void *)in); };
+    void Init(u32 *in){ InitEx(VAR_U32, (const void *)in); };
+    void Init(s8 *in){ InitEx(VAR_S8, (const void *)in); };
+    void Init(s16 *in){ InitEx(VAR_S16, (const void *)in); };
+    void Init(s32 *in){ InitEx(VAR_S32, (const void *)in); };
+    void Init(u8 *in, u32 inAryLen){ InitEx(VAR_U8_ARRAY, (const void *)in, inAryLen); };
+    void Init(u16 *in, u32 inAryLen){ InitEx(VAR_U16_ARRAY, (const void *)in, inAryLen); };
+    void Init(u32 *in, u32 inAryLen){ InitEx(VAR_U32_ARRAY, (const void *)in, inAryLen); };
+    void Init(s8 *in, u32 inAryLen){ InitEx(VAR_S8_ARRAY, (const void *)in, inAryLen); };
+    void Init(s16 *in, u32 inAryLen){ InitEx(VAR_S16_ARRAY, (const void *)in, inAryLen); };
+    void Init(s32 *in, u32 inAryLen){ InitEx(VAR_S32_ARRAY, (const void *)in, inAryLen); };
+
     u32 GetUnitInBytes(u32 inType);
+    void dump(void);
+    void dumpFeatures(void);
+
+    void InitDynamicArray(u32 inType, u32 inAllocIncrement = 1000);
+    void PushDynamicArray(void *in, u32 inAryLen);
 
     //TODO:
     //modify init() because var is might be std::string
