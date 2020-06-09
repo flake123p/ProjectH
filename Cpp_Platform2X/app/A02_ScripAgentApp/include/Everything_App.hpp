@@ -7,6 +7,8 @@
 
 #include "ScriptAgent.hpp"
 
+void Test_UniVariable_TouchAssert(void);
+
 
 #define _EVERYTHING_APP_HPP_INCLUDED_
 #endif//_EVERYTHING_APP_HPP_INCLUDED_

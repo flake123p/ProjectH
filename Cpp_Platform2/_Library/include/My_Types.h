@@ -83,6 +83,20 @@ typedef int64_t s64;
 #define DO_ENDIAN_SWAP (true)
 #define NO_ENDIAN_SWAP (false)
 
+typedef enum {
+    LITTLE_END,
+    BIG_END,
+} endian_t;
+
+typedef enum {
+    TO_LITTLE_END,
+    TO_BIG_END,
+} endian_to_t;
+
+typedef enum {
+    FROM_LITTLE_END,
+    FROM_BIG_END,
+} endian_from_t;
 
 #define INDENT01 "    "
 #define INDENT02 "        "
