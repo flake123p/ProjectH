@@ -39,7 +39,7 @@ typedef enum {
 
 //extended feature
 typedef struct UniVar_Features_t {
-    struct UniVar_Features_t *next;
+    //struct UniVar_Features_t *next;
     UNI_VAR_FEATURE_ID_t id;
 } UniVar_Features_t;
 typedef struct {
@@ -61,7 +61,7 @@ public:
     //u32 retCode;
     u32 varLen; //The length of c string not includes /0 byte
     void* p_var;
-    UniVar_Features_t *feature;
+    UniVar_Features_t *feature; //one feature in the same time
 
     UniVariable(u32 inType = VAR_IS_UNINITED, const void *p_inVar = NULL, u32 inAryLen = 0/*only used in array type*/);
     UniVariable(const char *str){ _constructor(); Init(str); };
@@ -117,7 +117,19 @@ public:
     void dump(void);
     void dumpFeatures(void);
 
-    void InitDynamicArray(u32 inType, u32 inAllocIncrement = 1000);
+    void InitDynamicArray(u8 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U8_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(u16 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U16_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(u32 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U32_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(s8 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S8_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(s16 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S16_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(s32 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S32_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(u8 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U8_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(u16 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U16_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(u32 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U32_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(s8 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S8_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(s16 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S16_ARRAY, inAllocIncrement); };
+    void InitDynamicArray(s32 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S32_ARRAY, inAllocIncrement); };
+    void InitDynamicArrayEx(u32 inType, u32 inAllocIncrement = 1000);
     void PushDynamicArray(void *in, u32 inAryLen);
 
     //TODO:

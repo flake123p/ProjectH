@@ -20,6 +20,7 @@ UniVariable::~UniVariable(void)
 
 void UniVariable::Uninit(void)
 {
+#if 0
     UniVar_Features_t *oldFeature;
     UniVar_Features_t *currFeature = feature;
 
@@ -36,6 +37,17 @@ void UniVariable::Uninit(void)
                 break;
         }
     }
+#else
+    if (feature != NULL)
+    {
+        switch (feature->id) {
+            case UNI_VAR_DYNAMIC_ARRAY: SAFE_FREE(feature); break;
+            default:
+                BASIC_ASSERT(0);
+                break;
+        }
+    }
+#endif
 
     if (type & VAR_IS_CPP_STRING) {
         SAFE_DELETE((std::string *)p_var);
@@ -203,6 +215,7 @@ void UniVariable::dump(void)
 
 void UniVariable::dumpFeatures(void)
 {
+#if 0
     UniVar_Features_t *currFeature = feature;
     for (currFeature = feature; currFeature != NULL; currFeature = currFeature->next) {
         switch (currFeature->id) {
@@ -217,13 +230,28 @@ void UniVariable::dumpFeatures(void)
                 break;
         }
     }
+#endif
+    if (feature != NULL)
+    {
+        switch (feature->id) {
+            case UNI_VAR_DYNAMIC_ARRAY: {
+                UniVar_DynamicArray_t *dynamicArray = (UniVar_DynamicArray_t*)feature;
+                DUMPND(dynamicArray->allocIncrement);
+                DUMPND(dynamicArray->usedLenInBytes);
+                DUMPND(dynamicArray->allocLenInBytes);
+            } break;
+            default:
+                BASIC_ASSERT(0);
+                break;
+        }
+    }
 }
 
-void UniVariable::InitDynamicArray(u32 inType, u32 inAllocIncrement /*= 1000*/)
+void UniVariable::InitDynamicArrayEx(u32 inType, u32 inAllocIncrement /*= 1000*/)
 {
-    UniVar_Features_t **p_currFeature = &feature;
     UniVar_DynamicArray_t *dynamicArray;
 
+    UNI_VAR_BASIC_ASSERT(feature == NULL);
     UNI_VAR_BASIC_ASSERT(type == VAR_IS_UNINITED);
     switch (inType) {
         case VAR_U8_ARRAY:
@@ -238,7 +266,7 @@ void UniVariable::InitDynamicArray(u32 inType, u32 inAllocIncrement /*= 1000*/)
             break;
     }
     type = inType;
-
+/*
     do {
         if(*p_currFeature == NULL) {
             break;
@@ -249,15 +277,15 @@ void UniVariable::InitDynamicArray(u32 inType, u32 inAllocIncrement /*= 1000*/)
         }
         p_currFeature = &(feature->next);
     } while (0);
-
+*/
     dynamicArray = (UniVar_DynamicArray_t *)MM_ALLOC(sizeof(UniVar_DynamicArray_t));
-    dynamicArray->hdr.next = NULL;
+    //dynamicArray->hdr.next = NULL;
     dynamicArray->hdr.id = UNI_VAR_DYNAMIC_ARRAY;
     dynamicArray->allocIncrement = inAllocIncrement;
     dynamicArray->usedLenInBytes = 0;
     dynamicArray->allocLenInBytes = inAllocIncrement;
     p_var = MM_ALLOC(inAllocIncrement);
-    *p_currFeature = (UniVar_Features_t *)dynamicArray;
+    feature = (UniVar_Features_t *)dynamicArray;
 }
 
 void UniVariable::PushDynamicArray(void *in, u32 inAryLen)
@@ -267,9 +295,21 @@ void UniVariable::PushDynamicArray(void *in, u32 inAryLen)
 
 void UniVariable_Demo(void)
 {
-    UniVariable x;
-    u32 i = 0x99881122;
-    x.InitEx(VAR_IS_32BITS, (void *)&i);
-    //DUMPNS(x.p_name->c_str());
-    DUMPNX(*((u32 *)x.p_var));
+    {
+        UniVariable x;
+        u32 i = 0x99881122;
+        x.InitEx(VAR_IS_32BITS, (void *)&i);
+        //DUMPNS(x.p_name->c_str());
+        DUMPNX(*((u32 *)x.p_var));
+    }
+    {
+        u8 ary[6] = {1,2,4,7};
+        UniVariable x;
+        x.InitDynamicArray(ary, 6);
+        x.dump();
+
+        
+        x.PushDynamicArray(ary, 4);
+        x.dump();
+    }
 }

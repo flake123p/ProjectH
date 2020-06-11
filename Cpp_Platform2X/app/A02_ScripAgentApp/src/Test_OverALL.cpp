@@ -49,13 +49,8 @@ void Test_UniVariable_TouchAssert_InitTest(void)
 void Test_UniVariable_TouchAssert(void)
 {
     //Test_UniVariable_TouchAssert_InitTest();
-    UniVariable x;
-    x.InitDynamicArray(VAR_U8_ARRAY, 6);
-    x.dump();
+    UniVariable_Demo();
 
-    u8 ary[6] = {1,2,4,7};
-    x.PushDynamicArray(ary, 4);
-    x.dump();
     return;
     /*
     {
