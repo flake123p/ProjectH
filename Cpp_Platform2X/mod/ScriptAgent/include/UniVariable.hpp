@@ -42,13 +42,26 @@ typedef struct UniVar_Features_t {
     //struct UniVar_Features_t *next;
     UNI_VAR_FEATURE_ID_t id;
 } UniVar_Features_t;
+
+typedef struct UniVar_DynamicRestLen_t {
+    struct UniVar_DynamicRestLen_t *next;
+    u32 type;
+    u32 startIndex;
+    bool swap;
+} UniVar_DynamicRestLen_t;
+
 typedef struct {
     UniVar_Features_t hdr; //id = UNI_VAR_DYNAMIC_ARRAY
     //feature variable
     u32 allocIncrement;
     u32 usedLenInBytes;
     u32 allocLenInBytes;
+    struct UniVar_DynamicRestLen_t *next;
 } UniVar_DynamicArray_t;
+
+u32 UniVar_GetUnitInBytes(u32 inType);
+u32 UniVar_ConvertLen(u32 dstType, u32 srcType, u32 srcLen);
+
 /********************
 string to array
 array to string
@@ -113,25 +126,33 @@ public:
     void Init(s16 *in, u32 inAryLen){ InitEx(VAR_S16_ARRAY, (const void *)in, inAryLen); };
     void Init(s32 *in, u32 inAryLen){ InitEx(VAR_S32_ARRAY, (const void *)in, inAryLen); };
 
-    u32 GetUnitInBytes(u32 inType);
     void dump(void);
     void dumpFeatures(void);
 
-    void InitDynamicArray(u8 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U8_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(u16 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U16_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(u32 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U32_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(s8 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S8_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(s16 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S16_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(s32 in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S32_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(u8 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U8_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(u16 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U16_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(u32 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_U32_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(s8 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S8_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(s16 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S16_ARRAY, inAllocIncrement); };
-    void InitDynamicArray(s32 *in, u32 inAllocIncrement = 1000){ InitDynamicArrayEx(VAR_S32_ARRAY, inAllocIncrement); };
-    void InitDynamicArrayEx(u32 inType, u32 inAllocIncrement = 1000);
-    void PushDynamicArray(void *in, u32 inAryLen);
-
+    void DynamicArrayInit(u8 in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_U8_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(u16 in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_U16_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(u32 in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_U32_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(s8 in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_S8_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(s16 in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_S16_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(s32 in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_S32_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(u8 *in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_U8_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(u16 *in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_U16_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(u32 *in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_U32_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(s8 *in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_S8_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(s16 *in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_S16_ARRAY, inAllocIncrement); };
+    void DynamicArrayInit(s32 *in, u32 inAllocIncrement = 1000){ DynamicArrayInitEx(VAR_S32_ARRAY, inAllocIncrement); };
+    void DynamicArrayInitEx(u32 inType, u32 inAllocIncrement = 1000);
+    void DynamicArrayWrite(void *in, u32 inAryLen, u32 startIndex);
+    void DynamicArrayPushBack(void *in, u32 inAryLen) { DynamicArrayWrite(in, inAryLen, varLen); } ;
+    void DynamicArrayPushBack(u8 in, bool swap = false) { DynamicArrayPushBack((void *)&in, UniVar_ConvertLen(type, VAR_U8, 1)); };
+    void DynamicArrayPushBack(u16 in, bool swap = false) { u16 x; LibUtil_IntSwapCopy((u8 *)&x, (u8 *)&in, 2, swap); DynamicArrayPushBack((void *)&x, UniVar_ConvertLen(type, VAR_U16, 1)); };
+    void DynamicArrayPushBack(u32 in, bool swap = false) { u32 x; LibUtil_IntSwapCopy((u8 *)&x, (u8 *)&in, 4, swap); DynamicArrayPushBack((void *)&x, UniVar_ConvertLen(type, VAR_U32, 1)); };
+    void DynamicArrayPushBack(s8 in, bool swap = false) { DynamicArrayPushBack((void *)&in, UniVar_ConvertLen(type, VAR_S8, 1)); };
+    void DynamicArrayPushBack(s16 in, bool swap = false) { s16 x; LibUtil_IntSwapCopy((u8 *)&x, (u8 *)&in, 2, swap); DynamicArrayPushBack((void *)&x, UniVar_ConvertLen(type, VAR_S16, 1)); };
+    void DynamicArrayPushBack(s32 in, bool swap = false) { s32 x; LibUtil_IntSwapCopy((u8 *)&x, (u8 *)&in, 4, swap); DynamicArrayPushBack((void *)&x, UniVar_ConvertLen(type, VAR_S32, 1)); };
+    void DynamicArrayFlush(void);
+    void DynamicArrayRestLenSet(u32 inType, bool inSwap = false);
+    void DynamicArrayRestLenApply(void);
     //TODO:
     //modify init() because var is might be std::string
     //var_dump()

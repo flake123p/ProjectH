@@ -41,7 +41,17 @@ void UniVariable::Uninit(void)
     if (feature != NULL)
     {
         switch (feature->id) {
-            case UNI_VAR_DYNAMIC_ARRAY: SAFE_FREE(feature); break;
+            case UNI_VAR_DYNAMIC_ARRAY: {
+                UniVar_DynamicArray_t *dynamicArray = (UniVar_DynamicArray_t *)feature;
+                UniVar_DynamicRestLen_t *currRestLen;
+                UniVar_DynamicRestLen_t *oldRestLen;
+                for (currRestLen = dynamicArray->next; currRestLen!=NULL; ) {
+                    oldRestLen = currRestLen;
+                    currRestLen = currRestLen->next;
+                    SAFE_FREE(oldRestLen);
+                }
+                SAFE_FREE(feature);
+            } break;
             default:
                 BASIC_ASSERT(0);
                 break;
@@ -61,7 +71,7 @@ void UniVariable::Uninit(void)
 
 void UniVariable::InitEx(u32 inType /*= VAR_IS_UNINITED*/, const void *p_inVar /*= NULL*/, u32 inAryLen /*= 0 only used in array type*/)
 {
-    u32 unitInBytes = GetUnitInBytes(inType);
+    u32 unitInBytes = UniVar_GetUnitInBytes(inType);
 
     UNI_VAR_BASIC_ASSERT(type == VAR_IS_UNINITED);
     type = inType;
@@ -103,26 +113,12 @@ void UniVariable::InitEx(u32 inType /*= VAR_IS_UNINITED*/, const void *p_inVar /
     }
 }
 
-u32 UniVariable::GetUnitInBytes(u32 inType)
-{
-    if (inType & VAR_IS_8BITS) {
-        return 1;
-    } else if (inType & VAR_IS_16BITS) {
-        return 2;
-    } else if (inType & VAR_IS_32BITS) {
-        return 4;
-    } else if (inType & VAR_IS_64BITS) {
-        return 8;
-    } else if (inType & VAR_IS_128BITS) {
-        return 16;
-    }
-
-    return 0;
-}
-
 void UniVariable::dump(void)
 {
-    printf("type = 0x%08X : ", type);
+#define MAX_ELEMENT_IN_ONE_LINE_8  (16)
+#define MAX_ELEMENT_IN_ONE_LINE_16 (8)
+#define MAX_ELEMENT_IN_ONE_LINE_32 (8)
+    printf("===>>> type = 0x%08X : ", type);
 
     switch (type) {
         case VAR_C_STRING: printf("VAR_C_STRING\n"); break;
@@ -151,33 +147,33 @@ void UniVariable::dump(void)
             u8 *ary = (u8 *)p_var;
             for (i=0; i<varLen; i++) {
                 printf("0x%02X ", ary[i]);
-                if ((i % 8) == 7) {
+                if ((i % MAX_ELEMENT_IN_ONE_LINE_8) == (MAX_ELEMENT_IN_ONE_LINE_8-1)) {
                     printf("\n");
                 }
             }
-            if (((i-1) % 8) != 7) {
+            if (((i-1) % MAX_ELEMENT_IN_ONE_LINE_8) != (MAX_ELEMENT_IN_ONE_LINE_8-1)) {
                 printf("\n");
             }
         } else if (type & VAR_IS_16BITS) {
             u16 *ary = (u16 *)p_var;
             for (i=0; i<varLen; i++) {
                 printf("0x%04X ", ary[i]);
-                if ((i % 8) == 7) {
+                if ((i % (MAX_ELEMENT_IN_ONE_LINE_16)) == (MAX_ELEMENT_IN_ONE_LINE_16-1)) {
                     printf("\n");
                 }
             }
-            if (((i-1) % 8) != 7) {
+            if (((i-1) % (MAX_ELEMENT_IN_ONE_LINE_16)) != (MAX_ELEMENT_IN_ONE_LINE_16-1)) {
                 printf("\n");
             }
         } else if (type & VAR_IS_32BITS) {
             u32 *ary = (u32 *)p_var;
             for (i=0; i<varLen; i++) {
                 printf("0x%08X ", ary[i]);
-                if ((i % 4) == 3) {
+                if ((i % (MAX_ELEMENT_IN_ONE_LINE_32)) == (MAX_ELEMENT_IN_ONE_LINE_32-1)) {
                     printf("\n");
                 }
             }
-            if (((i-1) % 4) != 3) {
+            if (((i-1) % (MAX_ELEMENT_IN_ONE_LINE_32)) != (MAX_ELEMENT_IN_ONE_LINE_32-1)) {
                 printf("\n");
             }
         } else {
@@ -239,6 +235,14 @@ void UniVariable::dumpFeatures(void)
                 DUMPND(dynamicArray->allocIncrement);
                 DUMPND(dynamicArray->usedLenInBytes);
                 DUMPND(dynamicArray->allocLenInBytes);
+                {
+                    UniVar_DynamicRestLen_t *currRestLen;
+                    int i = 0;
+                    for (currRestLen = dynamicArray->next; currRestLen!=NULL; currRestLen = currRestLen->next) {
+                        printf("[%d] unitInBytes=%u, startIndex=%u, doSwap=%d\n", i, UniVar_GetUnitInBytes(currRestLen->type), currRestLen->startIndex, currRestLen->swap);
+                        i++;
+                    }
+                }
             } break;
             default:
                 BASIC_ASSERT(0);
@@ -247,7 +251,7 @@ void UniVariable::dumpFeatures(void)
     }
 }
 
-void UniVariable::InitDynamicArrayEx(u32 inType, u32 inAllocIncrement /*= 1000*/)
+void UniVariable::DynamicArrayInitEx(u32 inType, u32 inAllocIncrement /*= 1000*/)
 {
     UniVar_DynamicArray_t *dynamicArray;
 
@@ -284,13 +288,202 @@ void UniVariable::InitDynamicArrayEx(u32 inType, u32 inAllocIncrement /*= 1000*/
     dynamicArray->allocIncrement = inAllocIncrement;
     dynamicArray->usedLenInBytes = 0;
     dynamicArray->allocLenInBytes = inAllocIncrement;
+    dynamicArray->next = NULL;
     p_var = MM_ALLOC(inAllocIncrement);
     feature = (UniVar_Features_t *)dynamicArray;
 }
 
-void UniVariable::PushDynamicArray(void *in, u32 inAryLen)
+void UniVariable::DynamicArrayWrite(void *in, u32 inAryLen, u32 startIndex)
 {
-    //cache?
+    u8 *ptr;
+    u32 unitInBytes = UniVar_GetUnitInBytes(type);
+    u32 inAryLenInBytes = inAryLen * unitInBytes;
+    u32 newUsedLen;
+    UniVar_DynamicArray_t *dynamicArray;
+
+    UNI_VAR_BASIC_ASSERT(feature != NULL);
+    UNI_VAR_BASIC_ASSERT(feature->id == UNI_VAR_DYNAMIC_ARRAY);
+    UNI_VAR_BASIC_ASSERT((unitInBytes == 1) || (unitInBytes == 2) || (unitInBytes == 4));
+    UNI_VAR_BASIC_ASSERT(inAryLenInBytes >= inAryLen); //overflow
+    UNI_VAR_BASIC_ASSERT(startIndex <= varLen);
+
+    dynamicArray = (UniVar_DynamicArray_t *)feature;
+
+    // 1.memory ran out check, if ran out, than re-allocate
+    if (startIndex + inAryLen < varLen) {
+        newUsedLen = varLen * unitInBytes;
+    } else {
+        newUsedLen = (startIndex + inAryLen) * unitInBytes;
+    }
+    UNI_VAR_BASIC_ASSERT(newUsedLen >= varLen * unitInBytes); //overflow
+    if (newUsedLen > dynamicArray->allocLenInBytes) {
+        void *newBuf;
+        UNI_VAR_BASIC_ASSERT(dynamicArray->allocLenInBytes + dynamicArray->allocIncrement > dynamicArray->allocLenInBytes); //overflow
+        newBuf = MM_ALLOC(dynamicArray->allocLenInBytes + dynamicArray->allocIncrement);
+        MM_CPY(newBuf, p_var, varLen*unitInBytes);
+        SAFE_FREE(p_var);
+        p_var = newBuf;
+        dynamicArray->allocLenInBytes += dynamicArray->allocIncrement;
+    }
+
+    // 2.copy data
+    ptr = (u8 *)p_var;
+    MM_CPY((void *)(ptr+(startIndex*unitInBytes)), in, inAryLenInBytes);
+    varLen = newUsedLen / unitInBytes;
+    dynamicArray->usedLenInBytes = newUsedLen;
+}
+
+#if 0
+void UniVariable::DynamicArrayPushBack(void *in, u32 inAryLen)
+{
+    u8 *ptr;
+    u32 unitInBytes = UniVar_GetUnitInBytes(type);
+    u32 inAryLenInBytes = inAryLen * unitInBytes;
+    u32 newUsedLen;
+    UniVar_DynamicArray_t *dynamicArray;
+
+    UNI_VAR_BASIC_ASSERT(feature != NULL);
+    UNI_VAR_BASIC_ASSERT(feature->id == UNI_VAR_DYNAMIC_ARRAY);
+    UNI_VAR_BASIC_ASSERT((unitInBytes == 1) || (unitInBytes == 2) || (unitInBytes == 4));
+    UNI_VAR_BASIC_ASSERT(inAryLenInBytes >= inAryLen); //overflow
+
+    dynamicArray = (UniVar_DynamicArray_t *)feature;
+
+    // 1.memory ran out check, if ran out, than re-allocate
+    newUsedLen = dynamicArray->usedLenInBytes + inAryLenInBytes;
+    UNI_VAR_BASIC_ASSERT(newUsedLen >= dynamicArray->usedLenInBytes); //overflow
+    if (newUsedLen > dynamicArray->allocLenInBytes) {
+        void *newBuf;
+        UNI_VAR_BASIC_ASSERT(dynamicArray->allocLenInBytes + dynamicArray->allocIncrement > dynamicArray->allocLenInBytes); //overflow
+        newBuf = MM_ALLOC(dynamicArray->allocLenInBytes + dynamicArray->allocIncrement);
+        MM_CPY(newBuf, p_var, varLen*unitInBytes);
+        SAFE_FREE(p_var);
+        p_var = newBuf;
+        dynamicArray->allocLenInBytes += dynamicArray->allocIncrement;
+    }
+
+    // 2.copy data in the back
+    ptr = (u8 *)p_var;
+    MM_CPY((void *)(ptr+(varLen*unitInBytes)), in, inAryLenInBytes);
+    varLen += inAryLen;
+    dynamicArray->usedLenInBytes = newUsedLen;
+}
+#endif
+
+void UniVariable::DynamicArrayFlush(void)
+{
+    UniVar_DynamicArray_t *dynamicArray;
+
+    UNI_VAR_BASIC_ASSERT(feature != NULL);
+    UNI_VAR_BASIC_ASSERT(feature->id == UNI_VAR_DYNAMIC_ARRAY);
+
+    dynamicArray = (UniVar_DynamicArray_t *)feature;
+
+    {
+        UniVar_DynamicRestLen_t *currRestLen;
+        UniVar_DynamicRestLen_t *oldRestLen;
+        for (currRestLen = dynamicArray->next; currRestLen!=NULL; ) {
+            oldRestLen = currRestLen;
+            currRestLen = currRestLen->next;
+            SAFE_FREE(oldRestLen);
+        }
+    }
+
+    dynamicArray->next = NULL;
+    dynamicArray->usedLenInBytes = 0;
+    varLen = 0;
+}
+
+void UniVariable::DynamicArrayRestLenSet(u32 inType, bool inSwap /*= false*/)
+{
+    u8 buf[16] = {0};
+    UniVar_DynamicArray_t *dynamicArray;
+    UniVar_DynamicRestLen_t **p_currRestLen;
+    UniVar_DynamicRestLen_t *newRestLen;
+
+    UNI_VAR_BASIC_ASSERT(feature != NULL);
+    UNI_VAR_BASIC_ASSERT(feature->id == UNI_VAR_DYNAMIC_ARRAY);
+
+    dynamicArray = (UniVar_DynamicArray_t *)feature;
+    newRestLen = (UniVar_DynamicRestLen_t *)MM_ALLOC(sizeof(UniVar_DynamicRestLen_t));
+
+    newRestLen->next = NULL;
+    newRestLen->type = inType;
+    newRestLen->startIndex = varLen;
+    newRestLen->swap = inSwap;
+
+    p_currRestLen = &(dynamicArray->next);
+    while (*p_currRestLen != NULL) {
+        p_currRestLen = &((*p_currRestLen)->next);
+    }
+    *p_currRestLen = newRestLen;
+
+    DynamicArrayPushBack((void *)buf, UniVar_ConvertLen(type, inType, 1));
+}
+
+void UniVariable::DynamicArrayRestLenApply(void)
+{
+    u32 cellLen;
+    u32 restLen;
+    UniVar_DynamicArray_t *dynamicArray;
+    UniVar_DynamicRestLen_t *currRestLen;
+
+    UNI_VAR_BASIC_ASSERT(feature != NULL);
+    UNI_VAR_BASIC_ASSERT(feature->id == UNI_VAR_DYNAMIC_ARRAY);
+
+    dynamicArray = (UniVar_DynamicArray_t *)feature;
+
+    for (currRestLen = dynamicArray->next; currRestLen != NULL; currRestLen = currRestLen->next) {
+        cellLen = UniVar_ConvertLen(type, currRestLen->type, 1);
+        restLen = varLen - (currRestLen->startIndex) - cellLen;
+        if (currRestLen->type & VAR_IS_8BITS) {
+            u8 len = (u8)restLen;
+            u8 len2;
+            LibUtil_IntSwapCopy((u8 *)&len2, (u8 *)&len, 1, currRestLen->swap);
+            DynamicArrayWrite(&len2, cellLen, currRestLen->startIndex);
+        } else if (currRestLen->type & VAR_IS_16BITS) {
+            u16 len = (u16)restLen;
+            u16 len2;
+            LibUtil_IntSwapCopy((u8 *)&len2, (u8 *)&len, 2, currRestLen->swap);
+            DynamicArrayWrite(&len2, cellLen, currRestLen->startIndex);
+        } else if (currRestLen->type & VAR_IS_32BITS) {
+            u32 len = (u32)restLen;
+            u32 len2;
+            LibUtil_IntSwapCopy((u8 *)&len2, (u8 *)&len, 4, currRestLen->swap);
+            DynamicArrayWrite(&len2, cellLen, currRestLen->startIndex);
+        } else {
+            UNI_VAR_BASIC_ASSERT(0);
+        }
+    }
+}
+
+u32 UniVar_GetUnitInBytes(u32 inType)
+{
+    if (inType & VAR_IS_8BITS) {
+        return 1;
+    } else if (inType & VAR_IS_16BITS) {
+        return 2;
+    } else if (inType & VAR_IS_32BITS) {
+        return 4;
+    } else if (inType & VAR_IS_64BITS) {
+        return 8;
+    } else if (inType & VAR_IS_128BITS) {
+        return 16;
+    }
+
+    return 0;
+}
+
+u32 UniVar_ConvertLen(u32 dstType, u32 srcType, u32 srcLen)
+{
+    u32 dstUnitInBytes = UniVar_GetUnitInBytes(dstType);
+    u32 srcUnitInBytes = UniVar_GetUnitInBytes(srcType);
+    u32 newLen = srcLen * srcUnitInBytes / dstUnitInBytes;
+
+    if (newLen == 0)
+        newLen = 1;
+
+    return newLen;
 }
 
 void UniVariable_Demo(void)
@@ -303,13 +496,36 @@ void UniVariable_Demo(void)
         DUMPNX(*((u32 *)x.p_var));
     }
     {
-        u8 ary[6] = {1,2,4,7};
+        u8 ary[6] = {1,2,4,7, 11, 19};
+        u16 y = 0x0908;
         UniVariable x;
-        x.InitDynamicArray(ary, 6);
+        x.DynamicArrayInit(ary, 6);
         x.dump();
 
         
-        x.PushDynamicArray(ary, 4);
+        x.DynamicArrayPushBack(ary, 4);
+        x.DynamicArrayPushBack(y, true);
+        x.DynamicArrayWrite(ary, 6, 5);
+        //x.DynamicArrayFlush();
+        x.DynamicArrayRestLenSet(VAR_U16);
+        x.DynamicArrayRestLenSet(VAR_U32);
+        x.DynamicArrayRestLenApply();
+        x.DynamicArrayPushBack(ary, 1);
+        x.DynamicArrayRestLenApply();
+        x.DynamicArrayFlush();
         x.dump();
     }
+    #if 0
+    {
+        s32 ary[6] = {1,2,4,7, 11, 19};
+        UniVariable x;
+        u8 i = 0xFF;
+        x.DynamicArrayInit(ary);
+        x.DynamicArrayPushBack(ary, 4);
+        x.DynamicArrayPushBack(ary, 2);
+        x.DynamicArrayPushBack(ary, 6);
+        x.DynamicArrayPushBack(i, true);
+        x.dump();
+    }
+    #endif
 }
