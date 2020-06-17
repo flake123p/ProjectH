@@ -12,6 +12,8 @@
 #include "SA_Content.hpp"
 
 #include "UniVariable.hpp"
+#include "TextVar.hpp"
+#include "TextCall.hpp"
 
 
 class ScriptAgent: virtual public Tracer {

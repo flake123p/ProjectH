@@ -6,6 +6,9 @@
 #include "Everything_Lib_Mgr.hpp"
 
 #include "UniVariable.hpp"
+#include "TextVar.hpp"
+#include "TextCall.hpp"
+
 
 #include "ScriptAgent.hpp"
 

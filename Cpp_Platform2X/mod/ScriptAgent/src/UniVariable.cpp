@@ -510,9 +510,9 @@ void UniVariable_Demo(void)
         x.DynamicArrayRestLenSet(VAR_U16);
         x.DynamicArrayRestLenSet(VAR_U32);
         x.DynamicArrayRestLenApply();
-        x.DynamicArrayPushBack(ary, 1);
+        x.DynamicArrayPushBack(ary, 2);
         x.DynamicArrayRestLenApply();
-        x.DynamicArrayFlush();
+        //x.DynamicArrayFlush();
         x.dump();
     }
     #if 0
