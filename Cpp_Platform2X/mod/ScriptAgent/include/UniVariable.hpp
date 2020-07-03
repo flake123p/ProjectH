@@ -179,6 +179,37 @@ public:
     };
 };
 
+u32 GetUniStrType(char *in);
+u32 GetUniStrType(const char *in);
+u32 GetUniStrType(std::string in);
+u32 GetUniStrType(std::string *in);
+u32 GetUniAryType(u8 *in);
+u32 GetUniAryType(u16 *in);
+u32 GetUniAryType(u32 *in);
+u32 GetUniAryType(s8 *in);
+u32 GetUniAryType(s16 *in);
+u32 GetUniAryType(s32 *in);
+u32 GetUniType(u8 in);
+u32 GetUniType(u16 in);
+u32 GetUniType(u32 in);
+u32 GetUniType(s8 in);
+u32 GetUniType(s16 in);
+u32 GetUniType(s32 in);
+u32 GetUniType(u8 *in);
+u32 GetUniType(u16 *in);
+u32 GetUniType(u32 *in);
+u32 GetUniType(s8 *in);
+u32 GetUniType(s16 *in);
+u32 GetUniType(s32 *in);
+u32 GetUniType(u8 *in, u32 inAryLen);
+u32 GetUniType(u16 *in, u32 inAryLen);
+u32 GetUniType(u32 *in, u32 inAryLen);
+u32 GetUniType(s8 *in, u32 inAryLen);
+u32 GetUniType(s16 *in, u32 inAryLen);
+u32 GetUniType(s32 *in, u32 inAryLen);
+const char *GetUniTypeString(u32 type);
+
+
 void UniVariable_Demo(void);
 
 #define _UNI_VARIABLE_HPP_INCLUDED_

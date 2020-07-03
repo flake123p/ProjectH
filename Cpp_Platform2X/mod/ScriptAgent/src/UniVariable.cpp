@@ -486,6 +486,38 @@ u32 UniVar_ConvertLen(u32 dstType, u32 srcType, u32 srcLen)
     return newLen;
 }
 
+u32 GetUniStrType(char *in){ return VAR_C_STRING; };
+u32 GetUniStrType(const char *in){ return VAR_C_STRING; };
+u32 GetUniStrType(std::string in){ return VAR_CPP_STRING; };
+u32 GetUniStrType(std::string *in){ return VAR_CPP_STRING; };
+u32 GetUniAryType(u8 *in){ return VAR_U8_ARRAY; };
+u32 GetUniAryType(u16 *in){ return VAR_U16_ARRAY; };
+u32 GetUniAryType(u32 *in){ return VAR_U32_ARRAY; };
+u32 GetUniAryType(s8 *in){ return VAR_S8_ARRAY; };
+u32 GetUniAryType(s16 *in){ return VAR_S16_ARRAY; };
+u32 GetUniAryType(s32 *in){ return VAR_S32_ARRAY; };
+u32 GetUniType(u8 in){ return VAR_U8; };
+u32 GetUniType(u16 in){ return VAR_U16; };
+u32 GetUniType(u32 in){ return VAR_U32; };
+u32 GetUniType(s8 in){ return VAR_S8; };
+u32 GetUniType(s16 in){ return VAR_S16; };
+u32 GetUniType(s32 in){ return VAR_S32; };
+u32 GetUniType(u8 *in){ return VAR_U8; };
+u32 GetUniType(u16 *in){ return VAR_U16; };
+u32 GetUniType(u32 *in){ return VAR_U32; };
+u32 GetUniType(s8 *in){ return VAR_S8; };
+u32 GetUniType(s16 *in){ return VAR_S16; };
+u32 GetUniType(s32 *in){ return VAR_S32; };
+u32 GetUniType(u8 *in, u32 inAryLen){ return VAR_U8_ARRAY; };
+u32 GetUniType(u16 *in, u32 inAryLen){ return VAR_U16_ARRAY; };
+u32 GetUniType(u32 *in, u32 inAryLen){ return VAR_U32_ARRAY; };
+u32 GetUniType(s8 *in, u32 inAryLen){ return VAR_S8_ARRAY; };
+u32 GetUniType(s16 *in, u32 inAryLen){ return VAR_S16_ARRAY; };
+u32 GetUniType(s32 *in, u32 inAryLen){ return VAR_S32_ARRAY; };
+const char *GetUniTypeString(u32 type)
+{
+}
+
 void UniVariable_Demo(void)
 {
     {
