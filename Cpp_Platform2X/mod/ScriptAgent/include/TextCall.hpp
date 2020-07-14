@@ -4,11 +4,12 @@
 
 #include "Everything_Lib_Mgr.hpp"
 
-typedef int (*TextCall_CB_t)(LibStringClass *splitedStrAgent, void *userHdl);
+typedef int (*TextCall_CB_t)(LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1);
 
 typedef struct {
     TextCall_CB_t cb;
-    void *userHdl;
+    void *userHdl_0;
+    void *userHdl_1;
 } TextCall_t;
 
 class TextCall: virtual public Tracer {
@@ -25,8 +26,8 @@ public:
     };
     ~TextCall(){_clearParameter();};
     void Dump(void);
-    int AddPair(const char *str, TextCall_CB_t cb, void *userHdl = NULL);
-    int Start(const char *line);
+    int AddPair(const char *str, TextCall_CB_t cb, void *userHdl_0 = NULL, void *userHdl_1 = NULL);
+    int Start(const char *line, int *cbRet = NULL);
     //int RemovePair(const char *str);
 };
 

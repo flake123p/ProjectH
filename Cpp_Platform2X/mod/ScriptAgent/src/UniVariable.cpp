@@ -516,6 +516,25 @@ u32 GetUniType(s16 *in, u32 inAryLen){ return VAR_S16_ARRAY; };
 u32 GetUniType(s32 *in, u32 inAryLen){ return VAR_S32_ARRAY; };
 const char *GetUniTypeString(u32 type)
 {
+    switch (type)
+    {
+        case VAR_C_STRING  : return "VAR_C_STRING  ";
+        case VAR_CPP_STRING: return "VAR_CPP_STRING";
+        case VAR_U8        : return "VAR_U8        ";
+        case VAR_U16       : return "VAR_U16       ";
+        case VAR_U32       : return "VAR_U32       ";
+        case VAR_S8        : return "VAR_S8        ";
+        case VAR_S16       : return "VAR_S16       ";
+        case VAR_S32       : return "VAR_S32       ";
+        case VAR_U8_ARRAY  : return "VAR_U8_ARRAY  ";
+        case VAR_U16_ARRAY : return "VAR_U16_ARRAY ";
+        case VAR_U32_ARRAY : return "VAR_U32_ARRAY ";
+        case VAR_S8_ARRAY  : return "VAR_S8_ARRAY  ";
+        case VAR_S16_ARRAY : return "VAR_S16_ARRAY ";
+        case VAR_S32_ARRAY : return "VAR_S32_ARRAY ";
+        default:
+            return "Unknown Type";
+    }
 }
 
 void UniVariable_Demo(void)

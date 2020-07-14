@@ -12,10 +12,10 @@ void TextCall::Dump(void)
     }
 }
 
-int TextCall::AddPair(const char *str, TextCall_CB_t cb, void *userHdl /*= NULL*/)
+int TextCall::AddPair(const char *str, TextCall_CB_t cb, void *userHdl_0 /*= NULL*/, void *userHdl_1 /*= NULL*/)
 {
     std::string stdStr = str;
-    TextCall_t textCall = {cb, userHdl};
+    TextCall_t textCall = {cb, userHdl_0, userHdl_1};
 
     std::pair<std::map<std::string,TextCall_t>::iterator,bool> ret;
     ret = callbackMap.insert ( std::pair<std::string,TextCall_t>(stdStr, textCall) );
@@ -27,8 +27,10 @@ int TextCall::AddPair(const char *str, TextCall_CB_t cb, void *userHdl /*= NULL*
     return 0;
 }
 
-int TextCall::Start(const char *line)
+int TextCall::Start(const char *line, int *cbRet /*= NULL*/)
 {
+    int ret_from_cb;
+
     // 1. get first word
     LibStringClass strAgent = LibStringClass(line);
     strAgent.Split();
@@ -45,18 +47,23 @@ int TextCall::Start(const char *line)
     }
 
     TextCall_t textCall = mapIt->second;
-    return (*(textCall.cb))(&strAgent, textCall.userHdl);
+    ret_from_cb = (*(textCall.cb))(&strAgent, textCall.userHdl_0, textCall.userHdl_1);
+    if (cbRet != NULL) {
+        *cbRet = ret_from_cb;
+    }
+
+    return 0;
 }
 
-int TestTextCB_Var(LibStringClass *splitedStrAgent, void *userHdl)
+int TestTextCB_Var(LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     PRINT_FUNC;
-    u32 *x = (u32 *)userHdl;
+    u32 *x = (u32 *)userHdl_0;
     DUMPND(*x);
     return 0;
 }
 
-int TestTextCB_Dump(LibStringClass *splitedStrAgent, void *userHdl)
+int TestTextCB_Dump(LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     PRINT_FUNC;
     return 0;
@@ -88,8 +95,8 @@ void TextCall_Demo(void)
     PRINT_FUNC;
 
     TextCall *db0 = new(TextCall);
-    ASSERT_IF( db0->AddPair("@var", TestTextCB_Var, &i) );
-    ASSERT_IF( db0->AddPair("@_var", TestTextCB_Var, &j) );
+    ASSERT_IF( db0->AddPair("@var", TestTextCB_Var, &i, db0) );
+    ASSERT_IF( db0->AddPair("@_var", TestTextCB_Var, &j, db0) );
     ASSERT_IF( db0->AddPair("@dump", TestTextCB_Dump) );
     db0->Dump();
 
@@ -100,6 +107,10 @@ void TextCall_Demo(void)
     SAFE_DELETE(db0);
 
     MM_UNINIT();
+
+    u16 gg = 0;
+    gg = gg;
+    printf("type is %s\n", GetUniTypeString(GetUniType(&gg, 8)));
 
     /*
         next:
