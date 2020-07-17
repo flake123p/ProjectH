@@ -15,7 +15,10 @@ void LibUtil_Uninit(void);
 
 void LibUtil_InitRand(int do_lock = 1);
 int LibUtil_GetRand(void);
+int LibUtil_GetRand2(void);
 void LibUtil_Print_RAND_MAX(void);
+
+void LibUtil_PrintBinary(u8 *ary, u32 len, int startFromHighAddress = 1);
 
 template<typename T1>
 bool LibUtil_FindInArray(IN T1 val, IN T1 *array, IN u32 len)

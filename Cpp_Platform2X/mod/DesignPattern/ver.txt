@@ -1,0 +1,7 @@
+Flake:
+General Component?
+	init function (constructor)
+	delete function? (destructor - standard delete())
+	onEntry - call it every time using it on beginning
+	onEvent - call it during using it
+	onLeave - call it when finished

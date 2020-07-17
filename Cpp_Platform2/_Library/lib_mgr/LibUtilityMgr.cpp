@@ -60,6 +60,41 @@ void LibUtil_Print_RAND_MAX(void)
 	printf("RAND_MAX = %d\n", RAND_MAX);
 }
 
+void LibUtil_PrintBinary(u8 *ary, u32 len, int startFromHighAddress /*= 1*/)
+{
+    u32 i,j;
+    u32 end;
+    u8 curr;
+    int bit;
+    BASIC_ASSERT(len>=1);
+    if (startFromHighAddress) {
+        i = len-1;
+        end = 0xFFFFFFFF;
+    } else {
+        i = 0;
+        end = len;
+    }
+    while (i != end) {
+        curr = ary[i];
+        //printf("[%X]",curr);
+        for(j = 0; j < 8; j++) {
+            if (curr&0x80)
+                bit = 1;
+            else
+                bit = 0;
+            printf("%d", bit);
+            curr = curr << 1;
+        }
+        printf(",");
+        if (startFromHighAddress) {
+            i--;
+        } else {
+            i++;
+        }
+    }
+    printf("\n");
+}
+
 int LibUtil_BytesToInt32(u32 &dst, u8 *src, bool isSrcBigEndian)
 {
 	if (IS_LITTLE_ENDIAN()) {
