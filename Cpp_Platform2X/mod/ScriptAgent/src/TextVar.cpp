@@ -16,7 +16,7 @@ void BLE_LM_CmnGenAccessAddr()
     {
         pass_check = 1;
 
-        accessAddr = (uint32_t)LibUtil_GetRand2();
+        accessAddr = (uint32_t)LibUtil_GetRand32();
         //BT_SYS_RandGet((uint8_t*)&accessAddr, 4);
         randidx = (uint8_t)(accessAddr & 0xF);
 
@@ -114,9 +114,10 @@ void TextVar_Demo(void)
         PRINT_LINE;
     }
     PRINT_LINE;
-    BLE_LM_CmnGenAccessAddr();
-    BLE_LM_CmnGenAccessAddr();
-    BLE_LM_CmnGenAccessAddr();
-    BLE_LM_CmnGenAccessAddr();
+    //BLE_LM_CmnGenAccessAddr();
+    //BLE_LM_CmnGenAccessAddr();
+    //BLE_LM_CmnGenAccessAddr();
+    //BLE_LM_CmnGenAccessAddr();
+    LibUtil_TestRand();
 }
 

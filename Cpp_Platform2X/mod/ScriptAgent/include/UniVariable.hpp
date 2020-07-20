@@ -8,6 +8,7 @@
 #define VAR_IS_ARRAY        BIT_30
 #define VAR_IS_C_STRING     BIT_29
 #define VAR_IS_CPP_STRING   BIT_28
+#define VAR_IS_VOID_POINTER BIT_27
 
 #define VAR_IS_8BITS    BIT_0
 #define VAR_IS_16BITS   BIT_1
@@ -18,20 +19,21 @@
 
 #define VAR_IS_UNINITED  (0)
 
-#define VAR_C_STRING    (VAR_IS_C_STRING)
-#define VAR_CPP_STRING  (VAR_IS_CPP_STRING)
-#define VAR_U8          (VAR_IS_8BITS)
-#define VAR_U16         (VAR_IS_16BITS)
-#define VAR_U32         (VAR_IS_32BITS)
-#define VAR_S8          (VAR_IS_SIGNED|VAR_IS_8BITS)
-#define VAR_S16         (VAR_IS_SIGNED|VAR_IS_16BITS)
-#define VAR_S32         (VAR_IS_SIGNED|VAR_IS_32BITS)
-#define VAR_U8_ARRAY    (VAR_IS_ARRAY|VAR_IS_8BITS)
-#define VAR_U16_ARRAY   (VAR_IS_ARRAY|VAR_IS_16BITS)
-#define VAR_U32_ARRAY   (VAR_IS_ARRAY|VAR_IS_32BITS)
-#define VAR_S8_ARRAY    (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_8BITS)
-#define VAR_S16_ARRAY   (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_16BITS)
-#define VAR_S32_ARRAY   (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_32BITS)
+#define VAR_C_STRING        (VAR_IS_C_STRING)
+#define VAR_CPP_STRING      (VAR_IS_CPP_STRING)
+#define VAR_VOID_POINTER    (VAR_IS_VOID_POINTER)
+#define VAR_U8              (VAR_IS_8BITS)
+#define VAR_U16             (VAR_IS_16BITS)
+#define VAR_U32             (VAR_IS_32BITS)
+#define VAR_S8              (VAR_IS_SIGNED|VAR_IS_8BITS)
+#define VAR_S16             (VAR_IS_SIGNED|VAR_IS_16BITS)
+#define VAR_S32             (VAR_IS_SIGNED|VAR_IS_32BITS)
+#define VAR_U8_ARRAY        (VAR_IS_ARRAY|VAR_IS_8BITS)
+#define VAR_U16_ARRAY       (VAR_IS_ARRAY|VAR_IS_16BITS)
+#define VAR_U32_ARRAY       (VAR_IS_ARRAY|VAR_IS_32BITS)
+#define VAR_S8_ARRAY        (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_8BITS)
+#define VAR_S16_ARRAY       (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_16BITS)
+#define VAR_S32_ARRAY       (VAR_IS_ARRAY|VAR_IS_SIGNED|VAR_IS_32BITS)
 
 typedef enum {
     UNI_VAR_DYNAMIC_ARRAY,
@@ -81,6 +83,7 @@ public:
     UniVariable(char *str){ _constructor(); Init(str); };
     UniVariable(std::string *str){ _constructor(); Init(str); };
     UniVariable(std::string str){ _constructor(); Init(str); };
+    UniVariable(void *in){ _constructor(); Init(in); };
     UniVariable(u8 in){ _constructor(); Init(in); };
     UniVariable(u16 in){ _constructor(); Init(in); };
     UniVariable(u32 in){ _constructor(); Init(in); };
@@ -107,6 +110,7 @@ public:
     void Init(char *str){ InitEx(VAR_IS_C_STRING, (const void *)str); };
     void Init(std::string *str){ InitEx(VAR_IS_CPP_STRING, (const void *)str); };
     void Init(std::string str){ InitEx(VAR_IS_CPP_STRING, (const void *)&str); };
+    void Init(void *in){ InitEx(VAR_VOID_POINTER, in); };
     void Init(u8 in){ InitEx(VAR_U8, (const void *)&in); };
     void Init(u16 in){ InitEx(VAR_U16, (const void *)&in); };
     void Init(u32 in){ InitEx(VAR_U32, (const void *)&in); };
@@ -125,6 +129,9 @@ public:
     void Init(s8 *in, u32 inAryLen){ InitEx(VAR_S8_ARRAY, (const void *)in, inAryLen); };
     void Init(s16 *in, u32 inAryLen){ InitEx(VAR_S16_ARRAY, (const void *)in, inAryLen); };
     void Init(s32 *in, u32 inAryLen){ InitEx(VAR_S32_ARRAY, (const void *)in, inAryLen); };
+
+    int Convert(UniVariable *from);
+    int Copy(UniVariable *from);
 
     void dump(void);
     void dumpFeatures(void);
@@ -189,6 +196,7 @@ u32 GetUniAryType(u32 *in);
 u32 GetUniAryType(s8 *in);
 u32 GetUniAryType(s16 *in);
 u32 GetUniAryType(s32 *in);
+u32 GetUniType(void *in);
 u32 GetUniType(u8 in);
 u32 GetUniType(u16 in);
 u32 GetUniType(u32 in);

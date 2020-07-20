@@ -112,6 +112,21 @@ void TextCall_Demo(void)
     gg = gg;
     printf("type is %s\n", GetUniTypeString(GetUniType(&gg, 8)));
 
+    void *ggg = NULL;
+    ggg = ggg;
+    printf("type is %s\n", GetUniTypeString(GetUniType(ggg)));
+
+    UniVariable x,y,r,t;
+    x.Init((void *)GetUniTypeString);
+    x.dump();
+    DUMPNP(GetUniTypeString);
+    y.Copy(&x);
+    y.dump();
+    r.Init(1237);
+    r.dump();
+    t.Copy(&r);
+    t.dump();
+
     /*
         next:
             TextVar -> global var's & var map

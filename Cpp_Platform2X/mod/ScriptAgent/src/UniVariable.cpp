@@ -20,6 +20,9 @@ UniVariable::~UniVariable(void)
 
 void UniVariable::Uninit(void)
 {
+    if (type == VAR_IS_UNINITED) {
+        return;
+    }
 #if 0
     UniVar_Features_t *oldFeature;
     UniVar_Features_t *currFeature = feature;
@@ -101,6 +104,15 @@ void UniVariable::InitEx(u32 inType /*= VAR_IS_UNINITED*/, const void *p_inVar /
         *dstStr = *srcStr;
         p_var = (void *)dstStr;
         varLen = strlen((const char *)dstStr->c_str());
+    } else if(type & VAR_IS_VOID_POINTER) {
+        UNI_VAR_BASIC_ASSERT((type & (VAR_IS_ARRAY|VAR_IS_C_STRING|VAR_IS_CPP_STRING)) == 0);
+        //single variable
+        varLen = unitInBytes;
+        p_var = MM_ALLOC(unitInBytes);
+        if (p_inVar != NULL) {
+            // it's &p_inVar, not p_inVar
+            MM_CPY(p_var, &p_inVar, unitInBytes);
+        }
     } else if(type != VAR_IS_UNINITED) {
         UNI_VAR_BASIC_ASSERT(p_inVar != NULL);
         UNI_VAR_BASIC_ASSERT((type & (VAR_IS_ARRAY|VAR_IS_C_STRING|VAR_IS_CPP_STRING)) == 0);
@@ -110,7 +122,48 @@ void UniVariable::InitEx(u32 inType /*= VAR_IS_UNINITED*/, const void *p_inVar /
         if (p_inVar != NULL) {
             MM_CPY(p_var, p_inVar, unitInBytes);
         }
+    } else {
+        BASIC_ASSERT(type == VAR_IS_UNINITED);
     }
+}
+
+int UniVariable::Convert(UniVariable *from)
+{
+/*
+    switch (type)
+    {
+        case VAR_C_STRING  :   return "VAR_C_STRING    ";
+        case VAR_CPP_STRING:   return "VAR_CPP_STRING  ";
+        case VAR_VOID_POINTER: return "VAR_VOID_POINTER";
+        case VAR_U8        :   return "VAR_U8          ";
+        case VAR_U16       :   return "VAR_U16         ";
+        case VAR_U32       :   return "VAR_U32         ";
+        case VAR_S8        :   return "VAR_S8          ";
+        case VAR_S16       :   return "VAR_S16         ";
+        case VAR_S32       :   return "VAR_S32         ";
+        case VAR_U8_ARRAY  :   return "VAR_U8_ARRAY    ";
+        case VAR_U16_ARRAY :   return "VAR_U16_ARRAY   ";
+        case VAR_U32_ARRAY :   return "VAR_U32_ARRAY   ";
+        case VAR_S8_ARRAY  :   return "VAR_S8_ARRAY    ";
+        case VAR_S16_ARRAY :   return "VAR_S16_ARRAY   ";
+        case VAR_S32_ARRAY :   return "VAR_S32_ARRAY   ";
+        default:
+            return "Unknown Type";
+    }
+*/
+return 0;
+}
+
+int UniVariable::Copy(UniVariable *from)
+{
+    Uninit();
+    if(from->type == VAR_IS_VOID_POINTER) {
+        void **ptr = (void **)from->p_var;
+        InitEx(from->type, *ptr, from->varLen);
+    } else {
+        InitEx(from->type, from->p_var, from->varLen);
+    }
+    return 0;
 }
 
 void UniVariable::dump(void)
@@ -118,27 +171,8 @@ void UniVariable::dump(void)
 #define MAX_ELEMENT_IN_ONE_LINE_8  (16)
 #define MAX_ELEMENT_IN_ONE_LINE_16 (8)
 #define MAX_ELEMENT_IN_ONE_LINE_32 (8)
-    printf("===>>> type = 0x%08X : ", type);
+    printf("===>>> type = 0x%08X : %s\n", type, GetUniTypeString(type));
 
-    switch (type) {
-        case VAR_C_STRING: printf("VAR_C_STRING\n"); break;
-        case VAR_CPP_STRING: printf("VAR_CPP_STRING\n"); break;
-        case VAR_U8: printf("VAR_U8\n"); break;
-        case VAR_U16: printf("VAR_U16\n"); break;
-        case VAR_U32: printf("VAR_U32\n"); break;
-        case VAR_S8: printf("VAR_S8\n"); break;
-        case VAR_S16: printf("VAR_S16\n"); break;
-        case VAR_S32: printf("VAR_S32\n"); break;
-        case VAR_U8_ARRAY: printf("VAR_U8_ARRAY\n"); break;
-        case VAR_U16_ARRAY: printf("VAR_U16_ARRAY\n"); break;
-        case VAR_U32_ARRAY: printf("VAR_U32_ARRAY\n"); break;
-        case VAR_S8_ARRAY: printf("VAR_S8_ARRAY\n"); break;
-        case VAR_S16_ARRAY: printf("VAR_S16_ARRAY\n"); break;
-        case VAR_S32_ARRAY: printf("VAR_S32_ARRAY\n"); break;
-        default:
-            BASIC_ASSERT(0);
-            break;
-    }
 
     if(type & VAR_IS_ARRAY) {
         printf("var =\n");
@@ -183,6 +217,9 @@ void UniVariable::dump(void)
         printf("var = %s\n", (const char *)p_var);
     } else if(type & VAR_IS_CPP_STRING) {
         printf("var = %s\n", ((std::string *)p_var)->c_str());
+    } else if(type & VAR_IS_VOID_POINTER) {
+        u8 **ptr = (u8 **)p_var;
+        printf("var = %p\n", (*ptr));
     } else if(type != VAR_IS_UNINITED) {
         u32 temp;
         if (type & VAR_IS_8BITS) {
@@ -471,6 +508,10 @@ u32 UniVar_GetUnitInBytes(u32 inType)
         return 16;
     }
 
+    if (inType & VAR_IS_VOID_POINTER) {
+        return (u32)sizeof(void *);
+    }
+
     return 0;
 }
 
@@ -496,6 +537,7 @@ u32 GetUniAryType(u32 *in){ return VAR_U32_ARRAY; };
 u32 GetUniAryType(s8 *in){ return VAR_S8_ARRAY; };
 u32 GetUniAryType(s16 *in){ return VAR_S16_ARRAY; };
 u32 GetUniAryType(s32 *in){ return VAR_S32_ARRAY; };
+u32 GetUniType(void *in){ return VAR_VOID_POINTER; };
 u32 GetUniType(u8 in){ return VAR_U8; };
 u32 GetUniType(u16 in){ return VAR_U16; };
 u32 GetUniType(u32 in){ return VAR_U32; };
@@ -518,20 +560,21 @@ const char *GetUniTypeString(u32 type)
 {
     switch (type)
     {
-        case VAR_C_STRING  : return "VAR_C_STRING  ";
-        case VAR_CPP_STRING: return "VAR_CPP_STRING";
-        case VAR_U8        : return "VAR_U8        ";
-        case VAR_U16       : return "VAR_U16       ";
-        case VAR_U32       : return "VAR_U32       ";
-        case VAR_S8        : return "VAR_S8        ";
-        case VAR_S16       : return "VAR_S16       ";
-        case VAR_S32       : return "VAR_S32       ";
-        case VAR_U8_ARRAY  : return "VAR_U8_ARRAY  ";
-        case VAR_U16_ARRAY : return "VAR_U16_ARRAY ";
-        case VAR_U32_ARRAY : return "VAR_U32_ARRAY ";
-        case VAR_S8_ARRAY  : return "VAR_S8_ARRAY  ";
-        case VAR_S16_ARRAY : return "VAR_S16_ARRAY ";
-        case VAR_S32_ARRAY : return "VAR_S32_ARRAY ";
+        case VAR_C_STRING  :   return "VAR_C_STRING    ";
+        case VAR_CPP_STRING:   return "VAR_CPP_STRING  ";
+        case VAR_VOID_POINTER: return "VAR_VOID_POINTER";
+        case VAR_U8        :   return "VAR_U8          ";
+        case VAR_U16       :   return "VAR_U16         ";
+        case VAR_U32       :   return "VAR_U32         ";
+        case VAR_S8        :   return "VAR_S8          ";
+        case VAR_S16       :   return "VAR_S16         ";
+        case VAR_S32       :   return "VAR_S32         ";
+        case VAR_U8_ARRAY  :   return "VAR_U8_ARRAY    ";
+        case VAR_U16_ARRAY :   return "VAR_U16_ARRAY   ";
+        case VAR_U32_ARRAY :   return "VAR_U32_ARRAY   ";
+        case VAR_S8_ARRAY  :   return "VAR_S8_ARRAY    ";
+        case VAR_S16_ARRAY :   return "VAR_S16_ARRAY   ";
+        case VAR_S32_ARRAY :   return "VAR_S32_ARRAY   ";
         default:
             return "Unknown Type";
     }

@@ -31,6 +31,7 @@ void LibUtil_Uninit(void)
 }
 
 unsigned int seed = 0;
+u32 randMaxBitNum = 0xFFFFFFFF;
 void LibUtil_InitRand(int do_lock/* = 1 */)
 {
     if (do_lock) {
@@ -38,26 +39,104 @@ void LibUtil_InitRand(int do_lock/* = 1 */)
     }
     seed += time(NULL);
     srand(seed);
+
+    LibUtil_InitRandMaxBitNum();
+
     if (do_lock) {
         LIB_UTIL_UNLOCK;
     }
 }
 
+u32 LibUtil_InitRandMaxBitNum(void)
+{
+    if (randMaxBitNum == 0xFFFFFFFF)
+    {
+        u32 mask = 1;
+        randMaxBitNum = 0;
+        while(1)
+        {
+            if (mask > RAND_MAX)
+                break;
+
+            mask = mask << 1;
+            randMaxBitNum++;
+        }
+    }
+
+    return randMaxBitNum;
+}
+/*
+    Affected by RAND_MAX
+    please use LibUtil_Print_RAND_MAX() to check
+*/
 int LibUtil_GetRand(void)
 {
-	return rand();
+    return rand();
 }
 
-int LibUtil_GetRand2(void)
+u8 LibUtil_GetRand8(void)
 {
-    int ret = rand();
-    ret = ret << (ret&0xF);
-	return ret | rand();
+    u8 ret = ((rand()&0xFF) << 0);
+    return ret;
+}
+
+u16 LibUtil_GetRand16(void)
+{
+    u16 ret = ((rand()&0xFF) << 8) | ((rand()&0xFF) << 0);
+    return ret;
+}
+
+u32 LibUtil_GetRand32(void)
+{
+    u32 ret = ((rand()&0xFF) << 24) | ((rand()&0xFF) << 16) | ((rand()&0xFF) << 8) | ((rand()&0xFF) << 0);
+    return ret;
+}
+
+void LibUtil_TestRand(void)
+{
+#define AMOUNT (20)
+    LibU64_t u64Data;
+    u32 average;
+
+    LibUtil_InitRand();
+    LibUtil_Print_RAND_MAX();
+
+    u64Data.high = 0;
+    u64Data.low  = 0;
+    FOR_I(1<<AMOUNT) {
+        LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand());
+    }
+    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    printf("Average of LibUtil_GetRand()   is: %12u (0x%08X)\n", average, average);
+
+    u64Data.high = 0;
+    u64Data.low  = 0;
+    FOR_I(1<<AMOUNT) {
+        LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand8());
+    }
+    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    printf("Average of LibUtil_GetRand8()  is: %12u (0x%08X)\n", average, average);
+
+    u64Data.high = 0;
+    u64Data.low  = 0;
+    FOR_I(1<<AMOUNT) {
+        LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand16());
+    }
+    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    printf("Average of LibUtil_GetRand16() is: %12u (0x%08X)\n", average, average);
+
+    u64Data.high = 0;
+    u64Data.low  = 0;
+    FOR_I(1<<AMOUNT) {
+        LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand32());
+    }
+    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    printf("Average of LibUtil_GetRand32() is: %12u (0x%08X)\n", average, average);
 }
 
 void LibUtil_Print_RAND_MAX(void)
 {
-	printf("RAND_MAX = %d\n", RAND_MAX);
+	printf("RAND_MAX = %d (0x%X), randMaxBitNum = %d\n", RAND_MAX, RAND_MAX, LibUtil_InitRandMaxBitNum());
 }
 
 void LibUtil_PrintBinary(u8 *ary, u32 len, int startFromHighAddress /*= 1*/)
@@ -680,8 +759,8 @@ u32 LibUtil_GetUniqueU32(void)
         gLibUtil_GetUniqueU32_Inited = 1;
 
         LibUtil_InitRand(0);
-        gLibUtil_GetUniqueU32_Base = (u32)LibUtil_GetRand2();
-        gLibUtil_GetUniqueU32_Increment = (u32)LibUtil_GetRand2();
+        gLibUtil_GetUniqueU32_Base = LibUtil_GetRand32();
+        gLibUtil_GetUniqueU32_Increment = LibUtil_GetRand32();
         gLibUtil_GetUniqueU32_Increment |= 0x00000001;
     }
 
@@ -704,8 +783,8 @@ u16 LibUtil_GetUniqueU16(void)
         gLibUtil_GetUniqueU16_Inited = 1;
 
         LibUtil_InitRand(0);
-        gLibUtil_GetUniqueU16_Base = (u16)LibUtil_GetRand2();
-        gLibUtil_GetUniqueU16_Increment = (u16)LibUtil_GetRand2();
+        gLibUtil_GetUniqueU16_Base = LibUtil_GetRand16();
+        gLibUtil_GetUniqueU16_Increment = LibUtil_GetRand16();
         gLibUtil_GetUniqueU16_Increment |= 0x0001;
     }
 

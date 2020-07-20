@@ -14,8 +14,17 @@ void LibUtil_Init(void);
 void LibUtil_Uninit(void);
 
 void LibUtil_InitRand(int do_lock = 1);
+u32 LibUtil_InitRandMaxBitNum(void);
+/*
+    Affected by RAND_MAX
+    please use LibUtil_Print_RAND_MAX() to check
+*/
 int LibUtil_GetRand(void);
-int LibUtil_GetRand2(void);
+u8  LibUtil_GetRand8(void);
+u16 LibUtil_GetRand16(void);
+u32 LibUtil_GetRand32(void);
+void LibUtil_TestRand(void);
+
 void LibUtil_Print_RAND_MAX(void);
 
 void LibUtil_PrintBinary(u8 *ary, u32 len, int startFromHighAddress = 1);

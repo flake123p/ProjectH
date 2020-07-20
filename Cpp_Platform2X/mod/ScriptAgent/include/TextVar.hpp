@@ -7,9 +7,10 @@
 typedef enum {
     TXT_VAR_IS_AUTO_FREE    = BIT_0,
     TXT_VAR_IS_IN_USE       = BIT_1,
+    TXT_VAR_IS_FUNC_PTR     = BIT_2,
 
     //No need for simplify
-    //TXT_VAR_IS_MORE_ARGU    = BIT_2,
+    //TXT_VAR_IS_MORE_ARGU    = ,
 } TXT_VAR_FLAG_t;
 
 typedef struct TextVar_t {
