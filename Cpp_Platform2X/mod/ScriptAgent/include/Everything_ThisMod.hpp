@@ -6,6 +6,7 @@
 #include "Everything_Lib_Mgr.hpp"
 
 #include "UniVariable.hpp"
+#include "UniVar.hpp"
 #include "TextVar.hpp"
 #include "TextCall.hpp"
 

@@ -71,9 +71,7 @@ dynamic array len
 ********************/
 class UniVariable {
 public:
-    //std::string *p_name; //map index
     u32 type;
-    //u32 retCode;
     u32 varLen; //The length of c string not includes /0 byte
     void* p_var;
     UniVar_Features_t *feature; //one feature in the same time
