@@ -11,32 +11,31 @@ public:
     u32 allocatedLenInBytes;
     u32 allocateIncrement;
 
-    LibAry(void){len=0;ptr=NULL;allocatedLenInBytes=0;allocateIncrement=16;};
-    ~LibAry(void){SAFE_FREE(ptr)};
-    int Push(u8 *from, u32 fromLen) {
-        u32 left = allocatedLenInBytes - len;
-        if (fromLen <= left) {
-            MM_CPY(&ptr[len], from, fromLen);
-            len += fromLen;
-        } else {
-            u32 *newPtr;
-            u32 newAllocatedLenInBytes = (len+fromLen)/allocateIncrement;
-            newAllocatedLenInBytes = (newAllocatedLenInBytes+1)*allocateIncrement;
-            newPtr = 
-        }
-    };
+    LibAry(void){Init();};
+    ~LibAry(void){Uninit();};
+    void Init(void){len=0;ptr=NULL;allocatedLenInBytes=0;allocateIncrement=16;};
+    void Uninit(void) {SAFE_FREE(ptr);len=0;ptr=NULL;};
+
+    int Write(u32 position, u8 *from, u32 fromLen);
+    int Push(u8 *from, u32 fromLen) { return Write(len, from, fromLen);};
+
     void Dump(void) {
         DUMPND(allocatedLenInBytes);
         DUMPND(allocateIncrement);
-        ARRAYDUMPX2(ptr,len);
+        DUMPND(len);
+        if (len) {
+            ARRAYDUMPX2(ptr,len);
+        }
     };
 };
 
+/*
 class LibAryX : public LibAry {
 public:
     LibAryX(void){PRINT_FUNC;};
     ~LibAryX(void){PRINT_FUNC;};
 };
+*/
 
 void LibArray_Demo(void);
 

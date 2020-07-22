@@ -106,7 +106,7 @@ void TextCall_Demo(void)
 
     SAFE_DELETE(db0);
 
-    MM_UNINIT();
+
 
     u16 gg = 0;
     gg = gg;
@@ -116,16 +116,21 @@ void TextCall_Demo(void)
     ggg = ggg;
     printf("type is %s\n", GetUniTypeString(GetUniType(ggg)));
 
-    UniVariable x,y,r,t;
-    x.Init((void *)GetUniTypeString);
-    x.dump();
-    DUMPNP(GetUniTypeString);
-    y.Copy(&x);
-    y.dump();
-    r.Init(1237);
-    r.dump();
-    t.Copy(&r);
-    t.dump();
+    {
+        UniVariable x,y,r,t;
+        x.Init((void *)GetUniTypeString);
+        x.dump();
+        DUMPNP(GetUniTypeString);
+        y.Copy(&x);
+        y.dump();
+        //void *tempPtr = (void *)GetUniType;
+        r.Init((void *)GetUniTypeString);
+        r.dump();
+        t.Copy(&r);
+        t.dump();
+    }
+
+    MM_UNINIT();
 
     /*
         next:
