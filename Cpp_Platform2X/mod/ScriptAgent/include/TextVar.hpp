@@ -14,6 +14,9 @@ typedef enum {
 } TXT_VAR_FLAG_t;
 
 typedef struct TextVar_t {
+    u32 passingVarNum; // 0xFFFFFFFF for max num
+    std::string name;
+
     UniVariable *pUniVar; //use delete() if auto release is on
     u32 flags; //TXT_VAR_FLAG_t
     std::string *nextArgu; //if isInUse == 0, nextArgu is NULL!

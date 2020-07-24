@@ -13,7 +13,7 @@
 
 #define LIB_ARRAY_DEBUG_EN ( 0 )
 
-int LibAry::Write(u32 position, u8 *from, u32 fromLen)
+int LibAry::Write(u32 position, const u8 *from, u32 fromLen)
 {
     u32 newLen = position + fromLen;
     int needReallocate = 0;

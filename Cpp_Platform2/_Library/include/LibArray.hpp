@@ -13,11 +13,11 @@ public:
 
     LibAry(void){Init();};
     ~LibAry(void){Uninit();};
-    void Init(void){len=0;ptr=NULL;allocatedLenInBytes=0;allocateIncrement=16;};
+    void Init(void){len=0;ptr=NULL;allocatedLenInBytes=0;allocateIncrement=32;};
     void Uninit(void) {SAFE_FREE(ptr);len=0;ptr=NULL;};
 
-    int Write(u32 position, u8 *from, u32 fromLen);
-    int Push(u8 *from, u32 fromLen) { return Write(len, from, fromLen);};
+    int Write(u32 position, const u8 *from, u32 fromLen);
+    int Push(const u8 *from, u32 fromLen) { return Write(len, from, fromLen);};
 
     void Dump(void) {
         DUMPND(allocatedLenInBytes);
