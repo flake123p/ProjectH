@@ -41,15 +41,16 @@ public:
     int Import(s32 *in, u32 num, u32 position){return ImportEx(VAR_S32_ARRAY, position, (u8 *)in, num*UniVar_GetUnitInBytes(VAR_S32_ARRAY));};
 
     //string
-    int Import(const char *in){u32 num=strlen(in)+1;u32 position = len==0?0:len-1;return ImportEx(VAR_C_STRING, position, (u8 *)in, num);};
+    int Import(const char *in){u32 num=strlen(in)+1;u32 position = len==0?0:len-1;return ImportEx(VAR_C_STRING, position, (u8 *)in, num);}; //auto concate, overwrite old last '\0'
     int Import(const char *in, u32 position){u32 num=strlen(in)+1;return ImportEx(VAR_C_STRING, position, (u8 *)in, num);};
-    int Import(std::string *cppStr){return ImportEx(VAR_CPP_STRING, len, (u8 *)&cppStr, UniVar_GetUnitInBytes(VAR_VOID_POINTER));};
+    int Import(std::string *cppStr, u32 position=0){return ImportEx(VAR_CPP_STRING, position, (u8 *)&cppStr, UniVar_GetUnitInBytes(VAR_VOID_POINTER));};
     //pointer & function
     int Import(void *in){return ImportEx(VAR_VOID_POINTER, len, (u8 *)&in, UniVar_GetUnitInBytes(VAR_VOID_POINTER));};
 
     void UniVarDump(void);
 
-    void Reset(void){len=0;type=VAR_IS_UNINITED;};
+    void Reset(void){ResetAndRetainBuffer();};
+    void ResetAndRetainBuffer(void){len=0;type=VAR_IS_UNINITED;};
     void DeleteCppString(void){if(type&VAR_IS_CPP_STRING){SAFE_DELETE(*((std::string**)ptr))}Reset();};
 };
 

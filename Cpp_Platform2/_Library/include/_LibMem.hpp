@@ -10,8 +10,10 @@
 // ============================== Define ==============================
 #define LIB_MEM_ASSERT_ENABLE ( 1 )
 
-#define SAFE_FREE(ptr) if(ptr!=NULL){MM_FREE(ptr);}
-#define SAFE_DELETE(ptr) if(ptr!=NULL){delete(ptr);}
+#define SAFE_FREE(ptr)      if(ptr!=NULL){MM_FREE(ptr);}
+#define SAFE_FREE2(ptr)     if(ptr!=NULL){MM_FREE(ptr);}ptr=NULL
+#define SAFE_DELETE(ptr)    if(ptr!=NULL){delete(ptr);}
+#define SAFE_DELETE2(ptr)   if(ptr!=NULL){delete(ptr);}ptr=NULL
 
 #define LIB_MEM_READ_CHECK(addr,len,key) LibMem_ReadCheckEx((u8 *)(addr),len,key,__FILE__,__LINE__)
 #define LIB_MEM_WRITE_CHECK(addr,len,key,doWrite) LibMem_WriteCheckEx((u8 *)(addr),len,key,doWrite,__FILE__,__LINE__)

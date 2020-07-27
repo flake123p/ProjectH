@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     //TextCall_Demo();
     //TextVar_Demo();
 
-    UniVar_Demo();
+    TextCall_Demo();
 
     return 0;
 }

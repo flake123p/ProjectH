@@ -53,7 +53,7 @@ void UniVariable::Uninit(void)
                     currRestLen = currRestLen->next;
                     SAFE_FREE(oldRestLen);
                 }
-                SAFE_FREE(feature);
+                SAFE_FREE2(feature);
             } break;
             default:
                 BASIC_ASSERT(0);
