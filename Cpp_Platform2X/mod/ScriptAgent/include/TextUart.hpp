@@ -1,9 +1,0 @@
-
-
-#ifndef _TEXT_UART_HPP_INCLUDED_
-
-
-
-#define _TEXT_UART_HPP_INCLUDED_
-#endif//_TEXT_UART_HPP_INCLUDED_
-
