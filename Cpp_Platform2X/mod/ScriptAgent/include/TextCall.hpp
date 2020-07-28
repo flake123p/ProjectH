@@ -31,8 +31,9 @@ public:
     TextCallDB(int disableTracer = 0) : Tracer("TextCall", disableTracer)
     {
         _clearParameter();
+        textVarDB = new(TextVarDB);
     };
-    ~TextCallDB(){_clearParameter();};
+    ~TextCallDB(){_clearParameter();SAFE_DELETE(textVarDB);};
     void Dump(void);
     int AddPair(const char *str, TextCall_CB_t cb, void *userHdl_0 = NULL, void *userHdl_1 = NULL);
     int Start(const char *line, int *cbRet = NULL);

@@ -408,6 +408,72 @@ void LibString_DumpPrintableChar(void)
 	printf("\n");
 }
 
+u32 LibString_GetDeciOrHex(std::string *in)
+{
+    u32 retVal;
+    int isHex = 0;
+    int isUpperCaseX = 0;
+
+    if (in->size() >= 3) {
+        if ((*in)[0] == '0') {
+            if ((*in)[1] == 'x') {
+                isHex = 1;
+            } else if ((*in)[1] == 'X') {
+                isHex = 1;
+                isUpperCaseX = 1;
+            }
+        }
+    }
+
+    if (isHex) {
+        if (isUpperCaseX) {
+            sscanf(in->c_str(), "0X%x", &retVal);
+        } else {
+            sscanf(in->c_str(), "0x%x", &retVal);
+        }
+    } else {
+        sscanf(in->c_str(), "%u", &retVal);
+    }
+
+    return retVal;
+}
+
+//return true for array index parsed
+int LibString_ParseArrayPattern(std::string *in, std::string *outVarName, u32 *outArrayIndex)
+{
+    size_t inStrSize = in->size();
+
+    if(inStrSize <= 3) {
+        return 0;
+    }
+
+    if ((*in)[0] == '[') {
+        return 0;
+    }
+
+    if ((*in)[inStrSize-1] != ']') {
+        return 0;
+    } else {
+        int state = 0; //0 for saving var string, 1 for saving index string
+        std::string indexStr = "";
+        *outVarName = "";
+        for (size_t i=0; i<inStrSize-1; i++) {
+            if ((*in)[i] == '[') {
+                state = 1;
+                continue;
+            }
+            if (state == 0) { //0 for saving var string
+                *outVarName += (*in)[i];
+            } else if (state == 1) {
+                indexStr += (*in)[i];
+            }
+        }
+        *outArrayIndex = LibString_GetDeciOrHex(&indexStr);
+    }
+
+    return 1;
+}
+
 LibStringClass::LibStringClass(const char *cString /* = NULL */)
 {
 	if (cString != NULL)
@@ -480,6 +546,7 @@ int LibStringClass::Split(bool checkDoubleQuote /* = false */)
 	const char *src = str.c_str();
 
 	subStrVector.clear();
+	subStrFlagVector.clear();
 	
 	for (u32 i = 0; i < string_length; ) {
 		//DUMPD(i);
@@ -499,11 +566,13 @@ int LibStringClass::Split(bool checkDoubleQuote /* = false */)
 				buf[x] = 0;
 				bufString = buf;
 				subStrVector.push_back(bufString);
+				subStrFlagVector.push_back(LIB_STR_SUB_DOUBLE_QUOTE);
 				i = j+1;
 			} else {
 				sscanf(&(src[i]), "%s", buf);
 				bufString = buf;
 				subStrVector.push_back(bufString);
+				subStrFlagVector.push_back(0);
 				i+=strlen(buf);
 			}
 		} else {
@@ -788,7 +857,7 @@ void LibStringClass::Dump(void)
 	printf("length = %d\n", (u32)Length());
 	printf("Size of sub-string = %d\n", (u32)subStrVector.size());
 	for (u32 i = 0; i < subStrVector.size(); i++) {
-		printf("subStr[%d] = %s\n", i, subStrVector[i].c_str());
+		printf("(0x%08X) subStr[%d] = %s\n", subStrFlagVector[i], i, subStrVector[i].c_str());
 	}
 }
 

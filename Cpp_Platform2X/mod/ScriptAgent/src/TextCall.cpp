@@ -33,7 +33,7 @@ int TextCallDB::Start(const char *line, int *cbRet /*= NULL*/)
 
     // 1. get first word
     LibStringClass strAgent = LibStringClass(line);
-    strAgent.Split();
+    strAgent.Split(true);
 
     BASIC_ASSERT(strAgent.subStrVector.size() >= 1);
 
@@ -177,50 +177,48 @@ void TextCall_Start(const char *line)
     // 2. find callback in map
 }
 
-void TextCall_BasicInit(TextCallDB *db, TextVarDB *varDB)
+void TextCall_DefaultInit(TextCallDB *db)
 {
     db->textCallDB = db;
-    db->textVarDB = varDB;
     ASSERT_IF( db->AddPair("@var", (TextCall_CB_t)TestTextCB_Var) );
     ASSERT_IF( db->AddPair("@_var", (TextCall_CB_t)TestTextCB_Var) );
     ASSERT_IF( db->AddPair("@dump", (TextCall_CB_t)TestTextCB_Dump) );
     ASSERT_IF( db->AddPair("@dumpAll", (TextCall_CB_t)TestTextCB_DumpAll) );
     ASSERT_IF( db->AddPair("@call", (TextCall_CB_t)TestTextCB_Call) );
 
-    TextVar *var = varDB->AddPair("FuncHAHAHA");
+    TextVar *var = db->textVarDB->AddPair("FuncHAHAHA");
     BASIC_ASSERT(var != NULL);
     var->pUniVar->Import((void *)FuncHAHAHA);
 }
 
-void TextCall_BasicUninit(TextCallDB *db, TextVarDB *varDB)
+void TextCall_DefaultUninit(TextCallDB *db)
 {
-    //varDB->Dump();
-    SAFE_DELETE(varDB);
     SAFE_DELETE(db);
 }
 
+const char *gTestText[] = {
+    "@var u8 i %x 01 03 04 34 12 00 0A",
+    " @_var u32 j 0x%x 0xFF123456 0xAABBCCDD",
+    "     @dump j",
+    "@call FuncHAHAHA i j",
+    "@print \"abc j = \" j[2] j \"123\"",
+};
 void TextCall_Demo(void)
 {
-    const char testStr00[] = " @var u8 i %x 01 03 04 34 12 00 0A";
-    const char testStr01[] = " @_var s8 j";
-    const char testStr02[] = "     @dump x";
-    const char testStr03[] = "@dump j";
-    const char testStr04[] = "@call FuncHAHAHA i j";
-
     MM_INIT();
+    DUMPND(sizeof(gTestText)/sizeof(const char*));
 
     TextCallDB *db0 = new(TextCallDB);
-    TextVarDB *varDB = new(TextVarDB);
-    TextCall_BasicInit(db0, varDB);
+
+    TextCall_DefaultInit(db0);
     //db0->Dump();
+    TextCall_BasicInit(db0);
 
-    db0->Start(testStr00);
-    db0->Start(testStr01);
-    db0->Start(testStr02);
-    db0->Start(testStr03);
-    db0->Start(testStr04);
+    FOR_I(sizeof(gTestText)/sizeof(const char*)) {
+        db0->Start(gTestText[i]);
+    }
 
-    TextCall_BasicUninit(db0, varDB);
+    TextCall_DefaultUninit(db0);
 
     MM_UNINIT();
 

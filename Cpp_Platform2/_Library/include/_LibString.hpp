@@ -37,6 +37,9 @@ u32 LibString_HexStringToU32(const char * str);
 char * LibString_Copy(char * destination, const char * source, int num = -1);
 u8 LibString_GetCheckSumU8(u8 *srcAry, u32 srcAryLen);
 
+u32 LibString_GetDeciOrHex(std::string *in);
+int LibString_ParseArrayPattern(std::string *in, std::string *outVarName, u32 *outArrayIndex);
+
 
 typedef struct {
 	u32 index;
@@ -77,11 +80,16 @@ void LibString_DumpPrintableChar(void);
 	
 */
 
+typedef enum {
+    LIB_STR_SUB_DOUBLE_QUOTE    = BIT_0,
+
+} LIB_STR_SUB_FLAG_t;
 
 class LibStringClass{
 public:
 	std::string str;
 	std::vector<std::string> subStrVector;
+	std::vector<u32> subStrFlagVector; //LIB_STR_SUB_FLAG_t
 	
 	LibStringClass(const char *cString = NULL);
 	~LibStringClass(void){}; // Do nothing.
