@@ -12,7 +12,7 @@ void TextCallDB::Dump(void)
     }
 }
 
-int TextCallDB::AddPair(const char *str, TextCall_CB_t cb, void *userHdl_0 /*= NULL*/, void *userHdl_1 /*= NULL*/)
+int TextCallDB::AddCallPair(const char *str, TextCall_CB_t cb, void *userHdl_0 /*= NULL*/, void *userHdl_1 /*= NULL*/)
 {
     std::string stdStr = str;
     TextCall_t textCall = {cb, userHdl_0, userHdl_1};
@@ -34,8 +34,18 @@ int TextCallDB::Start(const char *line, int *cbRet /*= NULL*/)
     // 1. get first word
     LibStringClass strAgent = LibStringClass(line);
     strAgent.Split(true);
+    //strAgent.Dump();
 
-    BASIC_ASSERT(strAgent.subStrVector.size() >= 1);
+    if (strAgent.subStrVector.size() < 1) {
+        return 1;
+    }
+
+    if (strAgent.subStrVector[0][0] == '#') {
+        if (cbRet != NULL) {
+            *cbRet = TXT_CALL_RET_COMMENT_LINE;
+        }
+        return 2;
+    }
 
     std::map<std::string,TextCall_t>::iterator mapIt;
 
@@ -55,14 +65,15 @@ int TextCallDB::Start(const char *line, int *cbRet /*= NULL*/)
     return 0;
 }
 
-int TestTextCB_Var(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
+int TextCall_Var(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     //PRINT_FUNC;
     //u32 *x = (u32 *)userHdl_0;
     //DUMPND(*x);
     //splitedStrAgent->Dump();
+    //return 0;
 
-    TextVar *var = textCallDB->textVarDB->AddPair(splitedStrAgent->subStrVector[2]);
+    TextVar *var = textCallDB->textVarDB->AddVarPair(&(splitedStrAgent->subStrVector[2]));
     if (var == NULL) {
         printf("Duplicate var name:%s\n", splitedStrAgent->subStrVector[2].c_str());
         BASIC_ASSERT(0);
@@ -116,9 +127,9 @@ int TestTextCB_Var(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void
     return 0;
 }
 
-int TestTextCB_Dump(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
+int TextCall_Dump(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
-    TextVar *var = textCallDB->textVarDB->Find(splitedStrAgent->subStrVector[1]);
+    TextVar *var = textCallDB->textVarDB->FindVar(&(splitedStrAgent->subStrVector[1]));
     if (var == NULL) {
         printf("Unknown var name : %s\n", splitedStrAgent->subStrVector[1].c_str());
     } else {
@@ -128,14 +139,14 @@ int TestTextCB_Dump(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, voi
     return 0;
 }
 
-int TestTextCB_DumpAll(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
+int TextCall_DumpAll(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     textCallDB->textVarDB->Dump();
 
     return 0;
 }
 
-int TestTextCB_Call(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
+int TextCall_Call(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     //splitedStrAgent->Dump();
 
@@ -143,7 +154,7 @@ int TestTextCB_Call(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, voi
         printf("%s : no function name\n", splitedStrAgent->subStrVector[0].c_str());
     }
 
-    TextVar *var = textCallDB->textVarDB->Find(splitedStrAgent->subStrVector[1]);
+    TextVar *var = textCallDB->textVarDB->FindVar(&(splitedStrAgent->subStrVector[1]));
     if (var == NULL) {
         printf("Unknown func name : %s\n", splitedStrAgent->subStrVector[1].c_str());
     } else {
@@ -156,6 +167,11 @@ int TestTextCB_Call(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, voi
     return 0;
 }
 
+int TextCall_Exit(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
+{
+    return TXT_CALL_RET_EXIT;
+}
+
 int FuncHAHAHA(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     PRINT_FUNC_LINE;
@@ -163,30 +179,17 @@ int FuncHAHAHA(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *us
     return 0;
 }
 
-void TextCall_Start(const char *line)
-{
-    // 1. get first word
-    LibStringClass strAgent = LibStringClass(line);
-    strAgent.Split();
-
-    if (strAgent.subStrVector.size() >= 1) {
-        printf("[[[%s]]]\n", strAgent.subStrVector[0].c_str());
-    }
-    strAgent.Dump();
-
-    // 2. find callback in map
-}
-
 void TextCall_DefaultInit(TextCallDB *db)
 {
     db->textCallDB = db;
-    ASSERT_IF( db->AddPair("@var", (TextCall_CB_t)TestTextCB_Var) );
-    ASSERT_IF( db->AddPair("@_var", (TextCall_CB_t)TestTextCB_Var) );
-    ASSERT_IF( db->AddPair("@dump", (TextCall_CB_t)TestTextCB_Dump) );
-    ASSERT_IF( db->AddPair("@dumpAll", (TextCall_CB_t)TestTextCB_DumpAll) );
-    ASSERT_IF( db->AddPair("@call", (TextCall_CB_t)TestTextCB_Call) );
+    ASSERT_IF( db->AddCallPair("@var", (TextCall_CB_t)TextCall_Var) );
+    ASSERT_IF( db->AddCallPair("@_var", (TextCall_CB_t)TextCall_Var) );
+    ASSERT_IF( db->AddCallPair("@dump", (TextCall_CB_t)TextCall_Dump) );
+    ASSERT_IF( db->AddCallPair("@dumpAll", (TextCall_CB_t)TextCall_DumpAll) );
+    ASSERT_IF( db->AddCallPair("@call", (TextCall_CB_t)TextCall_Call) );
+    ASSERT_IF( db->AddCallPair("@exit", (TextCall_CB_t)TextCall_Exit) );
 
-    TextVar *var = db->textVarDB->AddPair("FuncHAHAHA");
+    TextVar *var = db->textVarDB->AddVarPair("FuncHAHAHA");
     BASIC_ASSERT(var != NULL);
     var->pUniVar->Import((void *)FuncHAHAHA);
 }
@@ -197,11 +200,11 @@ void TextCall_DefaultUninit(TextCallDB *db)
 }
 
 const char *gTestText[] = {
-    "@var u8 i %x 01 03 04 34 12 00 0A",
+    "@var s8 i %x 0F 03 04 34 12 00 0A",
     " @_var u32 j 0x%x 0xFF123456 0xAABBCCDD",
     "     @dump j",
     "@call FuncHAHAHA i j",
-    "@print \"abc j = \" j[2] j \"123\"",
+    "@print \"abc haha = \" i[0-0xFF] \" next = \" 0x%08X FuncHAHAHA \" \" \"END\n\"",
 };
 void TextCall_Demo(void)
 {
@@ -218,9 +221,13 @@ void TextCall_Demo(void)
         db0->Start(gTestText[i]);
     }
 
+    DUMPNA(FuncHAHAHA);
+    //db0->textVarDB->Dump();
     TextCall_DefaultUninit(db0);
 
     MM_UNINIT();
+
+    
 
     /*
         next:

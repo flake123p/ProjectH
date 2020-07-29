@@ -1,8 +1,17 @@
 #include "Everything_ThisMod.hpp"
 
+static u32 gPrint;
+static u32 gPrintN;
+
 /*
     NOT USE IN ARRAY!!
-    @print "abc" %x [var_name] [-posi] num "123"
+    @print "abc" %x i j[4] k[4-e] "123"
+
+SINGAL ELEMENT MATH (@add @sub @mux @div @mod @and @or)
+    @add i j
+    @add i %d 12
+    @add i[6] j[7]
+
     @add [var_name] [-const] %x 09
     @add [var_name] [-var] [var_name]
     
@@ -17,84 +26,142 @@
     @for_end
 */
 
+TextVar *TextCall_GetVar(TextCallDB *textCallDB, std::string *in, u32 *outStartIdx, u32 *outEndIdx)
+{
+    std::string extractName;
+    LibString_IsArrayPattern(in, &extractName, outStartIdx, outEndIdx);
+    TextVar *var = textCallDB->textVarDB->FindVar(&extractName);
+    u32 varNum;
+
+    if (var == NULL) {
+        printf("[Unknown Var:%s]", in->c_str());
+        return NULL;
+    }
+    varNum = var->pUniVar->Num();
+    if (varNum == 0) {
+        printf("[Uninit Var:%s]", in->c_str());
+        return NULL;
+    }
+    if (*outEndIdx == 0xFFFFFFFF) {
+        *outEndIdx = varNum - 1;
+    }
+    if ((*outStartIdx > *outEndIdx) || (*outStartIdx >= varNum) || (*outEndIdx >= varNum)) {
+        printf("[Var Range Error:%s (Max:%d)]", in->c_str(), varNum-1);
+        return NULL;
+    }
+    return var;
+}
+
 int TextCall_Print(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     std::string extractName;
-    u32 arrayIndex;
-    int isArray;
+    std::string printFormat = "%d";
+    u32 startIdx, endIdx;
+    u32 *printMode = (u32 *)userHdl_0;
 
     for (size_t i = 1; i <splitedStrAgent->subStrVector.size(); i++) {
         if (splitedStrAgent->subStrFlagVector[i] & LIB_STR_SUB_DOUBLE_QUOTE) {
             printf("%s", splitedStrAgent->subStrVector[i].c_str());
             continue;
-        }
-        isArray = LibString_ParseArrayPattern(&(splitedStrAgent->subStrVector[i]), &extractName, &arrayIndex);
-    }
-    printf("\n");
+        } else {
+            if (LibString_IsPrintPattern(&(splitedStrAgent->subStrVector[i]))) {
+                printFormat = (splitedStrAgent->subStrVector[i]);
+                continue;
+            }
+            LibString_IsArrayPattern(&(splitedStrAgent->subStrVector[i]), &extractName, &startIdx, &endIdx);
+            TextVar *var = textCallDB->textVarDB->FindVar(&extractName);
+            u32 varNum;
+            u32 value, j;
 
-    PRINT_FUNC;
-    splitedStrAgent->Dump();
+            if (var == NULL) {
+                printf("[Unknown Var:%s]", splitedStrAgent->subStrVector[i].c_str());
+                continue;
+            }
+            varNum = var->pUniVar->Num();
+            if (varNum == 0) {
+                printf("[Uninit Var:%s]", splitedStrAgent->subStrVector[i].c_str());
+                continue;
+            }
+            if (endIdx == 0xFFFFFFFF) {
+                endIdx = varNum - 1;
+            }
+            if ((startIdx > endIdx) || (startIdx >= varNum) || (endIdx >= varNum)) {
+                printf("[Var Range Error:%s (Max:%d)]", splitedStrAgent->subStrVector[i].c_str(), varNum-1);
+                continue;
+            }
+
+            j = startIdx;
+            while (1) {
+                if (var->pUniVar->type & VAR_IS_8BITS) {
+                    value = (u32)(((u8 *)var->pUniVar->ptr)[j]);
+                } else if (var->pUniVar->type & VAR_IS_16BITS) {
+                    value = (u32)(((u16 *)var->pUniVar->ptr)[j]);
+                } else if (var->pUniVar->type & VAR_IS_32BITS) {
+                    value = (u32)(((u32 *)var->pUniVar->ptr)[j]);
+                } else {
+                    //void *temp = ((void **)var->pUniVar->ptr)[j];
+                    value = (u32)((int **)var->pUniVar->ptr)[j];
+                    //DUMPA(temp);
+                }
+                printf(printFormat.c_str(), value);
+                if (j == endIdx) {
+                    break;
+                } else {
+                    j++;
+                    printf(" ");
+                }
+            }
+        }
+    }
+
+    if (printMode == &gPrintN) {
+        printf("\n");
+    }
+
+    //PRINT_FUNC;
+    //splitedStrAgent->Dump();
     //u32 *x = (u32 *)userHdl_0;
     //DUMPND(*x);
     //splitedStrAgent->Dump();
+    return 0;
+}
 
-#if 0
-    TextVar *var = textCallDB->textVarDB->AddPair(splitedStrAgent->subStrVector[2]);
-    if (var == NULL) {
-        printf("Duplicate var name:%s\n", splitedStrAgent->subStrVector[2].c_str());
-        BASIC_ASSERT(0);
-    }
-    var->name = splitedStrAgent->subStrVector[2];
+int TextCall_PrintNewLine(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
+{
+    printf("\n");
+    return 0;
+}
 
-    u32 temp;
-    for (size_t i = 4; i < splitedStrAgent->subStrVector.size(); i++) {
-        sscanf(splitedStrAgent->subStrVector[i].c_str(), splitedStrAgent->subStrVector[3].c_str(), &temp);
-        //DUMPNX(temp);
-        if (splitedStrAgent->subStrVector[1] == "u8") {
-            if (temp > 0xFF) {
-                printf("val is big than u8 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
-            }
-            var->pUniVar->Import((u8)temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "s8") {
-            if (temp > 0xFF) {
-                printf("val is big than s8 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
-            }
-            var->pUniVar->Import((s8)temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "u16") {
-            if (temp > 0xFFFF) {
-                printf("val is big than u16 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
-            }
-            var->pUniVar->Import((u16)temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "s16") {
-            if (temp > 0xFFFF) {
-                printf("val is big than s16 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
-            }
-            var->pUniVar->Import((s16)temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "u32") {
-            var->pUniVar->Import(temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "s32") {
-            var->pUniVar->Import((s32)temp);
-        }
-        else {
-            printf("scan type not support (%s)\n", splitedStrAgent->subStrVector[1].c_str());
-            BASIC_ASSERT(0);
-        }
+/*
+SINGAL ELEMENT MATH (@add @sub @mux @div @mod @and @or) to <- from
+@add i j
+@add i %d 12
+@add i[6] j[7]
+*/
+enum {
+    TXT_CALL_MATH_ADD = 1100,
+};
+int TextCall_Math(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
+{
+    int i = (int)userHdl_0;
+    printf("i = %d\n", i);
+
+    TextVar *varTo;
+    TextVar *varFrom;
+
+    if(splitedStrAgent->subStrVector.size() < 3) {
+        printf("[Format error : %s]\n", splitedStrAgent->str.c_str());
+        return 0;
     }
-#endif
+
     return 0;
 }
 
 void TextCall_BasicInit(TextCallDB *db)
 {
-    ASSERT_IF( db->AddPair("@print", (TextCall_CB_t)TextCall_Print) );
+    ASSERT_IF( db->AddCallPair("@print", (TextCall_CB_t)TextCall_Print, &gPrint) );
+    ASSERT_IF( db->AddCallPair("@printn", (TextCall_CB_t)TextCall_Print, &gPrintN) );
+    ASSERT_IF( db->AddCallPair("@nl", (TextCall_CB_t)TextCall_PrintNewLine) );
+    ASSERT_IF( db->AddCallPair("@add", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_ADD) );
 }
 

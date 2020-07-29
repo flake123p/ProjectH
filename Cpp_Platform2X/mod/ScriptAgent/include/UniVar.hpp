@@ -47,6 +47,14 @@ public:
     //pointer & function
     int Import(void *in){return ImportEx(VAR_VOID_POINTER, len, (u8 *)&in, UniVar_GetUnitInBytes(VAR_VOID_POINTER));};
 
+    u32 Num(void) {
+        if (UniVar_GetUnitInBytes(type) == 0) {
+            return 0;
+        } else {
+            return len / UniVar_GetUnitInBytes(type);
+        }
+    };
+
     void UniVarDump(void);
 
     void Reset(void){ResetAndRetainBuffer();};

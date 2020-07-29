@@ -1,0 +1,15 @@
+@var s8 i %x 0F 03 04 34 12 00 0A
+@add i %d 2
+@print "i : "i[0] " " i[1]
+@exit
+#@dump i
+@printn i
+@printn i[0-100]
+@exit
+ @_var u32 j 0x%x 0xFF123456 0xAABBCCDD
+     @dump j
+@call FuncHAHAHA i j
+@print "abc var = " 0x%08X j[0-E] " FuncHAHAHA = " 0x%08X FuncHAHAHA " END"
+@nl
+@exit
+@dumpAll

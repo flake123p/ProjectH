@@ -439,9 +439,12 @@ u32 LibString_GetDeciOrHex(std::string *in)
 }
 
 //return true for array index parsed
-int LibString_ParseArrayPattern(std::string *in, std::string *outVarName, u32 *outArrayIndex)
+int LibString_IsArrayPattern(std::string *in, std::string *outAryName, u32 *outStartIdx, u32 *outEndIdx)
 {
     size_t inStrSize = in->size();
+    *outAryName = *in;
+    *outStartIdx = 0;
+    *outEndIdx = 0;
 
     if(inStrSize <= 3) {
         return 0;
@@ -454,24 +457,48 @@ int LibString_ParseArrayPattern(std::string *in, std::string *outVarName, u32 *o
     if ((*in)[inStrSize-1] != ']') {
         return 0;
     } else {
-        int state = 0; //0 for saving var string, 1 for saving index string
-        std::string indexStr = "";
-        *outVarName = "";
+        int state = 0; //0 for name, 1 for start, 2 for end
+        std::string startIdxStr = "";
+        std::string endIdxStr = "";
+        *outAryName = "";
         for (size_t i=0; i<inStrSize-1; i++) {
             if ((*in)[i] == '[') {
                 state = 1;
                 continue;
             }
+            if ((*in)[i] == '-') {
+                state = 2;
+                continue;
+            }
             if (state == 0) { //0 for saving var string
-                *outVarName += (*in)[i];
+                *outAryName += (*in)[i];
             } else if (state == 1) {
-                indexStr += (*in)[i];
+                startIdxStr += (*in)[i];
+            } else if (state == 2) {
+                endIdxStr += (*in)[i];
             }
         }
-        *outArrayIndex = LibString_GetDeciOrHex(&indexStr);
+        *outStartIdx = LibString_GetDeciOrHex(&startIdxStr);
+        *outEndIdx = *outStartIdx;
+        if (state  == 2) {
+            if (endIdxStr == "e" || endIdxStr == "E") {
+                *outEndIdx = 0xFFFFFFFF;
+            } else {
+                *outEndIdx = LibString_GetDeciOrHex(&endIdxStr);
+            }
+        }
     }
 
     return 1;
+}
+
+int LibString_IsPrintPattern(std::string *in)
+{
+    if (in->find('%') == std::string::npos) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 LibStringClass::LibStringClass(const char *cString /* = NULL */)

@@ -7,6 +7,13 @@
 #include "TextVar.hpp"
 
 //std::vector<std::string> standAloneArgs;
+typedef enum {
+    TXT_CALL_RET_OK = 0,
+
+    TXT_CALL_RET_EXIT = 0xF000,
+    TXT_CALL_RET_COMMENT_LINE,
+
+} TXT_CALL_RET_t;
 
 typedef int (*TextCall_CALL_CB_t)(void *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1);
 
@@ -24,6 +31,9 @@ public:
     TextCallDB *textCallDB;
     TextVarDB  *textVarDB;
 
+    std::string currFile;
+    u32 currFileLine;
+
     void _clearParameter(void) {
         callbackMap.clear();
     };
@@ -32,13 +42,18 @@ public:
     {
         _clearParameter();
         textVarDB = new(TextVarDB);
+        currFile = "";
+        currFileLine = 0;
     };
     ~TextCallDB(){_clearParameter();SAFE_DELETE(textVarDB);};
     void Dump(void);
-    int AddPair(const char *str, TextCall_CB_t cb, void *userHdl_0 = NULL, void *userHdl_1 = NULL);
+    int AddCallPair(const char *str, TextCall_CB_t cb, void *userHdl_0 = NULL, void *userHdl_1 = NULL);
     int Start(const char *line, int *cbRet = NULL);
     //int RemovePair(const char *str);
 };
+
+void TextCall_DefaultInit(TextCallDB *db);
+void TextCall_DefaultUninit(TextCallDB *db);;
 
 void TextCall_Demo(void);
 

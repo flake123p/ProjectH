@@ -72,14 +72,14 @@ public:
     };
     ~TextVarDB(){_clearParameter();};
 
-    TextVar *AddPair(std::string str, TextVar *pTextVar = NULL);
-    TextVar *AddPair(const char *str, TextVar *pTextVar = NULL){std::string cppStr=str;return AddPair(cppStr, pTextVar);};
-    TextVar *Find(std::string str);
-    TextVar *Find(const char *str){std::string cppStr=str;return Find(cppStr);};
+    TextVar *AddVarPair(std::string *str, TextVar *pTextVar = NULL);
+    TextVar *AddVarPair(const char *str, TextVar *pTextVar = NULL){std::string cppStr=str;return AddVarPair(&cppStr, pTextVar);};
+    TextVar *FindVar(std::string *str);
+    TextVar *FindVar(const char *str){std::string cppStr=str;return FindVar(&cppStr);};
 
     // http://www.cplusplus.com/reference/map/map/erase/
-    int Erase(std::string name, TextVar **outTextVar =NULL);
-    int Erase(const char *name, TextVar **outTextVar =NULL){std::string cppStr=name;return Erase(cppStr, outTextVar);};
+    int EraseVar(std::string *name, TextVar **outTextVar =NULL);
+    int EraseVar(const char *name, TextVar **outTextVar =NULL){std::string cppStr=name;return EraseVar(&cppStr, outTextVar);};
 
     void Dump(void) {
         std::map<std::string, TextVar *>::iterator it;

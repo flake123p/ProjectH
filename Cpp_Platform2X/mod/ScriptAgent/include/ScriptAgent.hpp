@@ -15,6 +15,8 @@
 #include "UniVar.hpp"
 #include "TextVar.hpp"
 #include "TextCall.hpp"
+#include "TextCall_Basic.hpp"
+#include "TextCall_Uart.hpp"
 
 
 class ScriptAgent: virtual public Tracer {

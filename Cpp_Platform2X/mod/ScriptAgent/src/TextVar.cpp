@@ -11,16 +11,16 @@ void TextVar::TextVarDump(void)
     }
 };
 
-TextVar *TextVarDB::AddPair(std::string str, TextVar *pTextVar /*= NULL*/)
+TextVar *TextVarDB::AddVarPair(std::string *str, TextVar *pTextVar /*= NULL*/)
 {
     if (pTextVar == NULL) {
         pTextVar = new(TextVar);
     }
-    pTextVar->name = str;
+    pTextVar->name = *str;
 
     {
         std::pair<std::map<std::string, TextVar *>::iterator,bool> ret;
-        ret = varDB.insert ( std::pair<std::string, TextVar *>(str, pTextVar) );
+        ret = varDB.insert ( std::pair<std::string, TextVar *>(*str, pTextVar) );
         if (ret.second==false) {
             // The name is exist.
             return NULL;
@@ -30,11 +30,11 @@ TextVar *TextVarDB::AddPair(std::string str, TextVar *pTextVar /*= NULL*/)
     return pTextVar;
 }
 
-TextVar *TextVarDB::Find(std::string name)
+TextVar *TextVarDB::FindVar(std::string *name)
 {
     std::map<std::string, TextVar *>::iterator it;
 
-    it = varDB.find(name);
+    it = varDB.find(*name);
     if (it == varDB.end()) {
         // Can't find it
         return NULL;
@@ -43,13 +43,13 @@ TextVar *TextVarDB::Find(std::string name)
     return it->second;
 }
 
-int TextVarDB::Erase(std::string name, TextVar **outTextVar /*=NULL*/)
+int TextVarDB::EraseVar(std::string *name, TextVar **outTextVar /*=NULL*/)
 {
     int doAutoDelete = 0;
 
     std::map<std::string, TextVar *>::iterator it;
 
-    it = varDB.find(name);
+    it = varDB.find(*name);
     if (it == varDB.end()) {
         // Can't find it
         return 1;
@@ -81,11 +81,11 @@ void TextVar_Demo(void)
     PRINT_FUNC;
 
     TextVarDB *db = new(TextVarDB);
-    db->AddPair("123");
-    db->AddPair("ab");
-    TextVar *test = db->Find("123");
+    db->AddVarPair("123");
+    db->AddVarPair("ab");
+    TextVar *test = db->FindVar("123");
     test->name = "ffdd0";
-    db->Erase("123", &test);
+    db->EraseVar("123", &test);
     PRINT_LINE;
     db->Dump();
     PRINT_LINE;
