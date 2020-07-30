@@ -29,40 +29,61 @@ int TextCallDB::AddCallPair(const char *str, TextCall_CB_t cb, void *userHdl_0 /
 
 int TextCallDB::Start(const char *line, int *cbRet /*= NULL*/)
 {
+    int ret = 0;
     int ret_from_cb;
 
     // 1. get first word
-    LibStringClass strAgent = LibStringClass(line);
-    strAgent.Split(true);
+    LibStringClass *strAgent = new(LibStringClass);
+    strAgent->Init(line);
+    strAgent->RemoveRestStringByChar('#');
+    strAgent->Split(true);
     //strAgent.Dump();
 
-    if (strAgent.subStrVector.size() < 1) {
-        return 1;
-    }
-
-    if (strAgent.subStrVector[0][0] == '#') {
-        if (cbRet != NULL) {
-            *cbRet = TXT_CALL_RET_COMMENT_LINE;
+    do {
+        if (strAgent->subStrVector.size() < 1) {
+            ret = 1;
+            break;
         }
-        return 2;
-    }
 
-    std::map<std::string,TextCall_t>::iterator mapIt;
+        if (strAgent->subStrVector[0][0] == '#') {
+            if (cbRet != NULL) {
+                *cbRet = TXT_CALL_RET_COMMENT_LINE;
+            }
+            ret = 2;
+            break;
+        }
 
-    mapIt = callbackMap.find(strAgent.subStrVector[0]);
-    if (mapIt == callbackMap.end()) {
-        //LibError_SetExtErrorMessage("Can't find section: %s\n", secName.c_str());
-        printf("Unknown TextCall keywoard : %s\n", strAgent.subStrVector[0].c_str());
-        return 1;
-    }
+        if (skipEnable) {
+            if (strAgent->subStrVector[0] == skipOverString) {
+                skipEnable = 0;
+                skipOverString = "";
+            }
+            ret = 3;
+            break;
+        }
 
-    TextCall_t textCall = mapIt->second;
-    ret_from_cb = (*(textCall.cb))(textCallDB, &strAgent, textCall.userHdl_0, textCall.userHdl_1);
-    if (cbRet != NULL) {
-        *cbRet = ret_from_cb;
-    }
+        std::map<std::string,TextCall_t>::iterator mapIt;
 
-    return 0;
+        mapIt = callbackMap.find(strAgent->subStrVector[0]);
+        if (mapIt == callbackMap.end()) {
+            //LibError_SetExtErrorMessage("Can't find section: %s\n", secName.c_str());
+            printf("Unknown TextCall keywoard : %s\n", strAgent->subStrVector[0].c_str());
+            ret = 4;
+            break;
+        }
+
+        TextCall_t textCall = mapIt->second;
+        ret_from_cb = (*(textCall.cb))(textCallDB, strAgent, textCall.userHdl_0, textCall.userHdl_1);
+        if (cbRet != NULL) {
+            *cbRet = ret_from_cb;
+        }
+
+        if (TXT_CALL_RET_ERROR_LOG == ret_from_cb) {
+            printf("\n[ERROR in file : %s, Line : %d]\n", currFile.c_str(), currFileLine);
+        }
+    } while (0) ;
+    delete(strAgent);
+    return ret;
 }
 
 int TextCall_Var(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)

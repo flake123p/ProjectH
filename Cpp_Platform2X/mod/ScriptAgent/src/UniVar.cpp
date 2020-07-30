@@ -28,6 +28,46 @@ void UniVar::UniVarDump(void)
     }
 }
 
+int UniVar::GetSingleElement32(u32 index, u32 *out)
+{
+    u32 value;
+
+    if (index >= MaxNum()) {
+        return 1;
+    }
+
+    if (type & VAR_IS_8BITS) {
+        value = (u32)(((u8 *)ptr)[index]);
+    } else if (type & VAR_IS_16BITS) {
+        value = (u32)(((u16 *)ptr)[index]);
+    } else if (type & VAR_IS_32BITS) {
+        value = (u32)(((u32 *)ptr)[index]);
+    } else {
+        value = (u32)((int **)ptr)[index];
+    }
+
+    *out = value;
+    return 0;
+}
+
+int UniVar::SetSingleElement32(u32 index, u32 in)
+{
+    if (index >= MaxNum()) {
+        return 1;
+    }
+
+    if (type & VAR_IS_8BITS) {
+        ((u8 *)ptr)[index] = (u8)in;
+    } else if (type & VAR_IS_16BITS) {
+        ((u16 *)ptr)[index] = (u16)in;
+    } else if (type & VAR_IS_32BITS) {
+        ((u32 *)ptr)[index] = (u32)in;
+    } else {
+        //TBD
+    }
+    return 0;
+}
+
 void UniVar_Demo(void)
 {
     MM_INIT();

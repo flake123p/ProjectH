@@ -47,13 +47,16 @@ public:
     //pointer & function
     int Import(void *in){return ImportEx(VAR_VOID_POINTER, len, (u8 *)&in, UniVar_GetUnitInBytes(VAR_VOID_POINTER));};
 
-    u32 Num(void) {
+    u32 MaxNum(void) {
         if (UniVar_GetUnitInBytes(type) == 0) {
             return 0;
         } else {
             return len / UniVar_GetUnitInBytes(type);
         }
     };
+
+    int GetSingleElement32(u32 index, u32 *out);
+    int SetSingleElement32(u32 index, u32 in);
 
     void UniVarDump(void);
 

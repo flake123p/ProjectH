@@ -1,7 +1,22 @@
-@var s8 i %x 0F 03 04 34 12 00 0A
-@add i %d 2
-@print "i : "i[0] " " i[1]
+@var u32 i %u 13
+@if %d 14 >  i
+@printn "abc"
+@else
+@printn "def"
+@endif
+@printn "ccaa"
 @exit
+
+@var s8 i %x 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A
+@var u32 j %d 2 8
+
+@printn "before : " %02X i[0-E]
+@set i[1] j[1]
+@not i
+@cmpl i[2]
+@printn "after  : " %02X i[0-E]
+@exit
+
 #@dump i
 @printn i
 @printn i[0-100]
@@ -13,3 +28,11 @@
 @nl
 @exit
 @dumpAll
+
+@sub i[1] %d 3
+@mux i[2] j
+@div i[3] %d 3
+@mod i[4] %d 3
+@and i[5] %x F7
+@or  i[6] %d 5
+@xor i[7] %d 1

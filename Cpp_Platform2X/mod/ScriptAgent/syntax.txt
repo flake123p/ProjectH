@@ -1,3 +1,43 @@
+20200730
+
+array write
+array compare
+@compare
+> < >= <= ==
+@if i > j
+ ...
+@else
+ ...
+@endif
+
+### saving all string ...
+@while i > j
+raw 01 81 fc 06 05 00 60 00 00 F0
+@if i > k
+@breakwhile
+@else
+@endif
+@endwhile
+
+while 
+array asign
+array compare
+nested if/else while
+==================================================
+5 compare types: > < >= <= ==
+@if i > j
+ ...
+@else
+ ...
+@endif
+==================================================
+SINGAL EXISTED ELEMENT MATH (@add @sub @mux @div @mod @and @or @xor):to <- from, (@not @cmpl):only to, no from
+@add i j
+@add i %d 12
+@add i[6] j[7]
+@not i
+@not i[7]
+==================================================
 Description:
 [ ]thread simutanious read/write
 [ ]function call, function which receive input in script, LOOPBACK mode!!(middle ware:uart/usb...)

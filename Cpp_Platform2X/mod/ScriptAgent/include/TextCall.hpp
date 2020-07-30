@@ -12,6 +12,7 @@ typedef enum {
 
     TXT_CALL_RET_EXIT = 0xF000,
     TXT_CALL_RET_COMMENT_LINE,
+    TXT_CALL_RET_ERROR_LOG,
 
 } TXT_CALL_RET_t;
 
@@ -34,6 +35,9 @@ public:
     std::string currFile;
     u32 currFileLine;
 
+    int skipEnable;
+    std::string skipOverString;
+
     void _clearParameter(void) {
         callbackMap.clear();
     };
@@ -44,6 +48,8 @@ public:
         textVarDB = new(TextVarDB);
         currFile = "";
         currFileLine = 0;
+        skipEnable = 0;
+        skipOverString = "";
     };
     ~TextCallDB(){_clearParameter();SAFE_DELETE(textVarDB);};
     void Dump(void);

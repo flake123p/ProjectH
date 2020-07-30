@@ -39,7 +39,7 @@ u8 LibString_GetCheckSumU8(u8 *srcAry, u32 srcAryLen);
 
 u32 LibString_GetDeciOrHex(std::string *in);
 int LibString_IsArrayPattern(std::string *in, std::string *outAryName, u32 *outStartIdx, u32 *outEndIdx);
-int LibString_IsPrintPattern(std::string *in);
+int LibString_IsPrintPattern(std::string *in, int *isSigned = NULL);
 
 
 typedef struct {
@@ -104,6 +104,7 @@ public:
 	int Split(bool checkDoubleQuote = false);
 	int ReplaceWithRestLength(const char *s);
 	int ReplaceWithRestLengthEx(const char *s);
+	int RemoveRestStringByChar(char ch);
 	int RemoveExtension(char ch);
 	int ReplaceExtension(char ch, const char *s);
 	int ReplaceSubString(const char *toStr, const char *fromStr);

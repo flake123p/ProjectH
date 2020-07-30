@@ -492,13 +492,31 @@ int LibString_IsArrayPattern(std::string *in, std::string *outAryName, u32 *outS
     return 1;
 }
 
-int LibString_IsPrintPattern(std::string *in)
+int LibString_IsPrintPattern(std::string *in, int *isSigned /*= NULL*/)
 {
-    if (in->find('%') == std::string::npos) {
-        return 0;
-    } else {
-        return 1;
+    int isFound = 0;
+    std::size_t foundPosi = in->find('%');
+
+    if (isSigned != NULL) {
+        *isSigned = 0;
     }
+
+    if (foundPosi == std::string::npos) {
+        isFound = 0;
+    } else {
+        if (foundPosi == in->size()-1) {
+            isFound = 0;
+        } else {
+            isFound = 1;
+            if ((*in)[foundPosi+1] == 'd') {
+                if (isSigned != NULL) {
+                    *isSigned = 1;
+                }
+            }
+        }
+    }
+
+    return isFound;
 }
 
 LibStringClass::LibStringClass(const char *cString /* = NULL */)
@@ -702,6 +720,10 @@ int LibStringClass::ReplaceWithRestLengthEx(const char *s)
 	return 0;
 }
 
+int LibStringClass::RemoveRestStringByChar(char ch)
+{
+    return RemoveExtension(ch);
+}
 
 int LibStringClass::RemoveExtension(char ch)
 {
