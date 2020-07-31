@@ -1,14 +1,8 @@
 20200730
 
+array index allows var
 array write
 array compare
-@compare
-> < >= <= ==
-@if i > j
- ...
-@else
- ...
-@endif
 
 ### saving all string ...
 @while i > j
@@ -31,7 +25,9 @@ nested if/else while
  ...
 @endif
 ==================================================
-SINGAL EXISTED ELEMENT MATH (@add @sub @mux @div @mod @and @or @xor):to <- from, (@not @cmpl):only to, no from
+SINGAL EXISTED ELEMENT MATH
+(@add @sub @mux @div @mod @and @or @xor @<< @>> @lshift @rshift): "to" <- "from"
+(@not @cmpl): only "to", no "from"
 @add i j
 @add i %d 12
 @add i[6] j[7]

@@ -1,3 +1,11 @@
+@var u8 i %x 2
+@var u32 k %d 2
+@lshift i k
+@printn "i = " i " k = " k
+@dump k
+
+@exit
+
 @var u32 i %u 13
 @if %d 14 >  i
 @printn "abc"

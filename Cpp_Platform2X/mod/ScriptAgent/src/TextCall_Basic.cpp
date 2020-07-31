@@ -336,6 +336,9 @@ int TextCall_Math(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void 
         case TXT_CALL_MATH_AND: valueTo &= valueFrom; break;
         case TXT_CALL_MATH_OR : valueTo |= valueFrom; break;
         case TXT_CALL_MATH_XOR: valueTo ^= valueFrom; break;
+
+        case TXT_CALL_MATH_LSHIFT: valueTo = valueTo << valueFrom; break;
+        case TXT_CALL_MATH_RSHIFT: valueTo = valueTo >> valueFrom; break;
         default: BASIC_ASSERT(0); break;
     }
     //printf(" result:%d\n", valueTo);
@@ -413,6 +416,11 @@ void TextCall_BasicInit(TextCallDB *db)
     ASSERT_IF( db->AddCallPair("@and", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_AND) );
     ASSERT_IF( db->AddCallPair("@or",  (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_OR) );
     ASSERT_IF( db->AddCallPair("@xor", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_XOR) );
+    ASSERT_IF( db->AddCallPair("@<<", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_LSHIFT) );
+    ASSERT_IF( db->AddCallPair("@lshift", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_LSHIFT) );
+    ASSERT_IF( db->AddCallPair("@>>", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_RSHIFT) );
+    ASSERT_IF( db->AddCallPair("@rshift", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_RSHIFT) );
+
     ASSERT_IF( db->AddCallPair("@not", (TextCall_CB_t)TextCall_Math_Not, (void *)TXT_CALL_MATH_NOT) );
     ASSERT_IF( db->AddCallPair("@cmpl", (TextCall_CB_t)TextCall_Math_Not, (void *)TXT_CALL_MATH_CMPL) );
     ASSERT_IF( db->AddCallPair("@if", (TextCall_CB_t)TextCall_If) );
