@@ -3,7 +3,9 @@
 void TextVar::TextVarDump(void)
 {
     printf("====== %s() ====== name : %s\n", __func__, name.c_str());
-    DUMPND(passingVarNum);
+    DUMPND(start);
+    DUMPND(end);
+    DUMPND(val32);
     DUMPNX(flags);
 
     if(pUniVar!=NULL) {
@@ -72,6 +74,70 @@ int TextVarDB::EraseVar(std::string *name, TextVar **outTextVar /*=NULL*/)
     }
 
     return 0;
+}
+
+TXT_VAR_ATT_t TextVarDB::TextVar_GetVal32(std::string *inTxt, TextVar **outVar /*= NULL*/, u32 *outVal32 /*= NULL*/)
+{
+    //find '-'
+    //get index str
+    //get name str
+    //get var
+    //get val by index
+    {
+        size_t retPos = inTxt->find('-');
+
+        if (retPos != std::string::npos) {
+            return TXT_VAR_FORMAT_ERROR;
+        }
+    }
+
+    std::string varStr;
+    std::string indexStr;
+    u32 index = 0;
+    u32 temp32;
+
+    if (LibString_GetDeciOrHex32(inTxt, &temp32)) {
+        if (outVal32 != NULL) {
+            *outVal32 = temp32;
+        }
+    }
+
+    if (LibString_IsArrayPattern2(inTxt, &varStr, &indexStr)) {
+        //nested find
+        TXT_VAR_ATT_t ret = TextVar_GetVal32(&indexStr, NULL, &temp32);
+        if (ret & TXT_VAR_ERROR) {
+            return ret;
+        }
+        index = temp32;
+    } else {
+        index = 0;
+    }
+    TextVar *var = FindVar(&varStr);
+    if (var == NULL) {
+        printf("[Unknown Var: %s in %s (%d)]", varStr.c_str(), inTxt->c_str(), __LINE__);
+        return TXT_VAR_CANT_BE_FOUND;
+    }
+
+    u32 varMaxNum = var->pUniVar->MaxNum();
+    if (varMaxNum == 0) {
+        printf("[Uninit Var: %s in %s (%d)]", varStr.c_str(), inTxt->c_str(), __LINE__);
+        return TXT_VAR_IS_NOT_INITED;
+    }
+    if (index >= varMaxNum) {
+        printf("[Var Range Error:%s (Max:%d)] (%d)", inTxt->c_str(), varMaxNum-1, __LINE__);
+        return TXT_VAR_OUT_OF_RANGE;
+    }
+    var->pUniVar->GetSingleElement32(index, &temp32);
+    if (outVar != NULL) {
+        var->val32 = temp32;
+        var->start = index;
+        *outVar = var;
+    }
+    if (outVal32 != NULL) {
+        *outVal32 = temp32;
+    }
+
+    return TXT_VAR_IS_SINGLE;
 }
 
 void TextVar_Demo(void)

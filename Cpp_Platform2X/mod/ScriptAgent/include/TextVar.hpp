@@ -17,13 +17,31 @@ typedef enum {
     //TXT_VAR_IS_MORE_ARGU    = ,
 } TXT_VAR_FLAG_t;
 
+typedef enum {
+    TXT_VAR_IS_SINGLE = 0,
+    TXT_VAR_IS_MULTI,
+
+    TXT_VAR_IS_NESTED,
+
+    //errors
+    TXT_VAR_ERROR = 0x80,
+    TXT_VAR_CANT_BE_FOUND,
+    TXT_VAR_OUT_OF_RANGE,
+    TXT_VAR_FORMAT_ERROR,
+    TXT_VAR_IS_NOT_INITED,
+    TXT_VAR_ERROR_MAX = 0x8F,
+
+} TXT_VAR_ATT_t;
+
 class TextVar{
 public:
     std::string name;
     UniVar *pUniVar; //use delete() if auto release is on
 
     u32 flags; //TXT_VAR_FLAG_t
-    u32 passingVarNum; // 0xFFFFFFFF for max num
+    u32 start;
+    u32 end; // 0xFFFFFFFF for max num
+    u32 val32;
     u32 userData;
     void *userHdl;
 
@@ -35,7 +53,9 @@ public:
         name="";
         pUniVar=new(UniVar);
         flags=TXT_VAR_IS_AUTO_FREE;
-        passingVarNum=0;
+        start=0;
+        end=0;
+        val32=0;
         userData=0;
         userHdl=NULL;
     };
@@ -80,6 +100,8 @@ public:
     // http://www.cplusplus.com/reference/map/map/erase/
     int EraseVar(std::string *name, TextVar **outTextVar =NULL);
     int EraseVar(const char *name, TextVar **outTextVar =NULL){std::string cppStr=name;return EraseVar(&cppStr, outTextVar);};
+
+    TXT_VAR_ATT_t TextVar_GetVal32(std::string *inTxt, TextVar **outVar = NULL, u32 *outVal32 = NULL);
 
     void Dump(void) {
         std::map<std::string, TextVar *>::iterator it;

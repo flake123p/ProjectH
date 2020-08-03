@@ -438,6 +438,51 @@ u32 LibString_GetDeciOrHex(std::string *in)
     return retVal;
 }
 
+int LibString_GetDeciOrHex32(std::string *in, u32 *out)
+{
+    u32 retVal;
+    int isHex = 0;
+    int isUpperCaseX = 0;
+
+    if (in->size() >= 3) {
+        if ((*in)[0] == '0') {
+            if ((*in)[1] == 'x') {
+                isHex = 1;
+            } else if ((*in)[1] == 'X') {
+                isHex = 1;
+                isUpperCaseX = 1;
+            }
+        }
+    }
+
+    for (size_t i  = 0; i < in->size(); i ++) {
+        if (i == 1) {
+            if ( ((*in)[i] == 'x') || ((*in)[i] == 'X') ) {
+                if ((*in)[0] == '0') {
+                    continue;
+                } else {
+                    return 0;
+                }
+            }
+        }
+        if ( LibString_IsCharHexadecimal((*in)[i])  == false ) {
+            return 0;
+        }
+    }
+    if (isHex) {
+        if (isUpperCaseX) {
+            sscanf(in->c_str(), "0X%x", &retVal);
+        } else {
+            sscanf(in->c_str(), "0x%x", &retVal);
+        }
+    } else {
+        sscanf(in->c_str(), "%u", &retVal);
+    }
+
+    return 1;
+}
+
+
 //return true for array index parsed
 int LibString_IsArrayPattern(std::string *in, std::string *outAryName, u32 *outStartIdx, u32 *outEndIdx)
 {
@@ -491,6 +536,49 @@ int LibString_IsArrayPattern(std::string *in, std::string *outAryName, u32 *outS
 
     return 1;
 }
+
+int LibString_IsArrayPattern2(std::string *in, std::string *outAryName, std::string *outIndexStr)
+{
+    size_t inStrSize = in->size();
+    *outAryName = *in;
+
+    if ((*in)[inStrSize-1] != ']') {
+        return 0;
+    }
+
+    if(inStrSize <= 3) {
+        return 0;
+    }
+
+    if ((*in)[0] == '[') {
+        return 0;
+    }
+
+    int state = 0; //0 for name, 1 for index
+    *outAryName = "";
+    *outIndexStr = "";
+    for (size_t i=0; i<inStrSize-1; i++) {
+        if ((*in)[i] == '[') {
+            state = 1;
+            continue;
+        }
+        if ((*in)[i] == ' ') {
+            continue;
+        }
+        if (state == 0) {
+            *outAryName += (*in)[i];
+        } else if (state == 1) {
+            *outIndexStr += (*in)[i];
+        }
+    }
+
+    if (outIndexStr->size() == 0) {
+        return 0;
+    }
+
+    return 1;
+}
+
 
 int LibString_IsPrintPattern(std::string *in, int *isSigned /*= NULL*/)
 {

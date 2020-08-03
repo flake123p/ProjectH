@@ -38,7 +38,9 @@ char * LibString_Copy(char * destination, const char * source, int num = -1);
 u8 LibString_GetCheckSumU8(u8 *srcAry, u32 srcAryLen);
 
 u32 LibString_GetDeciOrHex(std::string *in);
+int LibString_GetDeciOrHex32(std::string *in, u32 *out);
 int LibString_IsArrayPattern(std::string *in, std::string *outAryName, u32 *outStartIdx, u32 *outEndIdx);
+int LibString_IsArrayPattern2(std::string *in, std::string *outAryName, std::string *outIndexStr);
 int LibString_IsPrintPattern(std::string *in, int *isSigned = NULL);
 
 
