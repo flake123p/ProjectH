@@ -1,5 +1,32 @@
 #include "Everything_ThisMod.hpp"
 
+// Return 1 for get success, 0 for string is not const num (0 1 4 A B 0x08 0X1234 ...)
+int TextVar::ImportSingleConstNumByString(std::string *str, std::string *scanFormat, u32 type)
+{
+    u32 temp;
+
+    if (LibString_IsStringNumerical(str)) {
+        //continue
+    } else {
+        return 0;
+    }
+
+    sscanf(str.c_str(), sscanf.c_str(), &temp);
+
+    switch (type) {
+        case VAR_U8:  pUniVar->Import((u8)temp);  break;
+        case VAR_U16: pUniVar->Import((u16)temp); break;
+        case VAR_U32: pUniVar->Import((u32)temp); break;
+        case VAR_S8:  pUniVar->Import((s8)temp);  break;
+        case VAR_S16: pUniVar->Import((s16)temp); break;
+        case VAR_S32: pUniVar->Import((s32)temp); break;
+        default:
+            break;
+    }
+
+    return 1;
+}
+
 void TextVar::TextVarDump(void)
 {
     printf("====== %s() ====== name : %s\n", __func__, name.c_str());
@@ -76,7 +103,7 @@ int TextVarDB::EraseVar(std::string *name, TextVar **outTextVar /*=NULL*/)
     return 0;
 }
 
-TXT_VAR_ATT_t TextVarDB::TextVar_GetVal32(std::string *inTxt, TextVar **outVar /*= NULL*/, u32 *outVal32 /*= NULL*/)
+TXT_VAR_RET_t TextVarDB::GetVarVal32(std::string *inTxt, TextVar **outVar /*= NULL*/, u32 *outVal32 /*= NULL*/)
 {
     //find '-'
     //get index str
@@ -100,11 +127,12 @@ TXT_VAR_ATT_t TextVarDB::TextVar_GetVal32(std::string *inTxt, TextVar **outVar /
         if (outVal32 != NULL) {
             *outVal32 = temp32;
         }
+        return TXT_IS_CONST;
     }
 
     if (LibString_IsArrayPattern2(inTxt, &varStr, &indexStr)) {
         //nested find
-        TXT_VAR_ATT_t ret = TextVar_GetVal32(&indexStr, NULL, &temp32);
+        TXT_VAR_RET_t ret = GetVarVal32(&indexStr, NULL, &temp32);
         if (ret & TXT_VAR_ERROR) {
             return ret;
         }
@@ -138,6 +166,65 @@ TXT_VAR_ATT_t TextVarDB::TextVar_GetVal32(std::string *inTxt, TextVar **outVar /
     }
 
     return TXT_VAR_IS_SINGLE;
+}
+
+TXT_VAR_RET_t TextVarDB::ParseVarOrConst(LibStringClass *splitedStr, u32 subStrStartIdx, u32 *outSubStrEndIdx, TextVar **outVar, u32 *outVal32)
+{
+    BASIC_ASSERT(subStrStartIdx < splitedStr->subStrVector.size());
+    TXT_VAR_RET_t ret = TXT_VAR_ERROR;
+    TextVar *var = NULL;
+
+    if (LibString_IsPrintPattern(&(splitedStr->subStrVector[subStrStartIdx]))) {
+        std::string *scanFormat = &(splitedStr->subStrVector[subStrStartIdx]);
+        subStrStartIdx += 1; //next string
+        RETURN_WHEN(subStrStartIdx >= splitedStr->subStrVector.size(), TXT_VAR_FORMAT_ERROR);
+        ret = TXT_IS_CONST;
+        var = new(TextVar);
+        var->SetToTempVar();
+        //determin type
+        u32 varScanType;
+        if (TextVar_GetTypeFromString(&(splitedStr->subStrVector[subStrStartIdx]), &varScanType)) {
+            subStrStartIdx += 1; //next string
+            RETURN_WHEN(subStrStartIdx >= splitedStr->subStrVector.size(), TXT_VAR_FORMAT_ERROR);
+        } else {
+            varScanType = VAR_U32;
+        }
+    } else {
+        // go find variable
+        ret = TXT_IS_VARIABLE;
+    }
+
+    
+    return ret;
+}
+
+// Return 1 for get success, 0 for invalid input string
+int TextVar_GetTypeFromString(std::string *str, u32 *outType)
+{
+    int ret = 1;
+    u32 type = VAR_IS_UNINITED;
+    if (*str == "u8") {
+        type = VAR_U8;
+    } else if (*str == "u16") {
+        type = VAR_U16;
+    } else if (*str == "u32") {
+        type = VAR_U32;
+    } else if (*str == "s8") {
+        type = VAR_S8;
+    } else if (*str == "s16") {
+        type = VAR_S16;
+    } else if (*str == "s32") {
+        type = VAR_S32;
+    } else {
+        ret = 0;
+    }
+
+    if (outType != NULL) {
+        if (type != VAR_IS_UNINITED) {
+            *outType = type;
+        }
+    }
+    return ret;
 }
 
 void TextVar_Demo(void)

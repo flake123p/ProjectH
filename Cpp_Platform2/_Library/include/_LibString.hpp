@@ -25,6 +25,7 @@ bool LibString_IsCharLetter(char ch);
 bool LibString_IsCharPrintable(char ch);
 bool LibString_IsCharLegal(char ch, const char *legalCharAry, int aryLen);
 bool LibString_IsStringAllLetter(const char *inStr);
+bool LibString_IsStringNumerical(const char *inStr);
 bool LibString_IsCharNonspace(char ch);
 
 bool LibString_CharToIndex(IN char ch, IN bool doAddingInLowercase, OUT int *index);
@@ -80,7 +81,29 @@ void LibString_DumpPrintableChar(void);
 		
 		size_t strlen ( const char * str );
 
-	
+======================================================================= sprintf()
+int sprintf ( char * str, const char * format, ... );
+--
+char buffer [50];
+int n, a=5, b=3;
+n=sprintf (buffer, "%d plus %d is %d", a, b, a+b);
+printf ("[%s] is a string %d chars long\n",buffer,n);
+--
+Output:
+[5 plus 3 is 8] is a string 13 chars long
+======================================================================= sscanf()
+int sscanf ( const char * s, const char * format, ...);
+--
+char sentence []="Rudolph is 12 years old";
+char str [20];
+int i;
+sscanf (sentence,"%s %*s %d",str,&i);
+printf ("%s -> %d\n",str,i);
+--
+Output:
+Rudolph -> 12
+
+
 */
 
 typedef enum {

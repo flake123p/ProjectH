@@ -94,6 +94,30 @@ bool LibString_IsStringAllLetter(const char *inStr)
 	return true;
 }
 
+bool LibString_IsStringNumerical(const char *inStr)
+{
+    size_t i = 0;
+    if ((*inStr)->size() >= 3) {
+        if ((*inStr)[0] == '0') {
+            if ((*inStr)[1] == 'x' || (*inStr)[1] == 'X') {
+                //continue
+                i = 2;
+            } else {
+                return false;
+            }
+        }
+    }
+    for (; i < inStr->size(); i++) {
+        if (LibString_IsCharHexadecimal((*inStr)[i])) {
+            //continue
+        } else {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool LibString_IsCharNonspace(char ch)
 {
 	if (ch == '\t' || ch == '\n' ||ch == ' ') {

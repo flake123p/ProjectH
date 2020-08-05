@@ -1,8 +1,5 @@
 #include "Everything_ThisMod.hpp"
 
-static u32 gPrint;
-static u32 gPrintN;
-
 /*
     NOT USE IN ARRAY!!
     @print "abc" %x i j[4] k[4-e] "123"
@@ -215,7 +212,7 @@ int TextCall_Print(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void
 {
     std::string printFormat = "%d";
     u32 startIdx, endIdx;
-    u32 *printMode = (u32 *)userHdl_0;
+    int printNewLine = (int)userHdl_0;
 
     for (size_t i = 1; i <splitedStrAgent->subStrVector.size(); i++) {
         if (splitedStrAgent->subStrFlagVector[i] & LIB_STR_SUB_DOUBLE_QUOTE) {
@@ -247,7 +244,7 @@ int TextCall_Print(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void
         }
     }
 
-    if (printMode == &gPrintN) {
+    if (printNewLine) {
         printf("\n");
     }
 
@@ -404,8 +401,8 @@ int TextCall_Endif(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void
 
 void TextCall_BasicInit(TextCallDB *db)
 {
-    ASSERT_IF( db->AddCallPair("@print", (TextCall_CB_t)TextCall_Print, &gPrint) );
-    ASSERT_IF( db->AddCallPair("@printn", (TextCall_CB_t)TextCall_Print, &gPrintN) );
+    ASSERT_IF( db->AddCallPair("@print", (TextCall_CB_t)TextCall_Print, (void *)0) );
+    ASSERT_IF( db->AddCallPair("@printn", (TextCall_CB_t)TextCall_Print, (void *)1 /*1 for print next line*/) );
     ASSERT_IF( db->AddCallPair("@nl", (TextCall_CB_t)TextCall_PrintNewLine) );
     ASSERT_IF( db->AddCallPair("@set", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_SET) );
     ASSERT_IF( db->AddCallPair("@add", (TextCall_CB_t)TextCall_Math, (void *)TXT_CALL_MATH_ADD) );

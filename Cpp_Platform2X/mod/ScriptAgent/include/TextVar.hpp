@@ -8,6 +8,7 @@ typedef enum {
     TXT_VAR_IS_AUTO_FREE    = BIT_0,
     TXT_VAR_IS_IN_USE       = BIT_1,
     TXT_VAR_IS_FUNC_PTR     = BIT_2,
+    TXT_VAR_IS_TEMP         = BIT_3,
 
 
 
@@ -22,6 +23,10 @@ typedef enum {
     TXT_VAR_IS_MULTI,
 
     TXT_VAR_IS_NESTED,
+    TXT_VAR_RET_CONST,
+
+    TXT_IS_VARIABLE,     // i[j[k[3]]]
+    TXT_IS_CONST,        // ret temp variable, 1st string is print symbol %d %x 0x%X ... (u8 s8 u32 ...) num num num ...
 
     //errors
     TXT_VAR_ERROR = 0x80,
@@ -30,8 +35,7 @@ typedef enum {
     TXT_VAR_FORMAT_ERROR,
     TXT_VAR_IS_NOT_INITED,
     TXT_VAR_ERROR_MAX = 0x8F,
-
-} TXT_VAR_ATT_t;
+} TXT_VAR_RET_t;
 
 class TextVar{
 public:
@@ -67,6 +71,11 @@ public:
         BASIC_ASSERT(userHdl==NULL);
         //PRINT_FUNC;
     };
+    void SetToTempVar(void) {
+        flags|=TXT_VAR_IS_TEMP;
+    };
+    // Return 1 for get success, 0 for string is not const num (0 1 4 A B 0x08 0X1234 ...)
+    int ImportSingleConstNumByString(std::string *str, std::string *scanFormat, u32 type);
     void TextVarDump(void);
 };
 
@@ -101,7 +110,8 @@ public:
     int EraseVar(std::string *name, TextVar **outTextVar =NULL);
     int EraseVar(const char *name, TextVar **outTextVar =NULL){std::string cppStr=name;return EraseVar(&cppStr, outTextVar);};
 
-    TXT_VAR_ATT_t TextVar_GetVal32(std::string *inTxt, TextVar **outVar = NULL, u32 *outVal32 = NULL);
+    TXT_VAR_RET_t GetVarVal32(std::string *inTxt, TextVar **outVar = NULL, u32 *outVal32 = NULL);
+    TXT_VAR_RET_t ParseVarOrConst(LibStringClass *splitedStr, u32 subStrStartIdx, u32 *outSubStrEndIdx, TextVar **outVar, u32 *outVal32);
 
     void Dump(void) {
         std::map<std::string, TextVar *>::iterator it;
@@ -112,6 +122,9 @@ public:
     //int AddPair(const char *str, TextCall_CB_t cb, void *userHdl_0 = NULL, void *userHdl_1 = NULL);
     //int RemovePair(const char *str, int doRelease = 1);
 };
+
+// Return 1 for get success, 0 for invalid input string
+int TextVar_GetTypeFromString(std::string *str, u32 *outType);
 
 void TextVar_Demo(void);
 
