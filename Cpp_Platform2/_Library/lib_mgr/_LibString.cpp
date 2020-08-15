@@ -97,9 +97,11 @@ bool LibString_IsStringAllLetter(const char *inStr)
 bool LibString_IsStringNumerical(const char *inStr)
 {
     size_t i = 0;
-    if ((*inStr)->size() >= 3) {
-        if ((*inStr)[0] == '0') {
-            if ((*inStr)[1] == 'x' || (*inStr)[1] == 'X') {
+    size_t len = strlen(inStr);
+
+    if (len >= 3) {
+        if (inStr[0] == '0') {
+            if (inStr[1] == 'x' || inStr[1] == 'X') {
                 //continue
                 i = 2;
             } else {
@@ -107,8 +109,8 @@ bool LibString_IsStringNumerical(const char *inStr)
             }
         }
     }
-    for (; i < inStr->size(); i++) {
-        if (LibString_IsCharHexadecimal((*inStr)[i])) {
+    for (; i < len; i++) {
+        if (LibString_IsCharHexadecimal(inStr[i])) {
             //continue
         } else {
             return false;
