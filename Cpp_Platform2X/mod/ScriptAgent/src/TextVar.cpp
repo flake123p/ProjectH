@@ -5,13 +5,13 @@ int TextVar::ImportSingleConstNumByString(std::string *str, std::string *scanFor
 {
     u32 temp;
 
-    if (LibString_IsStringNumerical(str)) {
+    if (LibString_IsStringNumerical(str->c_str())) {
         //continue
     } else {
         return 0;
     }
 
-    sscanf(str.c_str(), sscanf.c_str(), &temp);
+    sscanf(str->c_str(), scanFormat->c_str(), &temp);
 
     switch (type) {
         case VAR_U8:  pUniVar->Import((u8)temp);  break;
@@ -168,6 +168,9 @@ TXT_VAR_RET_t TextVarDB::GetVarVal32(std::string *inTxt, TextVar **outVar /*= NU
     return TXT_VAR_IS_SINGLE;
 }
 
+/*
+    Un-finished
+*/
 TXT_VAR_RET_t TextVarDB::ParseVarOrConst(LibStringClass *splitedStr, u32 subStrStartIdx, u32 *outSubStrEndIdx, TextVar **outVar, u32 *outVal32)
 {
     BASIC_ASSERT(subStrStartIdx < splitedStr->subStrVector.size());
@@ -176,6 +179,7 @@ TXT_VAR_RET_t TextVarDB::ParseVarOrConst(LibStringClass *splitedStr, u32 subStrS
 
     if (LibString_IsPrintPattern(&(splitedStr->subStrVector[subStrStartIdx]))) {
         std::string *scanFormat = &(splitedStr->subStrVector[subStrStartIdx]);
+        scanFormat = scanFormat;//temp
         subStrStartIdx += 1; //next string
         RETURN_WHEN(subStrStartIdx >= splitedStr->subStrVector.size(), TXT_VAR_FORMAT_ERROR);
         ret = TXT_IS_CONST;
@@ -215,6 +219,8 @@ int TextVar_GetTypeFromString(std::string *str, u32 *outType)
         type = VAR_S16;
     } else if (*str == "s32") {
         type = VAR_S32;
+    } else if (*str == "str") {
+        type = VAR_C_STRING;
     } else {
         ret = 0;
     }

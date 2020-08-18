@@ -86,6 +86,12 @@ int TextCallDB::Start(const char *line, int *cbRet /*= NULL*/)
     return ret;
 }
 
+/*
+Variable declare: @var <name> <(0)u8/u32...> %d 7 8 9
+    @var i u32 %d 9
+    @var x str "ffddaa"
+    @var x "ffddaa"
+*/
 int TextCall_Var(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *userHdl_0, void *userHdl_1)
 {
     //PRINT_FUNC;
@@ -94,54 +100,83 @@ int TextCall_Var(TextCallDB *textCallDB, LibStringClass *splitedStrAgent, void *
     //splitedStrAgent->Dump();
     //return 0;
 
-    TextVar *var = textCallDB->textVarDB->AddVarPair(&(splitedStrAgent->subStrVector[2]));
+    u32 type = VAR_IS_UNINITED;
+    std::string scanFormat = "";
+
+    TextVar *var = textCallDB->textVarDB->AddVarPair(&(splitedStrAgent->subStrVector[1]));
     if (var == NULL) {
-        printf("Duplicate var name:%s\n", splitedStrAgent->subStrVector[2].c_str());
+        printf("Duplicate var name:%s\n", splitedStrAgent->subStrVector[1].c_str());
         BASIC_ASSERT(0);
     }
-    var->name = splitedStrAgent->subStrVector[2];
+    var->name = splitedStrAgent->subStrVector[1];
 
-    u32 temp;
-    for (size_t i = 4; i < splitedStrAgent->subStrVector.size(); i++) {
-        sscanf(splitedStrAgent->subStrVector[i].c_str(), splitedStrAgent->subStrVector[3].c_str(), &temp);
-        //DUMPNX(temp);
-        if (splitedStrAgent->subStrVector[1] == "u8") {
-            if (temp > 0xFF) {
-                printf("val is big than u8 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
+    size_t i = 0xFFFFFFFF;
+    if (splitedStrAgent->subStrFlagVector[2] & LIB_STR_SUB_DOUBLE_QUOTE) {
+        i= 2;
+        type = VAR_C_STRING;
+    } else {
+        int isSigned;
+        // simple case without type (default:u32/s32)
+        // @var i %d 9
+        if (LibString_IsPrintPattern(&(splitedStrAgent->subStrVector[2]), &isSigned)) {
+            if (isSigned) {
+                type = VAR_S32;
+            } else {
+                type = VAR_U32;
             }
-            var->pUniVar->Import((u8)temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "s8") {
-            if (temp > 0xFF) {
-                printf("val is big than s8 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
+            i = 3;
+            scanFormat = splitedStrAgent->subStrVector[2];
+        } else if (TextVar_GetTypeFromString(&(splitedStrAgent->subStrVector[2]), &type)) {
+            //@var x str "ffddaa"
+            if (type == VAR_C_STRING) {
+                i = 3;
+            } else {
+                if (LibString_IsPrintPattern(&(splitedStrAgent->subStrVector[3]), &isSigned)) {
+                    i = 4;
+                    scanFormat = splitedStrAgent->subStrVector[3];
+                } else {
+                    printf("Wrong var format (%d)\n", __LINE__);
+                    return 1;
+                }
             }
-            var->pUniVar->Import((s8)temp);
+        } else {
+            printf("Wrong var format (%d)\n", __LINE__);
+            return 1;
         }
-        else if (splitedStrAgent->subStrVector[1] == "u16") {
-            if (temp > 0xFFFF) {
-                printf("val is big than u16 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
+    }
+    BASIC_ASSERT(type != VAR_IS_UNINITED);
+    BASIC_ASSERT(i != 0xFFFFFFFF);
+
+    if (type & VAR_C_STRING) {
+        var->pUniVar->Import((const char *)splitedStrAgent->subStrVector[i].c_str());
+    } else {
+        BASIC_ASSERT(scanFormat.size() != 0);
+        u32 temp;
+        for (; i < splitedStrAgent->subStrVector.size(); i++) {
+            sscanf(splitedStrAgent->subStrVector[i].c_str(), scanFormat.c_str(), &temp);
+            switch (type) {
+                case VAR_U8:
+                    var->pUniVar->Import((u8)temp);
+                    break;
+                case VAR_U16:
+                    var->pUniVar->Import((u16)temp);
+                    break;
+                case VAR_U32:
+                    var->pUniVar->Import((u32)temp);
+                    break;
+                case VAR_S8:
+                    var->pUniVar->Import((s8)temp);
+                    break;
+                case VAR_S16:
+                    var->pUniVar->Import((s16)temp);
+                    break;
+                case VAR_S32:
+                    var->pUniVar->Import((s32)temp);
+                    break;
+                default:
+                    printf("Wrong var format (%d)\n", __LINE__);
+                    return 1;
             }
-            var->pUniVar->Import((u16)temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "s16") {
-            if (temp > 0xFFFF) {
-                printf("val is big than s16 (0x%X)\n", temp);
-                BASIC_ASSERT(0);
-            }
-            var->pUniVar->Import((s16)temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "u32") {
-            var->pUniVar->Import(temp);
-        }
-        else if (splitedStrAgent->subStrVector[1] == "s32") {
-            var->pUniVar->Import((s32)temp);
-        }
-        else {
-            printf("scan type not support (%s)\n", splitedStrAgent->subStrVector[1].c_str());
-            BASIC_ASSERT(0);
         }
     }
 

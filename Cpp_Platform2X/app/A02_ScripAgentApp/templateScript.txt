@@ -1,5 +1,11 @@
+#TODO: complete func: ParseVarOrConst()
 #TODO: Use new func: GetVarVal32()
 #TODO: Use new func: ImportSingleConstNumByString()
+@var i u32 %d 9 3
+@var j str "1235"
+@dump i
+@dump j
+@exit
 @var u8 i %x 1 2 a b c d
 @var u32 j %x 3 2 1 f e d c b a
 @var u16 k %d 5 4
@@ -9,6 +15,20 @@
 @printn %x k[0-e]
 @exit
 
+NOTE: S ================================================================================
+Variable declare: @var <name> <(0)u8/u32...> %d 7 8 9
+	@var i u32 %d 9
+	@var x str "ffddaa"
+	@var x "ffddaa"
+Use varialbe:
+	@add i j
+Use constant: <(o)u8/u32...> %d 7
+	@set i %d 9
+	@append i %d 8
+	@if i > %d 8
+
+#TODO: complete func: ParseVarOrConst()
+NOTE: E ================================================================================
 @var u8 i %x 2
 @var u32 k %d 2
 @lshift i k
