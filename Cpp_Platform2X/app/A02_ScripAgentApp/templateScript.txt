@@ -5,7 +5,9 @@
 @var j str "1235"
 @dump i
 @dump j
+@print i
 @exit
+
 @var u8 i %x 1 2 a b c d
 @var u32 j %x 3 2 1 f e d c b a
 @var u16 k %d 5 4
