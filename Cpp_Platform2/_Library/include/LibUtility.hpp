@@ -7,6 +7,10 @@
 
 // ============================== Define ==============================
 
+// also used in power of 2 test
+#define REMOVE_RIGHTMOST_1(x) ((x)&((x)-1))
+// isolate  the  rightmost 1-bit, (e.g., 01011000 -> 00001000)
+#define ISOLATE_RIGHTMOST_1(x) ((x)&(-(x)))
 /*
 	Useful function from <stdlib.h>
 */
@@ -75,7 +79,8 @@ int LibUtil_GetFalseBitIndexOfU8(u8 in);
 int LibUtil_GetTrueBitIndexOfU16(u16 in);
 int LibUtil_GetFalseBitIndexOfU16(u16 in);
 
-
+int LibUtil_GetBitPosition16(u16 in);
+int LibUtil_GetBitPosition32(u32 in);
 
 typedef struct {
     u16 unique_id;
@@ -117,6 +122,7 @@ int LibU64_AddU64(LibU64_t *p_u64Data, LibU64_t *p_increment); //return 1 if u64
 
 void LibU64_Demo(void);
 
+void LibUtil_SimpleDynamicMemDemo(void);
 
 #define _LIB_UTILITY_HPP_INCLUDED_
 #endif//_LIB_UTILITY_HPP_INCLUDED_

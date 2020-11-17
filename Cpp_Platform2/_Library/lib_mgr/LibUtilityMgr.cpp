@@ -571,6 +571,70 @@ int LibUtil_GetFalseBitIndexOfU16(u16 in)
     return ret;
 }
 
+int LibUtil_GetBitPosition16(u16 in)
+{
+    switch (in)
+    {
+        case 0x1: return 0;
+        case 0x2: return 1;
+        case 0x4: return 2;
+        case 0x8: return 3;
+        case 0x10: return 4;
+        case 0x20: return 5;
+        case 0x40: return 6;
+        case 0x80: return 7;
+        case 0x100: return 8;
+        case 0x200: return 9;
+        case 0x400: return 10;
+        case 0x800: return 11;
+        case 0x1000: return 12;
+        case 0x2000: return 13;
+        case 0x4000: return 14;
+        case 0x8000: return 15;
+    }
+    return -1;
+}
+
+int LibUtil_GetBitPosition32(u32 in)
+{
+    switch (in)
+    {
+        case 0x1: return 0;
+        case 0x2: return 1;
+        case 0x4: return 2;
+        case 0x8: return 3;
+        case 0x10: return 4;
+        case 0x20: return 5;
+        case 0x40: return 6;
+        case 0x80: return 7;
+        case 0x100: return 8;
+        case 0x200: return 9;
+        case 0x400: return 10;
+        case 0x800: return 11;
+        case 0x1000: return 12;
+        case 0x2000: return 13;
+        case 0x4000: return 14;
+        case 0x8000: return 15;
+        case 0x10000: return 16;
+        case 0x20000: return 17;
+        case 0x40000: return 18;
+        case 0x80000: return 19;
+        case 0x100000: return 20;
+        case 0x200000: return 21;
+        case 0x400000: return 22;
+        case 0x800000: return 23;
+        case 0x1000000: return 24;
+        case 0x2000000: return 25;
+        case 0x4000000: return 26;
+        case 0x8000000: return 27;
+        case 0x10000000: return 28;
+        case 0x20000000: return 29;
+        case 0x40000000: return 30;
+        case 0x80000000: return 31;
+    }
+    return -1;
+}
+
 int LibUtil_UniqueID_Init(LibUtil_UniqueID_Info_t *info)
 {
     info->recycle_ctr = 0;
@@ -1041,4 +1105,73 @@ void LibU64_Demo(void)
         DUMPNX(u64DataA.low);
         printf("////////////\n");
     }
+}
+
+// return index
+int LibUtil_BitmapGet(u32 *bitmap32, u32 *isolatedBitmap)
+{
+    if (*bitmap32 == 0)
+        return -1;
+
+    u32 isolatedBit = ISOLATE_RIGHTMOST_1(*bitmap32);
+    int index = LibUtil_GetBitPosition32(isolatedBit);
+    BASIC_ASSERT(index != -1);
+
+    //clear bitmap
+    //*bitmap32 = (*bitmap32) & (~isolatedBit);
+    *isolatedBitmap = isolatedBit;
+    return index;
+}
+
+int LibUtil_BitmapRelease(u32 *bitmap32, int index)
+{
+    u32 isolatedBit = 1 << index;
+    *bitmap32 |= isolatedBit;
+    return 0;
+}
+
+int LibUtil_2TiersBitmapGet(u32 *tier1, u32 *tier2, OUT int *index1, OUT int *index2)
+{
+    u32 iso1, iso2;
+    int idx1 = LibUtil_BitmapGet(tier1, &iso1);
+    int idx2 = LibUtil_BitmapGet(tier2+idx1, &iso2);
+
+    tier2[idx1] &= (~iso2);
+    if (tier2[idx1] == 0) {
+        *tier1 &= (~iso1);
+    }
+
+    *index1 = idx1;
+    *index2 = idx2;
+    return idx1;
+}
+
+int LibUtil_2TiersBitmapRelease(u32 *tier1, u32 *tier2, int index1, int index2)
+{
+    LibUtil_BitmapRelease(tier2+index1, index2);
+    LibUtil_BitmapRelease(tier1, index1);
+    return 0;
+}
+
+void LibUtil_SimpleDynamicMemDemo(void)
+{
+    // 4 x 4, 2 tiers
+    u32 tier1 = 0x0F;
+    u32 tier2[] = {0x01, 0x0F, 0x0F, 0x0F};
+
+    int index1, index2;
+
+    LibUtil_2TiersBitmapGet(&tier1, tier2, &index1, &index2);
+    printf(" index1=%d, index2=%d\n", index1, index2);
+    DUMPNX(tier1);
+    ARRAYDUMPX2(tier2, 4);
+
+    LibUtil_2TiersBitmapGet(&tier1, tier2, &index1, &index2);
+    LibUtil_2TiersBitmapGet(&tier1, tier2, &index1, &index2);
+    LibUtil_2TiersBitmapGet(&tier1, tier2, &index1, &index2);
+    LibUtil_2TiersBitmapGet(&tier1, tier2, &index1, &index2);
+    LibUtil_2TiersBitmapRelease(&tier1, tier2, 0, 31);
+    printf(" index1=%d, index2=%d\n", index1, index2);
+    DUMPNX(tier1);
+    ARRAYDUMPX2(tier2, 4);
 }

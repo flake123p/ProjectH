@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
     //LibDesc_DemoMT();
 
     //LibU64_Demo();
-    LibVCD_LA_Demo();
+    //LibVCD_LA_Demo();
+    LibUtil_SimpleDynamicMemDemo();
 
 //    LibMT_Demo();
 //    LibTimer_DemoEx();
