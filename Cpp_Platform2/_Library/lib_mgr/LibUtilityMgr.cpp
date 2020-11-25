@@ -13,6 +13,7 @@
 #include "_LibMT.hpp"
 #include "_LibError.hpp"
 #include "LibUtility.hpp"
+#include "LibU64.hpp"
 #include "My_Basics.hpp"
 
 
@@ -101,36 +102,36 @@ void LibUtil_TestRand(void)
     LibUtil_InitRand();
     LibUtil_Print_RAND_MAX();
 
-    u64Data.high = 0;
-    u64Data.low  = 0;
+    u64Data.hi = 0;
+    u64Data.lo  = 0;
     FOR_I(1<<AMOUNT) {
         LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand());
     }
-    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    average = (u64Data.hi << (32-AMOUNT)) | (u64Data.lo >> AMOUNT);
     printf("Average of LibUtil_GetRand()   is: %12u (0x%08X)\n", average, average);
 
-    u64Data.high = 0;
-    u64Data.low  = 0;
+    u64Data.hi = 0;
+    u64Data.lo  = 0;
     FOR_I(1<<AMOUNT) {
         LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand8());
     }
-    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    average = (u64Data.hi << (32-AMOUNT)) | (u64Data.lo >> AMOUNT);
     printf("Average of LibUtil_GetRand8()  is: %12u (0x%08X)\n", average, average);
 
-    u64Data.high = 0;
-    u64Data.low  = 0;
+    u64Data.hi = 0;
+    u64Data.lo  = 0;
     FOR_I(1<<AMOUNT) {
         LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand16());
     }
-    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    average = (u64Data.hi << (32-AMOUNT)) | (u64Data.lo >> AMOUNT);
     printf("Average of LibUtil_GetRand16() is: %12u (0x%08X)\n", average, average);
 
-    u64Data.high = 0;
-    u64Data.low  = 0;
+    u64Data.hi = 0;
+    u64Data.lo  = 0;
     FOR_I(1<<AMOUNT) {
         LibU64_AddU32(&u64Data, (u32)LibUtil_GetRand32());
     }
-    average = (u64Data.high << (32-AMOUNT)) | (u64Data.low >> AMOUNT);
+    average = (u64Data.hi << (32-AMOUNT)) | (u64Data.lo >> AMOUNT);
     printf("Average of LibUtil_GetRand32() is: %12u (0x%08X)\n", average, average);
 }
 
@@ -919,192 +920,23 @@ void LibUtil_Demo2(void)
     id=id;ret=ret;
 }
 
-int LibUtil_AddInU64_TwoU32(u32 *high, u32 *low, u32 increment)
+int LibUtil_AddInU64_TwoU32(u32 *hi, u32 *lo, u32 increment)
 {
     int isCarryHappened = 0;
-    *low += increment;
+    *lo += increment;
 
-    if (*low < increment) {
+    if (*lo < increment) {
         isCarryHappened = 1;
     }
 
     if (isCarryHappened) {
-        *high += 1;
-        if (*high == 0) {
+        *hi += 1;
+        if (*hi == 0) {
             return 1;
         }
     }
 
     return 0;
-}
-
-int LibU64_AddU32(LibU64_t *p_u64Data, u32 increment) //return 1 if u64 overflow
-{
-    int isCarryHappened = 0;
-    p_u64Data->low+= increment;
-
-    if (p_u64Data->low < increment) {
-        isCarryHappened = 1;
-    }
-
-    if (isCarryHappened) {
-        p_u64Data->high += 1;
-        if (p_u64Data->high == 0) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-int LibU64_AddU64(LibU64_t *p_u64Data, LibU64_t *p_increment) //return 1 if u64 overflow
-{
-    int ret = 0;
-    u32 isCarryHappened = 0;
-    p_u64Data->low += p_increment->low;
-
-    if (p_u64Data->low < p_increment->low) {
-        isCarryHappened = 1;
-    }
-
-    p_u64Data->high += isCarryHappened;
-    if (isCarryHappened) {
-        if (p_u64Data->high == 0) {
-            ret = 1;
-        }
-    }
-
-    p_u64Data->high += p_increment->high;
-    if (p_u64Data->high < p_increment->high) {
-        ret = 1;
-    }
-
-    return ret;
-}
-
-void LibU64_Demo(void)
-{
-    {
-        LibU64_t u64Data = {
-            .high = 0x00000010,
-            .low  = 0xFFFFFFFE
-        };
-        DUMPNX(u64Data.high);
-        DUMPNX(u64Data.low);
-
-        printf("add 1\n");
-        LibU64_AddU32(&u64Data, 1);
-        DUMPNX(u64Data.high);
-        DUMPNX(u64Data.low);
-
-        printf("add 1\n");
-        LibU64_AddU32(&u64Data, 1);
-        DUMPNX(u64Data.high);
-        DUMPNX(u64Data.low);
-
-        printf("add 0xFFFFFFFF\n");
-        LibU64_AddU32(&u64Data, 0xFFFFFFFF);
-        DUMPNX(u64Data.high);
-        DUMPNX(u64Data.low);
-
-        printf("add 0xFFFFFFFF\n");
-        LibU64_AddU32(&u64Data, 0xFFFFFFFF);
-        DUMPNX(u64Data.high);
-        DUMPNX(u64Data.low);
-        printf("////////////\n");
-    }
-    {
-        LibU64_t u64DataA = {
-            .high = 0x00000010,
-            .low  = 0xFFFFFFFE
-        };
-        LibU64_t u64DataB = {
-            .high = 0x00000010,
-            .low  = 0x00000001
-        };
-        int ret = 7;
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        printf("////////////\n");
-    }
-    {
-        LibU64_t u64DataA = {
-            .high = 0xFFFFFFFF,
-            .low  = 0xFFFFFFFE
-        };
-        LibU64_t u64DataB = {
-            .high = 0x00000000,
-            .low  = 0x00000001
-        };
-        int ret = 7;
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        printf("////////////\n");
-    }
-    {
-        LibU64_t u64DataA = {
-            .high = 0xFFFFFFFE,
-            .low  = 0xFFFFFFFF
-        };
-        LibU64_t u64DataB = {
-            .high = 0x00000001,
-            .low  = 0x00000000
-        };
-        int ret = 7;
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        printf("////////////\n");
-    }
-    {
-        LibU64_t u64DataA = {
-            .high = 0xFFFFFFFE,
-            .low  = 0xFFFFFFFF
-        };
-        LibU64_t u64DataB = {
-            .high = 0x00000001,
-            .low  = 0x00000001
-        };
-        int ret = 7;
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        ret = LibU64_AddU64(&u64DataA, &u64DataB);
-        DUMPD(ret);
-        DUMPX(u64DataA.high);
-        DUMPNX(u64DataA.low);
-        printf("////////////\n");
-    }
 }
 
 // return index

@@ -43,6 +43,7 @@
 #include "LibFileIO.hpp"
 #include "LibFileIO2.hpp"
 #include "LibUtility.hpp"
+#include "LibU64.hpp"
 #include "LibOs.hpp"
 #include "LibTui.hpp"
 #include "LibSysCmd.hpp"

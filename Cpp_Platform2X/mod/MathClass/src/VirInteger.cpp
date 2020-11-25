@@ -1,9 +1,9 @@
 
-#include "Everything_SimEngine.hpp"
+//#include "Everything_SimEngine.hpp"
 
-int SimTime_Demo(void)
+int VirInteger_Demo(void)
 {
-    PRINT_FUNC_LINE;
+    //PRINT_FUNC_LINE;
 
     return 0;
 }

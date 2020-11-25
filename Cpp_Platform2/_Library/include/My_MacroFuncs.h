@@ -51,6 +51,10 @@
 #define DUMPNP(a) printf(#a " = %p\n", (void *)(a))
 #define DUMPNA(a) printf(#a " = 0x%08X\n", POINTER_TO_U32(a))
 
+#define DUMPNX8(a) printf(#a " = 0x%02X\n", (unsigned int)(a))
+#define DUMPNX16(a) printf(#a " = 0x%04X\n", (unsigned int)(a))
+#define DUMPNX32(a) printf(#a " = 0x%08X\n", (unsigned int)(a))
+
 #define DUMPC(a) printf(#a " = %c, ", a)
 #define DUMPS(a) printf(#a " = %s, ", a)
 #define DUMPD(a) printf(#a " = %d, ", (int)(a))

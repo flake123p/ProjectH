@@ -11,8 +11,6 @@
 #include "SimModule.hpp"
 
 
-
-
 #define _EVERYTHING_SIM_ENGINE_HPP_INCLUDED_
 #endif//_EVERYTHING_SIM_ENGINE_HPP_INCLUDED_
 

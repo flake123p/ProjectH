@@ -110,17 +110,7 @@ void LibUtil_Demo(void);
 void LibUtil_Demo2(void);
 
 
-int LibUtil_AddInU64_TwoU32(u32 *high, u32 *low, u32 increment);
-
-
-typedef struct {
-    u32 high;
-    u32 low;
-} LibU64_t;
-int LibU64_AddU32(LibU64_t *p_u64Data, u32 increment); //return 1 if u64 overflow
-int LibU64_AddU64(LibU64_t *p_u64Data, LibU64_t *p_increment); //return 1 if u64 overflow
-
-void LibU64_Demo(void);
+int LibUtil_AddInU64_TwoU32(u32 *hi, u32 *lo, u32 increment);
 
 void LibUtil_SimpleDynamicMemDemo(void);
 

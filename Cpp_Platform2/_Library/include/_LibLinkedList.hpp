@@ -170,6 +170,17 @@ typedef struct {
 #define DLLIST_WHILE_START(head,curr,type) curr=(type *)DLLIST_HEAD(head);while(curr!=NULL)
 #define DLLIST_WHILE_NEXT(curr,type) curr=(type *)DLLIST_NEXT(curr)
 
+#define DLLIST_INSERT_FIRST(head,new_node) \
+    if (DLLIST_IS_EMPTY(head)) {\
+        DLLIST_HEAD(head) = (void *)new_node;\
+        DLLIST_TAIL(head) = (void *)new_node;\
+        DLLIST_NEXT(new_node) = NULL;\
+    } else { \
+        DLLIST_PREV(DLLIST_HEAD(head)) = (void *)new_node;\
+        DLLIST_NEXT(new_node) = DLLIST_HEAD(head);\
+        DLLIST_HEAD(head) = (void *)new_node;\
+    }\
+
 #define DLLIST_INSERT_LAST(head,new_node) \
     DLLIST_NEXT(new_node) = NULL;\
     DLLIST_PREV(new_node) = DLLIST_TAIL(head);\
@@ -209,11 +220,15 @@ typedef struct {
     }
 
 #define DLLIST_REMOVE_NODE(head, node) \
-    if (DLLIST_NEXT(node) == NULL) {\
-        DLLIST_REMOVE_LAST(head);\
+    if (DLLIST_HEAD(head) == node) {\
+        DLLIST_REMOVE_FIRST(head);\
     } else {\
-        DLLIST_PREV(DLLIST_NEXT(node)) = DLLIST_PREV(node);\
-        DLLIST_NEXT(DLLIST_PREV(node)) = DLLIST_NEXT(node);\
+        if (DLLIST_NEXT(node) == NULL) {\
+            DLLIST_REMOVE_LAST(head);\
+        } else {\
+            DLLIST_PREV(DLLIST_NEXT(node)) = DLLIST_PREV(node);\
+            DLLIST_NEXT(DLLIST_PREV(node)) = DLLIST_NEXT(node);\
+        }\
     }\
 
 #define DLLIST_REMOVE_NODE_SAFELY(head, node) \
