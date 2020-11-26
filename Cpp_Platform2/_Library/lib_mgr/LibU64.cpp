@@ -908,20 +908,7 @@ int LibU48_Div32To48(LibU64_t *dividend64, u32 divisor32, LibU64_t *quotient, u3
 
 LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 turnaround_mask_63_32)
 {
-    LIB_U64_COMPARE_t ret;
-    if (a->hi > b->hi) {
-        ret = A_IS_BIGGER;
-    } else if (a->hi < b->hi) {
-        ret = B_IS_BIGGER;
-    } else {
-        if (a->lo > b->lo) {
-        ret = A_IS_BIGGER;
-        } else if (a->lo < b->lo) {
-            ret = B_IS_BIGGER;
-        } else {
-            ret = A_B_ARE_EQUAL;
-        }
-    }
+    LIB_U64_COMPARE_t ret = LibU64_Compare(a, b);
 
     if (ret == A_IS_BIGGER) {
         LibU48_Sub48To48(a, b, result);
@@ -933,9 +920,9 @@ LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 
     if (result->hi >= turnaround_mask_63_32)
     {
         // do revert
-        result->hi = 0xFFFFFFFF - result->hi;
-        result->lo = 0xFFFFFFFF - result->lo;
-        result->lo += 1;
+        result->hi = ~result->hi;
+        result->lo = (~result->lo ) + 1;
+        //result->lo += 1;
         if (result->lo == 0)
             result->hi += 1;
         result->hi = 0x0000FFFF & result->hi;
