@@ -1,12 +1,14 @@
 
 #define ENABLE_PC_DEBUG ( 1 )
 
-#define ENABLE_HX3_OPTIMIZE ( 0 )
+#define USE_DOUBLY_LIST ( 0 )
 
-#define COMM_ID_REQUEST_0  900
-#define COMM_ID_RESPONSE_0 901
-#define COMM_ID_REQUEST_1  902
-#define COMM_ID_RESPONSE_1 903
+#define CONN_ID_TIMER_REQ_00 900
+#define CONN_ID_TIMER_RES_00 901
+#define CONN_ID_TIMER_REQ_01 902
+#define CONN_ID_TIMER_RES_01 903
+#define CONN_ID_TIMER_REQ_02 904
+#define CONN_ID_TIMER_RES_02 905
 /*
     Hx3 = 500Mhz
     1 cycle = 8 system clock
@@ -30,6 +32,66 @@ typedef struct {
     u32 hi;
     u32 lo;
 } LibU64_t;
+typedef struct {
+    void *next;
+} SLList_Entry_t;
+typedef struct {
+    void *head;
+    void *tail_or_self; //pointer to head struct when list is empty
+} SLList_Head_t;
+#define SLLIST_NEXT(node) ((SLList_Entry_t *)node)->next
+#define SLLIST_HEAD(node) ((SLList_Head_t *)node)->head
+#define SLLIST_TAIL(node) ((SLList_Head_t *)node)->tail_or_self
+#define SLLIST_TAIL_IS_VALID(head,tail) ((void *)tail != (void *)head) /*tail_or_self is a pointer to head struct when list is empty*/
+
+#define SLLIST_IS_EMPTY(head)     (SLLIST_HEAD(head)==NULL)
+#define SLLIST_IS_NOT_EMPTY(head) (!SLLIST_IS_EMPTY(head))
+#define SLLIST_FIRST(head)        SLLIST_HEAD(head)
+#define SLLIST_LAST(head)         SLLIST_IS_EMPTY(head)?NULL:SLLIST_TAIL(head)
+
+#define SLLIST_HEAD_INIT(head) {NULL,(void *)head}
+#define SLLIST_HEAD_RESET(head) SLLIST_HEAD(head)=NULL; SLLIST_TAIL(head)=(void *)head;
+
+#define SLLIST_FOREACH(head,curr,type) for(curr=(type *)SLLIST_HEAD(head); curr!=NULL; curr=(type *)SLLIST_NEXT(curr))
+
+#define SLLIST_INSERT_LAST(head,new_node) \
+    SLLIST_NEXT(new_node) = NULL;\
+    SLLIST_NEXT(SLLIST_TAIL(head)) = (void *)new_node;\
+    SLLIST_TAIL(head)=(void *)new_node;
+
+#define SLLIST_INSERT_AFTER(head,node,new_node) \
+    if (SLLIST_NEXT(node) == NULL) {\
+        SLLIST_INSERT_LAST(head,new_node);/*update tail*/\
+    } else { \
+        SLLIST_NEXT(new_node) = SLLIST_NEXT(node);\
+        SLLIST_NEXT(node) = (void *)new_node;\
+    }
+
+#define SLLIST_INSERT_FIRST(head,new_node) \
+    SLLIST_INSERT_AFTER(head,head,new_node)
+
+#define SLLIST_REMOVE_FIRST(head) \
+    if (SLLIST_NEXT(SLLIST_HEAD(head)) == NULL) {\
+        SLLIST_HEAD_RESET(head);/*update tail*/\
+    } else {\
+        SLLIST_HEAD(head) = SLLIST_NEXT(SLLIST_HEAD(head)); \
+    }
+
+#define SLLIST_REMOVE_FIRST_SAFELY(head) \
+    if (SLLIST_IS_NOT_EMPTY(head)) {\
+        SLLIST_REMOVE_FIRST(head);\
+    }
+
+#define SLLIST_REMOVE_NEXT(head, node) \
+    if (SLLIST_NEXT(node) == SLLIST_TAIL(head)) {\
+        SLLIST_TAIL(head) = (void *)node;/*update tail*/\
+    }\
+    SLLIST_NEXT(node) = SLLIST_NEXT(SLLIST_NEXT(node));
+
+#define SLLIST_REMOVE_NEXT_SAFELY(head, node) \
+    if (SLLIST_NEXT(node) != NULL) {\
+        SLLIST_REMOVE_NEXT(head, node);\
+    }
 typedef struct {
     void *next;
     void *prev;
@@ -125,22 +187,25 @@ typedef struct {
     }
 
 typedef enum {
-    A_IS_BIGGER = 0,
-    B_IS_BIGGER = 1,
-    A_B_ARE_EQUAL = 2,
+    A_IS_GREATER = 0x01,
+    B_IS_GREATER = 0x02,
+    A_B_ARE_EQUAL = 0x04,
 } LIB_U64_COMPARE_t;
+//GTE stands for Greater Than or Equal
+#define A_IS_GTE (A_IS_GREATER|A_B_ARE_EQUAL)
+#define B_IS_GTE (B_IS_GREATER|A_B_ARE_EQUAL)
 LIB_U64_COMPARE_t LibU64_Compare(LibU64_t *a, LibU64_t *b)
 {
     LIB_U64_COMPARE_t ret;
     if (a->hi > b->hi) {
-        ret = A_IS_BIGGER;
+        ret = A_IS_GREATER;
     } else if (a->hi < b->hi) {
-        ret = B_IS_BIGGER;
+        ret = B_IS_GREATER;
     } else {
         if (a->lo > b->lo) {
-        ret = A_IS_BIGGER;
+        ret = A_IS_GREATER;
         } else if (a->lo < b->lo) {
-            ret = B_IS_BIGGER;
+            ret = B_IS_GREATER;
         } else {
             ret = A_B_ARE_EQUAL;
         }
@@ -161,7 +226,7 @@ int LibU48_Add48To48(LibU64_t *from, LibU64_t *increment, LibU64_t *result) //re
     //from->hi &= 0x0000FFFF;
     //increment->hi &= 0x0000FFFF;
     result->hi = from->hi + increment->hi + isCarryHappened;
-#if ENABLE_HX3_OPTIMIZE
+#if 0
     result->hi &= 0x0000FFFF;
     return 0;
 #else
@@ -185,7 +250,7 @@ int LibU48_Sub48To48(LibU64_t *from, LibU64_t *decrement, LibU64_t *result) //re
     }
 
     result->hi = (from->hi - isCarryHappened) - decrement->hi;
-#if ENABLE_HX3_OPTIMIZE
+#if 0
     result->hi &= 0x0000FFFF;
     return 0;
 #else
@@ -216,7 +281,7 @@ int LibU48_Mul32To48(u32 a, u32 x, LibU64_t *result)
     temp = (temp>>16)/*carry*/ + (alxh>>16) + (ahxl>>16) + ahxh;
     result->hi = temp;
 
-#if ENABLE_HX3_OPTIMIZE
+#if 0
     result->hi &= 0x0000FFFF;
     return 0;
 #else
@@ -305,7 +370,7 @@ LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 
 {
     LIB_U64_COMPARE_t ret = LibU64_Compare(a, b);
 
-    if (ret == A_IS_BIGGER) {
+    if (ret == A_IS_GREATER) {
         LibU48_Sub48To48(a, b, result);
     } else {
         LibU48_Sub48To48(b, a, result);
@@ -321,14 +386,82 @@ LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 
         if (result->lo == 0)
             result->hi += 1;
         result->hi = 0x0000FFFF & result->hi;
-        if (ret == A_IS_BIGGER)
-            ret = B_IS_BIGGER;
-        else if (ret == B_IS_BIGGER)
-            ret = A_IS_BIGGER;
+        if (ret == A_IS_GREATER)
+            ret = B_IS_GREATER;
+        else if (ret == B_IS_GREATER)
+            ret = A_IS_GREATER;
     }
     return ret;
 }
+#define ADD48(from,increment,result) LibU48_Add48To48((LibU64_t *)from, (LibU64_t *)increment, (LibU64_t *)result)
+#define SUB48(from,decrement,result) LibU48_Sub48To48((LibU64_t *)from, (LibU64_t *)decrement, (LibU64_t *)result)
+#define MUL48S(a,x,result)           LibU48_Mul32To48(a, x, (LibU64_t *)result)
+#define DIV48S(dividend64,divisor32,quotient,p_remainder) LibU48_Div32To48((LibU64_t *)dividend64, divisor32, (LibU64_t *)quotient, p_remainder)
+#define DIFF48(a,b,result,mask)      LibU48_Diff48((LibU64_t *)a, (LibU64_t *)b, (LibU64_t *)result, mask)
+#endif //ENABLE_PC_DEBUG
+
+
+#if USE_DOUBLY_LIST
+#define LLIST_NEXT                  DLLIST_NEXT
+#define LLIST_PREV                  DLLIST_PREV
+#define LLIST_HEAD                  DLLIST_HEAD
+#define LLIST_TAIL                  DLLIST_TAIL
+#define LLIST_TAIL_IS_VALID         DLLIST_TAIL_IS_VALID
+#define LLIST_IS_EMPTY              DLLIST_IS_EMPTY
+#define LLIST_IS_NOT_EMPTY          DLLIST_IS_NOT_EMPTY
+#define LLIST_FIRST                 DLLIST_FIRST
+#define LLIST_LAST                  DLLIST_LAST
+#define LLIST_HEAD_INIT             DLLIST_HEAD_INIT
+#define LLIST_HEAD_RESET            DLLIST_HEAD_RESET
+#define LLIST_FOREACH               DLLIST_FOREACH
+#define LLIST_WHILE_START           DLLIST_WHILE_START
+#define LLIST_WHILE_NEXT            DLLIST_WHILE_NEXT
+#define LLIST_INSERT_FIRST          DLLIST_INSERT_FIRST
+#define LLIST_INSERT_LAST           DLLIST_INSERT_LAST
+#define LLIST_INSERT_AFTER          DLLIST_INSERT_AFTER
+#define LLIST_REMOVE_FIRST          DLLIST_REMOVE_FIRST
+#define LLIST_REMOVE_FIRST_SAFELY   DLLIST_REMOVE_FIRST_SAFELY
+#define LLIST_REMOVE_LAST           DLLIST_REMOVE_LAST
+#define LLIST_REMOVE_LAST_SAFELY    DLLIST_REMOVE_LAST_SAFELY
+//doubly only
+//#define DLLIST_REMOVE_NODE(head, node)
+//#define DLLIST_REMOVE_NODE_SAFELY(head, node)
+#define LList_Head_t                DLList_Head_t
+#define LList_Entry_t               DLList_Entry_t
+#else
+#define LLIST_NEXT                  SLLIST_NEXT
+// imposible
+//#define LLIST_PREV                  SLLIST_PREV
+#define LLIST_HEAD                  SLLIST_HEAD
+#define LLIST_TAIL                  SLLIST_TAIL
+#define LLIST_TAIL_IS_VALID         SLLIST_TAIL_IS_VALID
+#define LLIST_IS_EMPTY              SLLIST_IS_EMPTY
+#define LLIST_IS_NOT_EMPTY          SLLIST_IS_NOT_EMPTY
+#define LLIST_FIRST                 SLLIST_FIRST
+#define LLIST_LAST                  SLLIST_LAST
+#define LLIST_HEAD_INIT             SLLIST_HEAD_INIT
+#define LLIST_HEAD_RESET            SLLIST_HEAD_RESET
+#define LLIST_FOREACH               SLLIST_FOREACH
+#define LLIST_WHILE_START           SLLIST_WHILE_START
+#define LLIST_WHILE_NEXT            SLLIST_WHILE_NEXT
+#define LLIST_INSERT_FIRST          SLLIST_INSERT_FIRST
+#define LLIST_INSERT_LAST           SLLIST_INSERT_LAST
+#define LLIST_INSERT_AFTER          SLLIST_INSERT_AFTER
+#define LLIST_REMOVE_FIRST          SLLIST_REMOVE_FIRST
+#define LLIST_REMOVE_FIRST_SAFELY   SLLIST_REMOVE_FIRST_SAFELY
+//singly only
+//#define SLLIST_REMOVE_NEXT(head, node)
+//#define SLLIST_REMOVE_NEXT_SAFELY(head, node)
+//TODO, needs to travel all
+//#define LLIST_REMOVE_LAST           SLLIST_REMOVE_LAST
+//#define LLIST_REMOVE_LAST_SAFELY    SLLIST_REMOVE_LAST_SAFELY
+//#define LLIST_REMOVE_NODE           SLLIST_REMOVE_NODE
+//#define LLIST_REMOVE_NODE_SAFELY    SLLIST_REMOVE_NODE_SAFELY
+#define LList_Head_t                SLList_Head_t
+#define LList_Entry_t               SLList_Entry_t
 #endif
+
+
 
 struct time48_16x3 {
     uint16_t hi;
@@ -355,7 +488,7 @@ struct time48_32x2 {
 #define RESTART_TIMER              0x0400
 #define RESERVED_0x0800            0x0800
 #define RESERVED_0x1000            0x1000
-#define RESERVED_0x2000            0x2000
+#define TIMES_UP                   0x2000
 #define CAN_NOT_FIND_TIMER         0x4000
 #define TIMER_MEMORY_RAN_OUT       0x8000
 
@@ -373,93 +506,48 @@ struct timer_response {
 };
 
 struct timer_request_node {
-    DLList_Entry_t entry;
+    LList_Entry_t entry;
     uint16_t comm_id;
     uint16_t curr_repeat_counts;
     struct time48_32x2 duration_in_list;
     struct time48_32x2 start_time;
     struct timer_request req;
+#if ENABLE_PC_DEBUG
+    LibU64_t dbg_end_time;
+#endif
 };
 
-#if ENABLE_PC_DEBUG
-void dump_time16(struct time48_16x3 *t16)
-{
-    printf("hi:0x%04X, me:0x%04X, lo:0x%04X\n", t16->hi, t16->me, t16->lo);
-}
-void dump_time32(struct time48_32x2 *t32)
-{
-    struct time48_16x3 t16;
-    t16.hi = (uint16_t)t32->hi;
-    t16.me = (uint16_t)(t32->lo>>16);
-    t16.lo = (uint16_t)t32->lo;
-    dump_time16(&t16);
-}
-void dump_list1(const char *str, DLList_Head_t *pHead)
-{
-    //#define DLLIST_FOREACH(head,curr,type)
-    struct timer_request_node *curr;
-
-    printf("%s: ", str);
-
-    DLLIST_FOREACH(pHead, curr, struct timer_request_node)
-    {
-        printf("comm_id=%d ->",
-            curr->comm_id);
-    }
-
-    printf("\n");
-}
-void dump_list3(const char *str, DLList_Head_t *pHead)
-{
-    //#define DLLIST_FOREACH(head,curr,type)
-    struct timer_request_node *curr;
-
-    printf("%s:\n", str);
-
-    DLLIST_FOREACH(pHead, curr, struct timer_request_node)
-    {
-        printf("command_flags=0x%04X, timer_id=%d, time_in_ms=%d, repeat_counts=%d(%d)\n",
-            curr->req.command_flags,
-            curr->req.timer_id,
-            curr->req.time_in_ms,
-            curr->req.repeat_counts,
-            curr->curr_repeat_counts);
-        printf("duration_in_list.hi=0x%08X, duration_in_list.lo=0x%08X, start_hi=0x%08X, start_lo=0x%08X\n\n",
-            curr->duration_in_list.hi,
-            curr->duration_in_list.lo,
-            curr->start_time.hi,
-            curr->start_time.lo);
-    }
-}
-#else
-#define dump_time16(...)
-#define dump_time32(...)
-#define dump_list1(...)
-#define dump_list3(...)
-#endif
+#define TIMER48_INSERT_FIRST  LLIST_INSERT_FIRST
+#define TIMER48_INSERT_LAST   LLIST_INSERT_LAST
 
 #if ENABLE_PC_DEBUG
-#define MAX_NUM_OF_TIMER_REQUEST (5)
+#define MAX_NUM_OF_TIMER_REQUEST (8)
 #define MS_TO_TIMER_TICKS (0x80000000)
+int g_is_times_up; //sim, stub
+int g_is_message_in; //sim, stub
+u32 gMsToTimerTicks = MS_TO_TIMER_TICKS;
+extern void dump_node(struct timer_request_node *node);
+extern void dump_all(void);
+extern void dump_curr_clk(void);
 #else
 #define MAX_NUM_OF_TIMER_REQUEST (128)
 #define REPEAT_FUNC_COMPENSATE (0) //non linear
-#define MS_TO_TIMER_TICKS (62500-REPEAT_FUNC_COMPENSATE)
+#define MS_TO_TIMER_TICKS (62500)
 #endif
 
 struct timer_request_node g_nodes[MAX_NUM_OF_TIMER_REQUEST];
-DLList_Head_t g_unused_list, g_used_list;
+LList_Head_t g_unused_list, g_used_list;
 #define UNUSED_LIST (&g_unused_list)
 #define USED_LIST (&g_used_list)
 struct timer_request g_timer_request_buf;
+struct timer_request g_timer_request_buf2;
+struct timer_request g_timer_request_buf3;
 struct timer_response g_timer_response_buf;
 struct time48_32x2 g_pseudo_system_clock;
 uint16_t g_comm_id;
 int g_is_timer_exist;
-int g_is_times_up; //sim, stub
-int g_is_message_in; //sim, stub
 int i;
-struct time48_32x2 g_timesup_clock; //sim, stub
+//struct time48_32x2 g_timesup_clock; //sim, stub
 struct time48_32x2 g_elapsed_clock; //sim, stub
 struct time48_32x2 g_elapsed_clock_hw = {0,0}; //sim, stub
 struct time48_32x2 g_start_clock_complement; //sim, stub
@@ -472,8 +560,19 @@ void Timer48_Message_Out(uint16_t comm_id)
 #else
     switch (comm_id)
     {
-        case COMM_ID_REQUEST_0:
-            MPX_Send( &g_timer_response_buf, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, COMM_ID_RESPONSE_0, MPX_DMA | MPX_NONBLOCKING );
+        case CONN_ID_TIMER_REQ_00:
+            while(MPX_Stest(CONN_ID_TIMER_RES_00) != 0){};
+            MPX_Send( &g_timer_response_buf, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_00, MPX_DMA | MPX_NONBLOCKING );
+            break;
+
+        case CONN_ID_TIMER_REQ_01:
+            while(MPX_Stest(CONN_ID_TIMER_RES_01) != 0){};
+            MPX_Send( &g_timer_response_buf, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_01, MPX_DMA | MPX_NONBLOCKING );
+            break;
+
+        case CONN_ID_TIMER_REQ_02:
+            while(MPX_Stest(CONN_ID_TIMER_RES_02) != 0){};
+            MPX_Send( &g_timer_response_buf, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_02, MPX_DMA | MPX_NONBLOCKING );
             break;
 
         default:
@@ -506,8 +605,10 @@ void Timer48_Update_System_Clock(void)
     LibU48_Add48To48((LibU64_t *)&g_pseudo_system_clock, (LibU64_t *)&g_elapsed_clock, (LibU64_t *)&g_pseudo_system_clock);
     g_elapsed_clock.hi = 0;
     g_elapsed_clock.lo = 0;
+#if ENABLE_PC_DEBUG
     g_elapsed_clock_hw.hi = 0;
     g_elapsed_clock_hw.lo = 0;
+#endif
     //dump_time32(&g_pseudo_system_clock);
 }
 
@@ -516,7 +617,7 @@ void Timer48_Start(struct timer_request_node *node)
     //Timer48_Update_System_Clock();
 
     //int LibU48_Add48To48(LibU64_t *from, LibU64_t *increment, LibU64_t *result); //return 1 if u64 overflow
-    LibU48_Add48To48((LibU64_t *)&g_pseudo_system_clock, (LibU64_t *)&(node->duration_in_list), (LibU64_t *)&g_timesup_clock);
+    //LibU48_Add48To48((LibU64_t *)&g_pseudo_system_clock, (LibU64_t *)&(node->duration_in_list), (LibU64_t *)&g_timesup_clock);
     g_is_timer_exist = 1;
 
     //start HW timer
@@ -561,30 +662,36 @@ void Timer48_Get_Duration16(struct timer_request_node *node, uint16_t *result)
     //DUMPNX32(temp.hi);
     //DUMPNX32(temp.lo);
 
-//#if ENABLE_HX3_OPTIMIZE
 #if 0
     *result = temp.lo / MS_TO_TIMER_TICKS;
 #else
-    //int LibU48_Div32To48(LibU64_t *dividend64, u32 divisor32, LibU64_t *quotient, u32 *remainder)
-    LibU48_Div32To48((LibU64_t *)&temp, MS_TO_TIMER_TICKS, (LibU64_t *)&quotient, &remainder);
-    //DUMPNX32(quotient.hi);
-    //DUMPNX32(quotient.lo);
+    #if ENABLE_PC_DEBUG
+        DIV48S(&temp, gMsToTimerTicks, &quotient, &remainder);
+    #else
+        //LibU48_Div32To48((LibU64_t *)&temp, MS_TO_TIMER_TICKS, (LibU64_t *)&quotient, &remainder);
+        DIV48S(&temp, MS_TO_TIMER_TICKS, &quotient, &remainder);
+    #endif
 #endif
     *result = (uint16_t)quotient.lo;
 }
 
-void Timer48_Delete(uint16_t timer_id_to_del, struct timer_request_node **p_deleted_timer)
+void Timer48_Delete(uint16_t timer_id_to_delete, struct timer_request_node **p_deleted_timer)
 {
+#if USE_DOUBLY_LIST
     struct timer_request_node *curr, *next;
+#else
+    struct timer_request_node *curr, *next, *prev;
+    prev = (struct timer_request_node *)USED_LIST;
+#endif
     *p_deleted_timer = NULL;
-    DLLIST_FOREACH(USED_LIST, curr, struct timer_request_node)
+    LLIST_FOREACH(USED_LIST, curr, struct timer_request_node)
     {
-        if (curr->req.timer_id == timer_id_to_del)
+        if (curr->req.timer_id == timer_id_to_delete)
         {
-            if (curr == (struct timer_request_node *)DLLIST_HEAD(USED_LIST))
+            if (curr == (struct timer_request_node *)LLIST_HEAD(USED_LIST))
             {
                 Timer48_Stop();
-                next = (struct timer_request_node *)DLLIST_NEXT(curr);
+                next = (struct timer_request_node *)LLIST_NEXT(curr);
                 if (next != NULL)
                 {
                     LibU48_Add48To48((LibU64_t *)&(next->duration_in_list), (LibU64_t *)&(curr->duration_in_list), (LibU64_t *)&(next->duration_in_list));
@@ -594,20 +701,49 @@ void Timer48_Delete(uint16_t timer_id_to_del, struct timer_request_node **p_dele
             }
             else
             {
-                next = (struct timer_request_node *)DLLIST_NEXT(curr);
+                next = (struct timer_request_node *)LLIST_NEXT(curr);
                 if (next != NULL)
                 {
                     LibU48_Add48To48((LibU64_t *)&(next->duration_in_list), (LibU64_t *)&(curr->duration_in_list), (LibU64_t *)&(next->duration_in_list));
                 }
             }
+#if USE_DOUBLY_LIST
+            DLLIST_REMOVE_NODE(USED_LIST, curr);
+#else
+            SLLIST_REMOVE_NEXT(USED_LIST, prev);
+#endif
             *p_deleted_timer = curr;
+            
             //DLLIST_REMOVE_NODE(USED_LIST, curr);
             //DLLIST_INSERT_LAST(UNUSED_LIST, curr);
             //dump_list1("unused ", UNUSED_LIST);
             //dump_list3("used   ", USED_LIST);
             break;
         }
+#if USE_DOUBLY_LIST
+#else
+        prev = curr;
+#endif
     }
+}
+
+void Timer48_Delete_And_Message_Out(uint16_t timer_id_to_delete, struct timer_request_node **p_deleted_timer)
+{
+    struct timer_request_node *deleted_timer;
+    uint16_t dura = 0;
+    Timer48_Delete(timer_id_to_delete, &deleted_timer);
+    if (deleted_timer != NULL)
+    {
+        if (deleted_timer->req.command_flags & RETURN_DURATION || g_timer_request_buf.command_flags & RETURN_DURATION)
+        {
+            Timer48_Get_Duration16(deleted_timer, &dura);
+        }
+        g_timer_response_buf.command_flags = g_timer_request_buf.command_flags;
+        g_timer_response_buf.timer_id = deleted_timer->req.timer_id;
+        g_timer_response_buf.duration_in_ms = dura;
+        Timer48_Message_Out(deleted_timer->comm_id);
+    }
+    *p_deleted_timer = deleted_timer;
 }
 
 // return does_timer_start
@@ -618,19 +754,22 @@ int Timer48_Insert(struct timer_request_node *new_node)
     struct time48_32x2 first_node_remain;
     LIB_U64_COMPARE_t cmp = A_B_ARE_EQUAL;
 
-#if ENABLE_HX3_OPTIMIZE
+#if 0
     new_node->duration_in_list.hi = 0;
     new_node->duration_in_list.lo = new_node->req.time_in_ms * MS_TO_TIMER_TICKS;
 #else
-    //int LibU48_Mul32To48(u32 a, u32 x, LibU64_t *result);
-    LibU48_Mul32To48(MS_TO_TIMER_TICKS, new_node->req.time_in_ms, (LibU64_t *)&(new_node->duration_in_list));
+    #if ENABLE_PC_DEBUG
+    MUL48S(gMsToTimerTicks, new_node->req.time_in_ms, &(new_node->duration_in_list));
+    #else
+    MUL48S(MS_TO_TIMER_TICKS, new_node->req.time_in_ms, &(new_node->duration_in_list));
+    #endif
 #endif
 
-    curr = (struct timer_request_node *)DLLIST_HEAD(USED_LIST);
+    curr = (struct timer_request_node *)LLIST_HEAD(USED_LIST);
 
     if (curr == NULL)
     {
-        DLLIST_INSERT_FIRST(USED_LIST, new_node);
+        TIMER48_INSERT_FIRST(USED_LIST, new_node);
         Timer48_Start(new_node);
         does_timer_start = 1;
     }
@@ -645,7 +784,7 @@ int Timer48_Insert(struct timer_request_node *new_node)
         // compare "first node remain" to "new node duration"
         //LIB_U64_COMPARE_t LibU64_Compare(LibU64_t *a, LibU64_t *b)
         cmp = LibU64_Compare((LibU64_t *)&first_node_remain, (LibU64_t *)&(new_node->duration_in_list));
-        if (cmp == A_IS_BIGGER)
+        if (cmp == A_IS_GREATER)
         {
             // new node is 1st node now, start timer as fast as possible
             Timer48_Stop();
@@ -654,7 +793,7 @@ int Timer48_Insert(struct timer_request_node *new_node)
             // insert new 1st, adjust duration of old 1st node
             // old 1st duration = remain - new 1st
             LibU48_Sub48To48((LibU64_t *)&first_node_remain, (LibU64_t *)&(new_node->duration_in_list), (LibU64_t *)&(curr->duration_in_list));
-            DLLIST_INSERT_FIRST(USED_LIST, new_node);
+            TIMER48_INSERT_FIRST(USED_LIST, new_node);
         }
         else
         {
@@ -664,16 +803,16 @@ int Timer48_Insert(struct timer_request_node *new_node)
             // search & insert
             do
             {
-                next = (struct timer_request_node *)DLLIST_NEXT(curr);
+                next = (struct timer_request_node *)LLIST_NEXT(curr);
                 if (next == NULL)
                 {
-                    DLLIST_INSERT_AFTER(USED_LIST, curr, new_node);
+                    LLIST_INSERT_AFTER(USED_LIST, curr, new_node);
                     break;
                 }
                 // compare "next node duration_in_list" to "new node duration"
                 cmp = LibU64_Compare((LibU64_t *)&(next->duration_in_list), (LibU64_t *)&(new_node->duration_in_list));
                 // if new is bigger, search next
-                if (cmp == B_IS_BIGGER)
+                if (cmp & B_IS_GTE)
                 {
                     LibU48_Sub48To48((LibU64_t *)&(new_node->duration_in_list), (LibU64_t *)&(next->duration_in_list), (LibU64_t *)&(new_node->duration_in_list));
                     curr = next;
@@ -682,7 +821,7 @@ int Timer48_Insert(struct timer_request_node *new_node)
                 // if next is bigger or equal, searching is over
                 else
                 {
-                    DLLIST_INSERT_AFTER(USED_LIST, curr, new_node);
+                    LLIST_INSERT_AFTER(USED_LIST, curr, new_node);
                     LibU48_Sub48To48((LibU64_t *)&(next->duration_in_list), (LibU64_t *)&(new_node->duration_in_list), (LibU64_t *)&(next->duration_in_list));
                     break;
                 }
@@ -690,360 +829,456 @@ int Timer48_Insert(struct timer_request_node *new_node)
         }
     }
 
-    //Timer48_Update_System_Clock();
     LibU48_Add48To48((LibU64_t *)&g_pseudo_system_clock, (LibU64_t *)&g_elapsed_clock, (LibU64_t *)&(new_node->start_time));
-
+#if ENABLE_PC_DEBUG
+    {
+        LibU64_t total_time;
+        MUL48S(gMsToTimerTicks, new_node->req.time_in_ms, &total_time);
+        ADD48(&total_time, &(new_node->start_time), &(new_node->dbg_end_time));
+    }
+#endif
     return does_timer_start;
 }
 
 void Timer48_Timesup(void)
 {
-    int do_reinsert = 0;
-    struct timer_request_node *first = (struct timer_request_node *)DLLIST_HEAD(USED_LIST);
-    DLLIST_REMOVE_FIRST(USED_LIST);
+    int is_next_very_close;
+    int do_reinsert;
+    struct timer_request_node *first;
 
-    g_is_timer_exist = 0;
-    g_is_times_up = 0;
-    /*
-        1.send back message
-        2.infinite loop check
-        3.finite loop check
-        4.one-shot check and remove node to un-used list
-    */
-    // 1.send back message
-    g_timer_response_buf.command_flags = first->req.command_flags;
-    g_timer_response_buf.timer_id = first->req.timer_id;
-    g_timer_response_buf.duration_in_ms = first->req.time_in_ms;
+    Timer48_Get_Elapsed();
+
+    do
+    {
+        is_next_very_close = 0;
+        do_reinsert = 0;
+        first = (struct timer_request_node *)LLIST_HEAD(USED_LIST);
+        LLIST_REMOVE_FIRST(USED_LIST);
+
 #if ENABLE_PC_DEBUG
-    printf("time's up on timer_id:%d\n", first->req.timer_id);
-#endif
-    Timer48_Message_Out(first->comm_id);
-
-    // 2.infinite loop check
-    if (first->req.command_flags & REPEAT_INFINITE)
-    {
-        do_reinsert = 1;
-    }
-
-    // 3.finite loop check
-    if (first->req.command_flags & REPEAT_FINITE)
-    {
-        first->curr_repeat_counts++;
-        
-        if (first->req.repeat_counts != 0)
         {
-            if (first->req.repeat_counts != first->curr_repeat_counts)
+            if (NULL == first)
             {
-                do_reinsert = 1;
+                printf("Error : time's up with no node.\n");
+                dump_all();
+                BASIC_ASSERT(0);
+            }
+            printf("time's up on timer_id:%d\n", first->req.timer_id);
+            g_is_timer_exist = 0;
+            g_is_times_up = 0;
+        }
+        {
+            LibU64_t curr_clk;
+            ADD48(&g_pseudo_system_clock, &g_elapsed_clock, &curr_clk);
+            //curr clock mush equals to dbg_end_time
+            if (A_B_ARE_EQUAL != LibU64_Compare(&(first->dbg_end_time), &curr_clk))
+            {
+                printf("Error : end time not match\n");
+                dump_curr_clk();
+                dump_node(first);
+                dump_all();
+                BASIC_ASSERT(0);
+            }
+            {
+                extern void Timer48_TimesupStub(struct timer_request_node *first, LibU64_t *p_curr_clk);
+                Timer48_TimesupStub(first, &curr_clk);
             }
         }
-        
-    }
+#endif
 
-    // 4.one-shot check and remove node to un-used list
-#if 1
-    // start timer if there are remainders
-    struct timer_request_node *new_first_node = (struct timer_request_node *)DLLIST_HEAD(USED_LIST);
-    if (new_first_node != NULL)
-    {
-        Timer48_Start(new_first_node);
-    }
-    if (do_reinsert)
-    {
-        Timer48_Insert(first);
-    }
-    else
-    {
-        DLLIST_INSERT_LAST(UNUSED_LIST, first);
-    }
-#else
-    if (do_reinsert)
-    {
-        if(Timer48_Insert(first) == 0)
+        /*
+            1.send back message
+            2.infinite loop check
+            3.finite loop check
+            4.one-shot check and remove node to un-used list
+        */
+        // 1.send back message
+        g_timer_response_buf.command_flags = first->req.command_flags;
+        g_timer_response_buf.timer_id = first->req.timer_id;
+        g_timer_response_buf.duration_in_ms = first->req.time_in_ms;
+        Timer48_Message_Out(first->comm_id);
+
+        // 2.infinite loop check
+        if (first->req.command_flags & REPEAT_INFINITE)
         {
-            struct timer_request_node *new_first_node = (struct timer_request_node *)DLLIST_HEAD(USED_LIST);
-            Timer48_Start(new_first_node);
+            do_reinsert = 1;
         }
-    }
-    else
-    {
+
+        // 3.finite loop check
+        if (first->req.command_flags & REPEAT_FINITE)
+        {
+            first->curr_repeat_counts++;
+            
+            if (first->req.repeat_counts != 0)
+            {
+                if (first->req.repeat_counts != first->curr_repeat_counts)
+                {
+                    do_reinsert = 1;
+                }
+            }
+        }
+
+        // !!! may insert before start
+        // 4.one-shot check and remove node to un-used list
         // start timer if there are remainders
-        struct timer_request_node *new_first_node = (struct timer_request_node *)DLLIST_HEAD(USED_LIST);
+        struct timer_request_node *new_first_node = (struct timer_request_node *)LLIST_HEAD(USED_LIST);
         if (new_first_node != NULL)
         {
-            Timer48_Start(new_first_node);
-        }
-        DLLIST_INSERT_LAST(UNUSED_LIST, first);
-    }
-#endif
-}
-
-void Timer48_Message_In(void)
-{
-    if (g_timer_request_buf.command_flags & ADD_TIMER)
-    {
-        struct timer_request_node *new_node;
-        new_node = (struct timer_request_node *)DLLIST_HEAD(UNUSED_LIST);
-        if (new_node == NULL)
-        {
-            g_timer_request_buf.command_flags = TIMER_MEMORY_RAN_OUT;
-            //TBD??
-        }
-        DLLIST_REMOVE_FIRST(UNUSED_LIST);
-        #if ENABLE_HX3_OPTIMIZE
-        new_node->comm_id = COMM_ID_REQUEST_0;
-        #else
-        new_node->comm_id = g_comm_id;
-        #endif
-        new_node->curr_repeat_counts = 0;
-        new_node->req = g_timer_request_buf;
-        Timer48_Insert(new_node);
-    }
-    else if (g_timer_request_buf.command_flags & DEL_TIMER)
-    {
-        struct timer_request_node *deleted_timer;
-        uint16_t dura = 0;
-        Timer48_Delete(g_timer_request_buf.timer_id, &deleted_timer);
-        if (deleted_timer != NULL)
-        {
-            DLLIST_REMOVE_NODE(USED_LIST, deleted_timer);
-            if (deleted_timer->req.command_flags & RETURN_DURATION || g_timer_request_buf.command_flags & RETURN_DURATION)
+            // 0 compensate for now
+            if (new_first_node->duration_in_list.hi | new_first_node->duration_in_list.lo)
             {
-                Timer48_Get_Duration16(deleted_timer, &dura);
+                Timer48_Start(new_first_node);
             }
-            g_timer_response_buf.command_flags = g_timer_request_buf.command_flags;
-            g_timer_response_buf.timer_id = deleted_timer->req.timer_id;
-            g_timer_response_buf.duration_in_ms = dura;
-#if ENABLE_PC_DEBUG
-            printf("del timer_id:%d, and send back message, dura=%d\n", deleted_timer->req.timer_id, dura);
-#endif
-            Timer48_Message_Out(deleted_timer->comm_id);
-            DLLIST_INSERT_LAST(UNUSED_LIST, deleted_timer);
+            else
+            {
+                is_next_very_close = 1;
+            }
+        }
+
+        if (do_reinsert)
+        {
+            //must update, a new start
+            Timer48_Update_System_Clock();
+
+            Timer48_Insert(first);
+            //printf("re insert ...\n");
+            //dump_all();
         }
         else
         {
-            //CAN_NOT_FIND_TIMER
+            TIMER48_INSERT_LAST(UNUSED_LIST, first);
         }
-    }
-#if ENABLE_HX3_OPTIMIZE
-    //emtpy
-#else
-    else if (g_timer_request_buf.command_flags & RESTART_TIMER)
-    {
-        struct timer_request_node *deleted_timer;
-        uint16_t dura = 0;
-        Timer48_Delete(g_timer_request_buf.timer_id, &deleted_timer);
-        if (deleted_timer != NULL)
-        {
-            DLLIST_REMOVE_NODE(USED_LIST, deleted_timer);
-            if (deleted_timer->req.command_flags & RETURN_DURATION || g_timer_request_buf.command_flags & RETURN_DURATION)
-            {
-                Timer48_Get_Duration16(deleted_timer, &dura);
-            }
-            g_timer_response_buf.command_flags = g_timer_request_buf.command_flags;
-            g_timer_response_buf.timer_id = deleted_timer->req.timer_id;
-            g_timer_response_buf.duration_in_ms = dura;
-#if ENABLE_PC_DEBUG
-            printf("restart timer_id:%d, and send back message, dura=%d\n", deleted_timer->req.timer_id, dura);
-#endif
-            Timer48_Message_Out(deleted_timer->comm_id);
-            //DLLIST_INSERT_LAST(UNUSED_LIST, deleted_timer);
+    } while(is_next_very_close);
+}
 
+void Timer48_Message_In_Delete_Timer(int do_restart)
+{
+    struct timer_request_node *deleted_timer;
+    Timer48_Delete_And_Message_Out(g_timer_request_buf.timer_id, &deleted_timer);
+    if (deleted_timer != NULL)
+    {
+#if ENABLE_PC_DEBUG
+        if (do_restart)
+            printf("restart timer_id:%d, and send back message, dura=%d\n", deleted_timer->req.timer_id, g_timer_response_buf.duration_in_ms);
+        else
+            printf("del timer_id:%d, and send back message, dura=%d\n", deleted_timer->req.timer_id, g_timer_response_buf.duration_in_ms);
+#endif
+        if (do_restart)
+        {
             //re-insert
             deleted_timer->curr_repeat_counts = 0;
             Timer48_Insert(deleted_timer);
         }
         else
         {
-            //CAN_NOT_FIND_TIMER
-        }
-    }
-#endif
-}
-
-int Timer48_TestStub(int is_start)
-{
-#if ENABLE_PC_DEBUG
-    static int timesup_flag;
-    LibU64_t result_clock;
-    LibU48_Add48To48((LibU64_t *)&g_pseudo_system_clock, (LibU64_t *)&g_elapsed_clock, (LibU64_t *)&result_clock);
-    
-    if (is_start)
-    {
-        timesup_flag = 0;
-        printf("test stub ------ 0x%08X . 0x%08X /// 0x%08X . 0x%08X + 0x%08X . 0x%08X \n",
-            result_clock.hi,
-            result_clock.lo,
-            g_pseudo_system_clock.hi,
-            g_pseudo_system_clock.lo,
-            g_elapsed_clock.hi,
-            g_elapsed_clock.lo);
-
-        {
-            static LibU64_t a = {0, 0};
-            if (A_B_ARE_EQUAL == LibU64_Compare(&a, (LibU64_t *)(&result_clock)))
-            {
-                g_timer_request_buf.command_flags = ADD_TIMER|REPEAT_FINITE;
-                g_timer_request_buf.repeat_counts = 1;
-                g_timer_request_buf.timer_id = 1;
-                g_timer_request_buf.time_in_ms = 5;
-                Timer48_Message_In();
-                g_timer_request_buf.command_flags = ADD_TIMER|REPEAT_FINITE;
-                g_timer_request_buf.repeat_counts = 2;
-                g_timer_request_buf.timer_id = 2;
-                g_timer_request_buf.time_in_ms = 3;
-                Timer48_Message_In();
-                g_timer_request_buf.command_flags = ADD_TIMER|REPEAT_FINITE;
-                g_timer_request_buf.repeat_counts = 2;
-                g_timer_request_buf.timer_id = 3;
-                g_timer_request_buf.time_in_ms = 10;
-                Timer48_Message_In();
-                printf("initial list:\n");
-                dump_list1("unused ", UNUSED_LIST);
-                dump_list3("used   ", USED_LIST);
-            }
-        }
-
-        {
-            static LibU64_t a = {0, 0x80000000};
-            if (A_B_ARE_EQUAL == LibU64_Compare(&a, (LibU64_t *)(&result_clock)))
-            {
-                g_is_message_in = 1;
-                //add timer
-                printf("add timer 4\n");
-                g_timer_request_buf.command_flags = ADD_TIMER;
-                g_timer_request_buf.repeat_counts = 0;
-                g_timer_request_buf.timer_id = 4;
-                g_timer_request_buf.time_in_ms = 1;
-            }
-        }
-
-        {
-            static LibU64_t a = {5, 0xa0000000};
-            if (A_B_ARE_EQUAL == LibU64_Compare(&a, (LibU64_t *)(&result_clock)))
-            {
-                g_is_message_in = 1;
-                //add timer
-                printf("restart timer 3\n");
-                g_timer_request_buf.command_flags = RESTART_TIMER | RETURN_DURATION;
-                g_timer_request_buf.timer_id = 3;
-            }
-        }
-
-        {
-            struct timer_request_node *first = (struct timer_request_node *)DLLIST_FIRST(USED_LIST);
-            if (first != NULL)
-            {
-                LIB_U64_COMPARE_t cmp = LibU64_Compare((LibU64_t *)&g_elapsed_clock_hw, (LibU64_t *)&(first->duration_in_list));
-                //DUMPNX32(g_elapsed_clock_hw.hi);
-                //DUMPNX32(g_elapsed_clock_hw.lo);
-                //DUMPNX32(first->duration_in_list.hi);
-                //DUMPNX32(first->duration_in_list.lo);
-                if (cmp == A_B_ARE_EQUAL)
-                {
-                    g_is_times_up = 1;
-                    timesup_flag = 1;
-                }
-            }
+            TIMER48_INSERT_LAST(UNUSED_LIST, deleted_timer);
         }
     }
     else
     {
-        //end
-        {
-            static LibU64_t a = {0, 0x80000000};
-            if (A_B_ARE_EQUAL == LibU64_Compare(&a, (LibU64_t *)(&result_clock)))
-            {
-                printf("after add timer 4\n");
-                dump_list1("unused ", UNUSED_LIST);
-                dump_list3("used   ", USED_LIST);
-            }
-        }
-
-        if (timesup_flag)
-        {
-            timesup_flag = 0;
-            printf("after timer's up\n");
-            dump_list1("unused ", UNUSED_LIST);
-            dump_list3("used   ", USED_LIST);
-        }
-
-        //test over
-        {
-            static LibU64_t a = {16, 0};
-            if (A_B_ARE_EQUAL == LibU64_Compare(&a, (LibU64_t *)(&result_clock)))
-            {
-                printf("test over\n");
-                dump_list1("unused ", UNUSED_LIST);
-                dump_list3("used   ", USED_LIST);
-                return 1;
-            }
-        }
-
-        {
-            static LibU64_t slice = {0, 0x20000000};
-            LibU48_Add48To48((LibU64_t *)&g_elapsed_clock_hw, (LibU64_t *)&slice, (LibU64_t *)&g_elapsed_clock_hw);
-            
-
-            //Timer48_Get_Elapsed(); only works when timer exist
-            g_elapsed_clock = g_elapsed_clock_hw;
-
-        }
+        //CAN_NOT_FIND_TIMER
     }
-#endif
-    return 0;
+}
+
+void Timer48_Message_In_Add_Timer(void)
+{
+    struct timer_request_node *new_node;
+    new_node = (struct timer_request_node *)LLIST_HEAD(UNUSED_LIST);
+    if (new_node == NULL)
+    {
+        g_timer_request_buf.command_flags = TIMER_MEMORY_RAN_OUT;
+        //TBD??
+    }
+    LLIST_REMOVE_FIRST(UNUSED_LIST);
+    new_node->comm_id = g_comm_id;
+    new_node->curr_repeat_counts = 0;
+    new_node->req = g_timer_request_buf;
+    Timer48_Insert(new_node);
+}
+
+void Timer48_Message_In(void)
+{
+    Timer48_Get_Elapsed();
+
+    if (g_timer_request_buf.command_flags & ADD_TIMER)
+    {
+        Timer48_Message_In_Add_Timer();
+    }
+    else if (g_timer_request_buf.command_flags & DEL_TIMER)
+    {
+        Timer48_Message_In_Delete_Timer(0);
+    }
+    else if (g_timer_request_buf.command_flags & RESTART_TIMER)
+    {
+        Timer48_Message_In_Delete_Timer(1);
+    }
 }
 
 void Timer48_Init(void)
 {
     g_is_timer_exist = 0;
+#if ENABLE_PC_DEBUG
     g_is_times_up = 0;
     g_is_message_in = 0;
+    g_elapsed_clock.hi = 0;
+    g_elapsed_clock.lo = 0;
+    g_elapsed_clock_hw.hi = 0;
+    g_elapsed_clock_hw.lo = 0;
+#endif
     g_pseudo_system_clock.hi = 0;
     g_pseudo_system_clock.lo = 0;
     // timer nodes init
-    DLLIST_HEAD_RESET(UNUSED_LIST);
-    DLLIST_HEAD_RESET(USED_LIST);
+    LLIST_HEAD_RESET(UNUSED_LIST);
+    LLIST_HEAD_RESET(USED_LIST);
     for(i = 0; i< MAX_NUM_OF_TIMER_REQUEST; i++)
     {
-        DLLIST_INSERT_LAST(UNUSED_LIST, &(g_nodes[i]));
+        TIMER48_INSERT_LAST(UNUSED_LIST, &(g_nodes[i]));
     }
 }
 
+#if ENABLE_PC_DEBUG
 void Timer48(void)
 {
-    Timer48_Init();
+    int ret;
 
     while (1)
     {
-#if ENABLE_PC_DEBUG
-        Timer48_TestStub(1);
-#endif
-        // wait message or time's up event
-        if (g_is_message_in)
+        Timer48_Init();
+
+        while (1)
         {
-            Timer48_Get_Elapsed();
-            //Timer48_Update_System_Clock();
+            Timer48_TestStub(1);
+            // wait message or time's up event
+            if (g_is_message_in)
+            {
+                //Timer48_Get_Elapsed();
+                //Timer48_Update_System_Clock();
+                Timer48_Message_In();
+                g_is_message_in = 0;
+                //TODO: keep recieving
+            }
+            if (g_is_timer_exist)
+            {
+                if (g_is_times_up)
+                {
+                    //Timer48_Get_Elapsed();
+                    //Timer48_Update_System_Clock();
+                    Timer48_Timesup();
+                    //g_is_times_up = 0;
+                }
+            }
+            ret = Timer48_TestStub(0);
+            if (ret == 1)
+            {
+                printf("reset test environment ...\n\n");
+                break; //reset test case
+            }
+            else if (ret == 2)
+            {
+                printf("all tests done ...\n\n");
+                return;
+            }
+        }
+    }
+}
+#endif
+
+#if ENABLE_PC_DEBUG
+//...
+#else
+
+void Timer48_MPX_Cell(void)
+{
+    Timer48_Init();
+
+    MPX_SetupWake(CONN_ID_TIMER_REQ_00);
+    MPX_Recv( &g_timer_request_buf, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+    MPX_SetupWake(CONN_ID_TIMER_REQ_01);
+    MPX_Recv( &g_timer_request_buf2, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_01, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+    MPX_SetupWake(CONN_ID_TIMER_REQ_02);
+    MPX_Recv( &g_timer_request_buf3, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_02, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+
+    while ( 1 )
+    {
+        MPX_Wait();
+
+        if (MPX_Rtest(CONN_ID_TIMER_REQ_00) == 0) {
+            //MPX_Print("---S--- RX done : %T %Y, buf[0]=%d", buf[0]);
+            MPX_ResetWMR(CONN_ID_TIMER_REQ_00);
+            g_comm_id = CONN_ID_TIMER_REQ_00;
+            //Timer48_Get_Elapsed();
             Timer48_Message_In();
-            g_is_message_in = 0;
-            //TODO: keep recieving
+            MPX_SetupWake(CONN_ID_TIMER_REQ_00);
+            MPX_Recv( &g_timer_request_buf, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+            //MPX_Print("---E--- RX done : %T %Y, buf[1]=%d", buf[1]);
+        }
+        if (MPX_Rtest(CONN_ID_TIMER_REQ_01) == 0) {
+            //MPX_Print("---S--- RX done : %T %Y, buf[0]=%d", buf[0]);
+            MPX_ResetWMR(CONN_ID_TIMER_REQ_01);
+            g_comm_id = CONN_ID_TIMER_REQ_01;
+            //Timer48_Get_Elapsed();
+            Timer48_Message_In();
+            MPX_SetupWake(CONN_ID_TIMER_REQ_01);
+            MPX_Recv( &g_timer_request_buf2, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_01, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+            //MPX_Print("---E--- RX done : %T %Y, buf[1]=%d", buf[1]);
+        }
+        if (MPX_Rtest(CONN_ID_TIMER_REQ_02) == 0) {
+            //MPX_Print("---S--- RX done : %T %Y, buf[0]=%d", buf[0]);
+            MPX_ResetWMR(CONN_ID_TIMER_REQ_02);
+            g_comm_id = CONN_ID_TIMER_REQ_02;
+            //Timer48_Get_Elapsed();
+            Timer48_Message_In();
+            MPX_SetupWake(CONN_ID_TIMER_REQ_02);
+            MPX_Recv( &g_timer_request_buf3, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_02, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+            //MPX_Print("---E--- RX done : %T %Y, buf[1]=%d", buf[1]);
         }
         if (g_is_timer_exist)
         {
-            if (g_is_times_up)
-            {
-                Timer48_Get_Elapsed();
-                //Timer48_Update_System_Clock();
+            if (MPX_Timer_Get_Status() == 1) {
+                //MPX_Print("---S--- Times up : %T %Y");
+                MPX_Timer_Clear_Status();
+                //MPX_Print("---E--- Times up : %T %Y");
+                //Timer48_Get_Elapsed();
                 Timer48_Timesup();
-                //g_is_times_up = 0;
             }
         }
-#if ENABLE_PC_DEBUG
-        if (Timer48_TestStub(0))
-        {
-            break;
-        }
-#endif
     }
 }
 
+
+
+int main()
+{
+    if (MPX_RANK == 0)
+    {
+        Timer48_MPX_Cell();
+    }
+
+    if (MPX_RANK == 1)
+    {
+        /*
+        int x[2];
+        volatile int i = 0;
+        while(i != 300){i++;}
+        x[0] = 72;
+        x[1] = 73;
+        MPX_Send( x, 2, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
+        i = 0;
+        while(i != 300){i++;}
+        x[0] = 94;
+        x[1] = 95;
+        */
+        /*
+        int LibU48_Add48To48(LibU64_t *from, LibU64_t *increment, LibU64_t *result); //return 1 if u64 overflow
+        int LibU48_Sub48To48(LibU64_t *from, LibU64_t *decrement, LibU64_t *result); //return 1 if u64 overflow
+        int LibU48_Mul32To48(u32 a, u32 x, LibU64_t *result);
+        int LibU48_Div32To48(LibU64_t *dividend64, u32 divisor32, LibU64_t *quotient, u32 *remainder);
+        LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 turnaround_mask_63_32);
+        
+        LibU64_t a,b,c,d;
+        uint32_t x,y,z;
+        a.hi=0;a.lo=1;
+        b.hi=1;b.lo=9;
+        MPX_Print("add48 --- S --- : %T %Y");
+        LibU48_Add48To48(&a, &b, &c);
+        MPX_Print("add48 --- E --- : %T %Y");
+        c=c;
+        a.hi=2;a.lo=1;
+        b.hi=1;b.lo=9;
+        MPX_Print("sub48 --- S --- : %T %Y");
+        LibU48_Sub48To48(&a, &b, &c);
+        MPX_Print("sub48 --- E --- : %T %Y");
+        c=c;
+        x=9;y=8;
+        MPX_Print("mul48 --- S --- : %T %Y");
+        LibU48_Mul32To48(x, y, &c);
+        MPX_Print("mul48 --- E --- : %T %Y");
+        c=c;
+        a.hi=1;a.lo=1;
+        x=9;
+        MPX_Print("div48 --- S --- : %T %Y");
+        LibU48_Div32To48(&a, x, &c, &y);
+        MPX_Print("div48 --- E --- : %T %Y");
+        c=c;
+        a.hi=1;a.lo=1;
+        x=9;
+        LIB_U64_COMPARE_t cmp;
+        MPX_Print("diff48 --- S --- : %T %Y");
+        cmp = LibU48_Diff48(&a, &b, &c, 0x00008000);
+        MPX_Print("diff48 --- E --- : %T %Y");
+        c=c;
+        */
+        struct timer_request request;
+        struct timer_response response;
+        volatile int i = 0;
+        request.command_flags = ADD_TIMER|REPEAT_INFINITE;
+        request.repeat_counts = 2;
+        request.timer_id = 1111;
+        request.time_in_ms = 0;
+        MPX_Print("---S---1 Times up : %T %Y");
+        MPX_Send( &request, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
+        //MPX_Print("---S---2 Times up : %T %Y");
+#if 0
+        request.command_flags = ADD_TIMER|REPEAT_INFINITE;
+        request.repeat_counts = 2;
+        request.timer_id = 2222;
+        request.time_in_ms = 2;
+        MPX_Print("---S--- Times up : %T %Y");
+        MPX_Send( &request, 4, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
+#endif
+#if 0
+        while(i != 3000){i++;i=i;}i=0;
+        request.command_flags = RESTART_TIMER;
+        request.repeat_counts = 2;
+        request.timer_id = 1111;
+        request.time_in_ms = 0;
+        //while(i != 300){i++;i=i;}i=0;
+        MPX_Print("---S--- Times up : %T %Y");
+        MPX_Send( &request, 4, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
+#endif
+        while (1)
+        {
+            MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_00, MPX_DMA);
+            MPX_Print("---E---  Times up : %T %Y");
+            //MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_00, MPX_DMA | MPX_NONBLOCKING);
+            MPX_Print("command = %d", response.command_flags);
+            MPX_Print("id = %d", response.timer_id);
+            MPX_Print("dura = %d", response.duration_in_ms);
+#if 0
+            i++;
+            if (i == 4)
+            {
+                request.command_flags = DEL_TIMER|RETURN_DURATION;
+                request.timer_id = 5555;
+                MPX_Send( &request, 4, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
+            }
+#endif
+        }
+    }
+
+    if (MPX_RANK == 2)
+    {
+        struct timer_request request;
+        struct timer_response response;
+        volatile int i = 0;
+        request.command_flags = ADD_TIMER|REPEAT_INFINITE;
+        request.repeat_counts = 2;
+        request.timer_id = 1111;
+        request.time_in_ms = 0;
+        MPX_Print("---S---1 Times up : %T %Y");
+        MPX_Send( &request, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_01, MPX_DMA); //MPX_NONBLOCKING
+        //MPX_Print("---S---2 Times up : %T %Y");
+        while (1)
+        {
+            MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_01, MPX_DMA);
+            MPX_Print("---E---  Times up : %T %Y");
+            //MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_00, MPX_DMA | MPX_NONBLOCKING);
+            MPX_Print("command = %d", response.command_flags);
+            MPX_Print("id = %d", response.timer_id);
+            MPX_Print("dura = %d", response.duration_in_ms);
+        }
+    }
+
+    return 0;
+}
+#endif

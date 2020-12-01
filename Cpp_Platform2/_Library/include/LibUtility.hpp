@@ -27,6 +27,9 @@ int LibUtil_GetRand(void);
 u8  LibUtil_GetRand8(void);
 u16 LibUtil_GetRand16(void);
 u32 LibUtil_GetRand32(void);
+u8 LibUtil_GetRangeRand8(u8 min, u8 max);
+u16 LibUtil_GetRangeRand16(u8 min, u8 max);
+u32 LibUtil_GetRangeRand32(u8 min, u8 max);
 void LibUtil_TestRand(void);
 
 void LibUtil_Print_RAND_MAX(void);

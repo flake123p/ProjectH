@@ -33,7 +33,8 @@ set result2=%ERRORLEVEL%
 echo ====== Build Done!! Errorlevel = %result1%, %result2% ====== 
 
 :END_OF_BUILD
-
+rem objdump
+rem @objdump -x build\Timer48.o>Timer48.objdump.txt
 if "%2" NEQ "--DisablePause" (
 	pause
 )

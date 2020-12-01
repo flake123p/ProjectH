@@ -30,7 +30,7 @@ const char * gLibVCD_FileName;
 //u32 gLibVCD_ClkHigh = 0;
 //LibU64_t gLibVCD_AccuClks = {0};
 u32 gLibVCD_AccuClks = 0;
-Lib_Desc_Head_t *gLibVCD_JobHead;
+Lib_Desc_Head_t *gLibVCD_JobHead = NULL;
 int gLibVCD_IsValueNotPrintYet = 0;
 
 //
@@ -192,6 +192,8 @@ int LibVCD_Uninit(void)
 {
     //BASIC_ASSERT(gLibVCD_AccuClks.high == 0); //not implement u64 print
     fprintf(gLibVCD_fp, "#%d\n", gLibVCD_AccuClks);
+    gLibVCD_AccuClks = 0;
+    gLibVCD_IsValueNotPrintYet = 0;
 
     if (gLibVCD_InfoArry != NULL) {
         MM_FREE(gLibVCD_InfoArry);
@@ -201,7 +203,10 @@ int LibVCD_Uninit(void)
         fclose(gLibVCD_fp);
     }
 
-    LibDesc_DestroyList(gLibVCD_JobHead, 1);
+    if (gLibVCD_JobHead != NULL) {
+        LibDesc_DestroyList(gLibVCD_JobHead, 1);
+        gLibVCD_JobHead = NULL;
+    }
 
     return 0;
 }
@@ -249,6 +254,7 @@ int LibVCD_DumpAllCurrValues(void)
 int LibVCD_ClockAdd(u32 clocksToAdd)
 {
     MUTEX_LIB_VCD_LOCK;
+    BASIC_ASSERT(gLibVCD_JobHead != NULL); // not inited
     if (clocksToAdd) {
         LibVCD_DumpAllCurrValues();
 
@@ -264,6 +270,7 @@ int LibVCD_ValueChangeToDontCare(u32 index)
 {
     _LibVCD_WireValueDesc_t *desc;
     MUTEX_LIB_VCD_LOCK;
+    BASIC_ASSERT(gLibVCD_JobHead != NULL); // not inited
     desc = (_LibVCD_WireValueDesc_t *)LibDesc_GetDesc(gLibVCD_JobHead);
     desc->data.index = index;
     desc->data.flag = LIB_VCD_IS_VAL_DONT_CARE;
@@ -277,6 +284,7 @@ int LibVCD_ValueChange(u32 index, u32 value)
 {
     _LibVCD_WireValueDesc_t *desc;
     MUTEX_LIB_VCD_LOCK;
+    BASIC_ASSERT(gLibVCD_JobHead != NULL); // not inited
     desc = (_LibVCD_WireValueDesc_t *)LibDesc_GetDesc(gLibVCD_JobHead);
     desc->data.index = index;
     desc->data.flag = LIB_VCD_FLAG_NULL;

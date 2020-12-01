@@ -107,6 +107,8 @@ typedef struct {
 #define SLLIST_HEAD_RESET(head) SLLIST_HEAD(head)=NULL; SLLIST_TAIL(head)=(void *)head;
 
 #define SLLIST_FOREACH(head,curr,type) for(curr=(type *)SLLIST_HEAD(head); curr!=NULL; curr=(type *)SLLIST_NEXT(curr))
+#define SLLIST_WHILE_START(head,curr,type) curr=(type *)SLLIST_HEAD(head);while(curr!=NULL)
+#define SLLIST_WHILE_NEXT(curr,type) curr=(type *)SLLIST_NEXT(curr)
 
 #define SLLIST_INSERT_LAST(head,new_node) \
     SLLIST_NEXT(new_node) = NULL;\
@@ -120,6 +122,9 @@ typedef struct {
         SLLIST_NEXT(new_node) = SLLIST_NEXT(node);\
         SLLIST_NEXT(node) = (void *)new_node;\
     }
+
+#define SLLIST_INSERT_FIRST(head,new_node) \
+    SLLIST_INSERT_AFTER(head,head,new_node)
 
 #define SLLIST_REMOVE_FIRST(head) \
     if (SLLIST_NEXT(SLLIST_HEAD(head)) == NULL) {\
@@ -238,7 +243,68 @@ typedef struct {
         }\
     }
 
-
+// for application
+/*
+#if USE_DOUBLY_LIST
+#define LLIST_NEXT                  DLLIST_NEXT
+#define LLIST_PREV                  DLLIST_PREV
+#define LLIST_HEAD                  DLLIST_HEAD
+#define LLIST_TAIL                  DLLIST_TAIL
+#define LLIST_TAIL_IS_VALID         DLLIST_TAIL_IS_VALID
+#define LLIST_IS_EMPTY              DLLIST_IS_EMPTY
+#define LLIST_IS_NOT_EMPTY          DLLIST_IS_NOT_EMPTY
+#define LLIST_FIRST                 DLLIST_FIRST
+#define LLIST_LAST                  DLLIST_LAST
+#define LLIST_HEAD_INIT             DLLIST_HEAD_INIT
+#define LLIST_HEAD_RESET            DLLIST_HEAD_RESET
+#define LLIST_FOREACH               DLLIST_FOREACH
+#define LLIST_WHILE_START           DLLIST_WHILE_START
+#define LLIST_WHILE_NEXT            DLLIST_WHILE_NEXT
+#define LLIST_INSERT_FIRST          DLLIST_INSERT_FIRST
+#define LLIST_INSERT_LAST           DLLIST_INSERT_LAST
+#define LLIST_INSERT_AFTER          DLLIST_INSERT_AFTER
+#define LLIST_REMOVE_FIRST          DLLIST_REMOVE_FIRST
+#define LLIST_REMOVE_FIRST_SAFELY   DLLIST_REMOVE_FIRST_SAFELY
+#define LLIST_REMOVE_LAST           DLLIST_REMOVE_LAST
+#define LLIST_REMOVE_LAST_SAFELY    DLLIST_REMOVE_LAST_SAFELY
+//doubly only
+//#define DLLIST_REMOVE_NODE(head, node)
+//#define DLLIST_REMOVE_NODE_SAFELY(head, node)
+#define LList_Head_t                DLList_Head_t
+#define LList_Entry_t               DLList_Entry_t
+#else
+#define LLIST_NEXT                  SLLIST_NEXT
+// imposible
+//#define LLIST_PREV                  SLLIST_PREV
+#define LLIST_HEAD                  SLLIST_HEAD
+#define LLIST_TAIL                  SLLIST_TAIL
+#define LLIST_TAIL_IS_VALID         SLLIST_TAIL_IS_VALID
+#define LLIST_IS_EMPTY              SLLIST_IS_EMPTY
+#define LLIST_IS_NOT_EMPTY          SLLIST_IS_NOT_EMPTY
+#define LLIST_FIRST                 SLLIST_FIRST
+#define LLIST_LAST                  SLLIST_LAST
+#define LLIST_HEAD_INIT             SLLIST_HEAD_INIT
+#define LLIST_HEAD_RESET            SLLIST_HEAD_RESET
+#define LLIST_FOREACH               SLLIST_FOREACH
+#define LLIST_WHILE_START           SLLIST_WHILE_START
+#define LLIST_WHILE_NEXT            SLLIST_WHILE_NEXT
+#define LLIST_INSERT_FIRST          SLLIST_INSERT_FIRST
+#define LLIST_INSERT_LAST           SLLIST_INSERT_LAST
+#define LLIST_INSERT_AFTER          SLLIST_INSERT_AFTER
+#define LLIST_REMOVE_FIRST          SLLIST_REMOVE_FIRST
+#define LLIST_REMOVE_FIRST_SAFELY   SLLIST_REMOVE_FIRST_SAFELY
+//singly only
+//#define SLLIST_REMOVE_NEXT(head, node)
+//#define SLLIST_REMOVE_NEXT_SAFELY(head, node)
+//TODO, needs to travel all
+//#define LLIST_REMOVE_LAST           SLLIST_REMOVE_LAST
+//#define LLIST_REMOVE_LAST_SAFELY    SLLIST_REMOVE_LAST_SAFELY
+//#define LLIST_REMOVE_NODE           SLLIST_REMOVE_NODE
+//#define LLIST_REMOVE_NODE_SAFELY    SLLIST_REMOVE_NODE_SAFELY
+#define LList_Head_t                SLList_Head_t
+#define LList_Entry_t               SLList_Entry_t
+#endif
+*/
 
 void LibLinkedList_Demo(void);
 

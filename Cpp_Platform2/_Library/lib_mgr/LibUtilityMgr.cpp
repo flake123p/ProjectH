@@ -93,6 +93,30 @@ u32 LibUtil_GetRand32(void)
     return ret;
 }
 
+u8 LibUtil_GetRangeRand8(u8 min, u8 max)
+{
+    u8 diff = max - min + 1;
+    u8 ret = ((rand()&0xFF) << 0);
+    ret = (ret%diff)+min;
+    return ret;
+}
+
+u16 LibUtil_GetRangeRand16(u8 min, u8 max)
+{
+    u16 diff = max - min + 1;
+    u16 ret = ((rand()&0xFF) << 8) | ((rand()&0xFF) << 0);
+    ret = (ret%diff)+min;
+    return ret;
+}
+
+u32 LibUtil_GetRangeRand32(u8 min, u8 max)
+{
+    u32 diff = max - min + 1;
+    u32 ret = ((rand()&0xFF) << 24) | ((rand()&0xFF) << 16) | ((rand()&0xFF) << 8) | ((rand()&0xFF) << 0);
+    ret = (ret%diff)+min;
+    return ret;
+}
+
 void LibUtil_TestRand(void)
 {
 #define AMOUNT (20)

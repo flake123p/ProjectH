@@ -13,4 +13,8 @@ Build_All: aout.exe
 
 # 將所有 .o 檔與 Library Link 成執行檔
 aout.exe: $(obj_all) $(LIB_OBJ_WITH_PATH)
-	$(CXX) $(INC) $(CXXFLAGS) $(OBJS) -o aout.exe $(LIB)
+	$(CXX) $(INC) $(CXXFLAGS) $(OBJS) -o aout.exe $(LIB) -Xlinker -Map=output.map
+
+
+# map file
+# $(CXX) $(INC) $(CXXFLAGS) $(OBJS) -o aout.exe $(LIB)  -Xlinker -Map=output.map

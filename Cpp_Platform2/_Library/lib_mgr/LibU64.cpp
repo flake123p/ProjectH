@@ -350,20 +350,20 @@ LIB_U64_COMPARE_t LibU64_Diff64(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 
 {
     LIB_U64_COMPARE_t ret;
     if (a->hi > b->hi) {
-        ret = A_IS_BIGGER;
+        ret = A_IS_GREATER;
     } else if (a->hi < b->hi) {
-        ret = B_IS_BIGGER;
+        ret = B_IS_GREATER;
     } else {
         if (a->lo > b->lo) {
-        ret = A_IS_BIGGER;
+        ret = A_IS_GREATER;
         } else if (a->lo < b->lo) {
-            ret = B_IS_BIGGER;
+            ret = B_IS_GREATER;
         } else {
             ret = A_B_ARE_EQUAL;
         }
     }
 
-    if (ret == A_IS_BIGGER) {
+    if (ret == A_IS_GREATER) {
         LibU64_Sub64To64(a, b, result);
     } else {
         LibU64_Sub64To64(b, a, result);
@@ -378,10 +378,10 @@ LIB_U64_COMPARE_t LibU64_Diff64(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 
         result->lo += 1;
         if (result->lo == 0)
             result->hi += 1;
-        if (ret == A_IS_BIGGER)
-            ret = B_IS_BIGGER;
-        else if (ret == B_IS_BIGGER)
-            ret = A_IS_BIGGER;
+        if (ret == A_IS_GREATER)
+            ret = B_IS_GREATER;
+        else if (ret == B_IS_GREATER)
+            ret = A_IS_GREATER;
     }
     return ret;
 }
@@ -390,14 +390,52 @@ LIB_U64_COMPARE_t LibU64_Compare(LibU64_t *a, LibU64_t *b)
 {
     LIB_U64_COMPARE_t ret;
     if (a->hi > b->hi) {
-        ret = A_IS_BIGGER;
+        ret = A_IS_GREATER;
     } else if (a->hi < b->hi) {
-        ret = B_IS_BIGGER;
+        ret = B_IS_GREATER;
     } else {
         if (a->lo > b->lo) {
-        ret = A_IS_BIGGER;
+        ret = A_IS_GREATER;
         } else if (a->lo < b->lo) {
-            ret = B_IS_BIGGER;
+            ret = B_IS_GREATER;
+        } else {
+            ret = A_B_ARE_EQUAL;
+        }
+    }
+    return ret;
+}
+
+LIB_U64_COMPARE_t LibU64_Compare2(u32 aHi, u32 aLo, LibU64_t *b)
+{
+    LIB_U64_COMPARE_t ret;
+    if (aHi > b->hi) {
+        ret = A_IS_GREATER;
+    } else if (aHi < b->hi) {
+        ret = B_IS_GREATER;
+    } else {
+        if (aLo > b->lo) {
+        ret = A_IS_GREATER;
+        } else if (aLo < b->lo) {
+            ret = B_IS_GREATER;
+        } else {
+            ret = A_B_ARE_EQUAL;
+        }
+    }
+    return ret;
+}
+
+LIB_U64_COMPARE_t LibU64_Compare3(u32 aHi, u32 aLo, u32 bHi, u32 bLo)
+{
+    LIB_U64_COMPARE_t ret;
+    if (aHi > bHi) {
+        ret = A_IS_GREATER;
+    } else if (aHi < bHi) {
+        ret = B_IS_GREATER;
+    } else {
+        if (aLo > bLo) {
+        ret = A_IS_GREATER;
+        } else if (aLo < bLo) {
+            ret = B_IS_GREATER;
         } else {
             ret = A_B_ARE_EQUAL;
         }
@@ -664,14 +702,14 @@ int LibU64_TestDiff_unit_test(u32 ah, u32 al, u32 bh, u32 bl, u32 turnaround_mas
     b64 = (((uint64_t)b.hi)<<32) | b.lo;
 
     if (a64 > b64) {
-        ret64 = A_IS_BIGGER;
+        ret64 = A_IS_GREATER;
     } else if (a64 < b64) {
-        ret64 = B_IS_BIGGER;
+        ret64 = B_IS_GREATER;
     } else {
         ret64 = A_B_ARE_EQUAL;
     }
 
-    if (ret64 == A_IS_BIGGER) {
+    if (ret64 == A_IS_GREATER) {
         result64 = a64 - b64;
     } else {
         result64 = b64 - a64;
@@ -681,10 +719,10 @@ int LibU64_TestDiff_unit_test(u32 ah, u32 al, u32 bh, u32 bl, u32 turnaround_mas
     {
         // do revert
         result64 = (~result64) + 1;
-        if (ret64 == A_IS_BIGGER)
-            ret64 = B_IS_BIGGER;
-        else if (ret64 == B_IS_BIGGER)
-            ret64 = A_IS_BIGGER;
+        if (ret64 == A_IS_GREATER)
+            ret64 = B_IS_GREATER;
+        else if (ret64 == B_IS_GREATER)
+            ret64 = A_IS_GREATER;
     }
     //compare result
     if (result.hi != (uint32_t)(result64>>32))
@@ -910,7 +948,7 @@ LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 
 {
     LIB_U64_COMPARE_t ret = LibU64_Compare(a, b);
 
-    if (ret == A_IS_BIGGER) {
+    if (ret == A_IS_GREATER) {
         LibU48_Sub48To48(a, b, result);
     } else {
         LibU48_Sub48To48(b, a, result);
@@ -926,10 +964,10 @@ LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 
         if (result->lo == 0)
             result->hi += 1;
         result->hi = 0x0000FFFF & result->hi;
-        if (ret == A_IS_BIGGER)
-            ret = B_IS_BIGGER;
-        else if (ret == B_IS_BIGGER)
-            ret = A_IS_BIGGER;
+        if (ret == A_IS_GREATER)
+            ret = B_IS_GREATER;
+        else if (ret == B_IS_GREATER)
+            ret = A_IS_GREATER;
     }
     return ret;
 }
@@ -1207,14 +1245,14 @@ int LibU48_TestDiff_unit_test(u32 ah, u32 al, u32 bh, u32 bl, u32 turnaround_mas
     b64 = (((uint64_t)b.hi)<<32) | b.lo;
 
     if (a64 > b64) {
-        ret64 = A_IS_BIGGER;
+        ret64 = A_IS_GREATER;
     } else if (a64 < b64) {
-        ret64 = B_IS_BIGGER;
+        ret64 = B_IS_GREATER;
     } else {
         ret64 = A_B_ARE_EQUAL;
     }
 
-    if (ret64 == A_IS_BIGGER) {
+    if (ret64 == A_IS_GREATER) {
         result64 = a64 - b64;
     } else {
         result64 = b64 - a64;
@@ -1224,10 +1262,10 @@ int LibU48_TestDiff_unit_test(u32 ah, u32 al, u32 bh, u32 bl, u32 turnaround_mas
     {
         // do revert
         result64 = (~result64) + 1;
-        if (ret64 == A_IS_BIGGER)
-            ret64 = B_IS_BIGGER;
-        else if (ret64 == B_IS_BIGGER)
-            ret64 = A_IS_BIGGER;
+        if (ret64 == A_IS_GREATER)
+            ret64 = B_IS_GREATER;
+        else if (ret64 == B_IS_GREATER)
+            ret64 = A_IS_GREATER;
     }
     //compare result
     if (result.hi != (uint32_t)(result64>>32))

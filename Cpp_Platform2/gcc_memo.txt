@@ -1,0 +1,14 @@
+gcc - how to create a mapfile of the object file
+https://stackoverflow.com/questions/38961649/gcc-how-to-create-a-mapfile-of-the-object-file
+
+If you are linking the program and want to generate map output add:
+
+ -Xlinker -Map=output.map 
+
+to the gcc command in order to make it create the map file output.map
+
+--
+
+If you want to see the symbols and relocation of an object file, you can use the objdump tool:
+
+objdump -x an_object_file.o

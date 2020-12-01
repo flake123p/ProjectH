@@ -54,6 +54,7 @@
 #define DUMPNX8(a) printf(#a " = 0x%02X\n", (unsigned int)(a))
 #define DUMPNX16(a) printf(#a " = 0x%04X\n", (unsigned int)(a))
 #define DUMPNX32(a) printf(#a " = 0x%08X\n", (unsigned int)(a))
+#define DUMPNX_LIBU64(a) DUMPNX32((a).hi);DUMPNX32((a).lo);
 
 #define DUMPC(a) printf(#a " = %c, ", a)
 #define DUMPS(a) printf(#a " = %s, ", a)
