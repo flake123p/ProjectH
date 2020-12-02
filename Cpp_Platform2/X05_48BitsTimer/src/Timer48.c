@@ -1,8 +1,14 @@
 
 #define ENABLE_PC_DEBUG ( 1 )
 
-#define USE_DOUBLY_LIST ( 0 )
+#define USE_DOUBLY_LIST ( 1 )
 
+#define ENABLE_2_CELL   ( 1 )
+
+#if ENABLE_2_CELL
+#define CONN_ID_2ND_CELL_REQ 990
+#define CONN_ID_2ND_CELL_RES 991
+#endif
 #define CONN_ID_TIMER_REQ_00 900
 #define CONN_ID_TIMER_RES_00 901
 #define CONN_ID_TIMER_REQ_01 902
@@ -25,6 +31,7 @@
 
 #if ENABLE_PC_DEBUG
 #include "Everything_App.hpp"
+#define mpx_shared
 #else
 #include <mpx.h>
 typedef uint32_t u32;
@@ -488,7 +495,7 @@ struct time48_32x2 {
 #define RESTART_TIMER              0x0400
 #define RESERVED_0x0800            0x0800
 #define RESERVED_0x1000            0x1000
-#define TIMES_UP                   0x2000
+#define TIMER_TIMES_UP             0x2000
 #define CAN_NOT_FIND_TIMER         0x4000
 #define TIMER_MEMORY_RAN_OUT       0x8000
 
@@ -505,10 +512,14 @@ struct timer_response {
     uint16_t duration_in_ms;
 };
 
+#define TIMER_FLAG_ADD_COMPENSATE           0x0001
+#define TIMER_FLAG_REPEAT_COMPENSATE        0x0002
+
 struct timer_request_node {
     LList_Entry_t entry;
     uint16_t comm_id;
     uint16_t curr_repeat_counts;
+    uint16_t flags;
     struct time48_32x2 duration_in_list;
     struct time48_32x2 start_time;
     struct timer_request req;
@@ -535,22 +546,29 @@ extern void dump_curr_clk(void);
 #define MS_TO_TIMER_TICKS (62500)
 #endif
 
-struct timer_request_node g_nodes[MAX_NUM_OF_TIMER_REQUEST];
+#define COMPENSATE_ADD    (225)
+#define COMPENSATE_REPEAT (68)
+mpx_shared struct time48_32x2 g_compensate = {0,0};
+
+mpx_shared struct timer_request_node g_nodes[MAX_NUM_OF_TIMER_REQUEST];
 LList_Head_t g_unused_list, g_used_list;
 #define UNUSED_LIST (&g_unused_list)
 #define USED_LIST (&g_used_list)
-struct timer_request g_timer_request_buf;
-struct timer_request g_timer_request_buf2;
-struct timer_request g_timer_request_buf3;
-struct timer_response g_timer_response_buf;
-struct time48_32x2 g_pseudo_system_clock;
-uint16_t g_comm_id;
-int g_is_timer_exist;
-int i;
+mpx_shared struct timer_request g_timer_request_buf;
+mpx_shared struct timer_request g_timer_request_buf1;
+mpx_shared struct timer_request g_timer_request_buf2;
+mpx_shared struct timer_request g_timer_request_buf3;
+mpx_shared struct timer_response g_timer_response_buf;
+mpx_shared struct time48_32x2 g_pseudo_system_clock;
+mpx_shared uint16_t g_comm_id;
+mpx_shared int g_is_timer_exist;
+mpx_shared int i;
 //struct time48_32x2 g_timesup_clock; //sim, stub
-struct time48_32x2 g_elapsed_clock; //sim, stub
-struct time48_32x2 g_elapsed_clock_hw = {0,0}; //sim, stub
-struct time48_32x2 g_start_clock_complement; //sim, stub
+mpx_shared struct time48_32x2 g_elapsed_clock; //sim, stub
+mpx_shared struct time48_32x2 g_elapsed_clock_hw = {0,0}; //sim, stub
+mpx_shared struct time48_32x2 g_start_clock_complement; //sim, stub
+mpx_shared struct timer_request_node *g_deleted_timer;
+mpx_shared uint16_t g_2nd_cell_act;
 
 void Timer48_Message_Out(uint16_t comm_id)
 {
@@ -625,11 +643,13 @@ void Timer48_Start(struct timer_request_node *node)
     g_start_clock_complement.lo = ~node->duration_in_list.lo;
 #if ENABLE_PC_DEBUG
 #else
+    struct time48_32x2 after_compensate;
+    SUB48(&(node->duration_in_list), &g_compensate, &after_compensate);
     MPX_Timer_Clear();
     MPX_Timer_Set_WakeMeUp();
-    MPX_Timer_Set_PresetHi( (uint16_t)node->duration_in_list.hi );
-    MPX_Timer_Set_PresetMed( (uint16_t)((node->duration_in_list.lo)>>16) );
-    MPX_Timer_Set_PresetLo( (uint16_t)node->duration_in_list.lo );
+    MPX_Timer_Set_PresetHi( (uint16_t)after_compensate.hi );
+    MPX_Timer_Set_PresetMed( (uint16_t)((after_compensate.lo)>>16) );
+    MPX_Timer_Set_PresetLo( (uint16_t)after_compensate.lo );
     MPX_Timer_Start();
 #endif
     Timer48_Update_System_Clock();
@@ -675,7 +695,7 @@ void Timer48_Get_Duration16(struct timer_request_node *node, uint16_t *result)
     *result = (uint16_t)quotient.lo;
 }
 
-void Timer48_Delete(uint16_t timer_id_to_delete, struct timer_request_node **p_deleted_timer)
+void Timer48_Delete(uint16_t timer_id_to_delete)
 {
 #if USE_DOUBLY_LIST
     struct timer_request_node *curr, *next;
@@ -683,7 +703,6 @@ void Timer48_Delete(uint16_t timer_id_to_delete, struct timer_request_node **p_d
     struct timer_request_node *curr, *next, *prev;
     prev = (struct timer_request_node *)USED_LIST;
 #endif
-    *p_deleted_timer = NULL;
     LLIST_FOREACH(USED_LIST, curr, struct timer_request_node)
     {
         if (curr->req.timer_id == timer_id_to_delete)
@@ -712,7 +731,7 @@ void Timer48_Delete(uint16_t timer_id_to_delete, struct timer_request_node **p_d
 #else
             SLLIST_REMOVE_NEXT(USED_LIST, prev);
 #endif
-            *p_deleted_timer = curr;
+            g_deleted_timer = curr;
             
             //DLLIST_REMOVE_NODE(USED_LIST, curr);
             //DLLIST_INSERT_LAST(UNUSED_LIST, curr);
@@ -727,23 +746,30 @@ void Timer48_Delete(uint16_t timer_id_to_delete, struct timer_request_node **p_d
     }
 }
 
-void Timer48_Delete_And_Message_Out(uint16_t timer_id_to_delete, struct timer_request_node **p_deleted_timer)
+void Timer48_Delete_And_Message_Out(uint16_t timer_id_to_delete)
 {
-    struct timer_request_node *deleted_timer;
     uint16_t dura = 0;
-    Timer48_Delete(timer_id_to_delete, &deleted_timer);
-    if (deleted_timer != NULL)
+    Timer48_Delete(timer_id_to_delete);
+    if (g_deleted_timer != NULL)
     {
-        if (deleted_timer->req.command_flags & RETURN_DURATION || g_timer_request_buf.command_flags & RETURN_DURATION)
+        if (g_deleted_timer->req.command_flags & RETURN_DURATION || g_timer_request_buf.command_flags & RETURN_DURATION)
         {
-            Timer48_Get_Duration16(deleted_timer, &dura);
+            Timer48_Get_Duration16(g_deleted_timer, &dura);
         }
         g_timer_response_buf.command_flags = g_timer_request_buf.command_flags;
-        g_timer_response_buf.timer_id = deleted_timer->req.timer_id;
-        g_timer_response_buf.duration_in_ms = dura;
-        Timer48_Message_Out(deleted_timer->comm_id);
     }
-    *p_deleted_timer = deleted_timer;
+    else
+    {
+        g_timer_response_buf.command_flags = g_timer_request_buf.command_flags | CAN_NOT_FIND_TIMER;
+    }
+    g_timer_response_buf.timer_id = timer_id_to_delete;
+    g_timer_response_buf.duration_in_ms = dura;
+#if ENABLE_2_CELL
+    //g_2nd_cell_act = 0x01;
+    //Timer48_Message_Out(g_comm_id);
+#else
+    Timer48_Message_Out(g_comm_id);
+#endif
 }
 
 // return does_timer_start
@@ -762,6 +788,23 @@ int Timer48_Insert(struct timer_request_node *new_node)
     MUL48S(gMsToTimerTicks, new_node->req.time_in_ms, &(new_node->duration_in_list));
     #else
     MUL48S(MS_TO_TIMER_TICKS, new_node->req.time_in_ms, &(new_node->duration_in_list));
+    if (new_node->flags & TIMER_FLAG_ADD_COMPENSATE)
+    {
+        struct time48_32x2 compensate;
+        compensate.hi = 0;
+        compensate.lo = COMPENSATE_ADD;
+        SUB48(&(new_node->duration_in_list), &compensate, &(new_node->duration_in_list));
+
+        new_node->flags &= (~TIMER_FLAG_ADD_COMPENSATE);
+        new_node->flags |= TIMER_FLAG_REPEAT_COMPENSATE;
+    }
+    else if (new_node->flags & TIMER_FLAG_REPEAT_COMPENSATE)
+    {
+        struct time48_32x2 compensate;
+        compensate.hi = 0;
+        compensate.lo = COMPENSATE_REPEAT;
+        SUB48(&(new_node->duration_in_list), &compensate, &(new_node->duration_in_list));
+    }
     #endif
 #endif
 
@@ -855,6 +898,18 @@ void Timer48_Timesup(void)
         first = (struct timer_request_node *)LLIST_HEAD(USED_LIST);
         LLIST_REMOVE_FIRST(USED_LIST);
 
+        /*
+            1.send back message
+            2.infinite loop check
+            3.finite loop check
+            4.one-shot check and remove node to un-used list
+        */
+        // 1.send back message
+        g_timer_response_buf.command_flags = first->req.command_flags | TIMER_TIMES_UP;
+        g_timer_response_buf.timer_id = first->req.timer_id;
+        g_timer_response_buf.duration_in_ms = first->req.time_in_ms;
+        Timer48_Message_Out(first->comm_id);
+
 #if ENABLE_PC_DEBUG
         {
             if (NULL == first)
@@ -885,18 +940,6 @@ void Timer48_Timesup(void)
             }
         }
 #endif
-
-        /*
-            1.send back message
-            2.infinite loop check
-            3.finite loop check
-            4.one-shot check and remove node to un-used list
-        */
-        // 1.send back message
-        g_timer_response_buf.command_flags = first->req.command_flags;
-        g_timer_response_buf.timer_id = first->req.timer_id;
-        g_timer_response_buf.duration_in_ms = first->req.time_in_ms;
-        Timer48_Message_Out(first->comm_id);
 
         // 2.infinite loop check
         if (first->req.command_flags & REPEAT_INFINITE)
@@ -951,34 +994,59 @@ void Timer48_Timesup(void)
     } while(is_next_very_close);
 }
 
-void Timer48_Message_In_Delete_Timer(int do_restart)
+void Timer48_Message_In_Delete_Timer(void)
 {
-    struct timer_request_node *deleted_timer;
-    Timer48_Delete_And_Message_Out(g_timer_request_buf.timer_id, &deleted_timer);
-    if (deleted_timer != NULL)
+    int do_restart = g_timer_request_buf.command_flags & RESTART_TIMER;
+    g_deleted_timer = NULL;
+    Timer48_Delete_And_Message_Out(g_timer_request_buf.timer_id);
+    if (g_deleted_timer != NULL)
     {
 #if ENABLE_PC_DEBUG
         if (do_restart)
-            printf("restart timer_id:%d, and send back message, dura=%d\n", deleted_timer->req.timer_id, g_timer_response_buf.duration_in_ms);
+            printf("restart timer_id:%d, and send back message, dura=%d\n", g_deleted_timer->req.timer_id, g_timer_response_buf.duration_in_ms);
         else
-            printf("del timer_id:%d, and send back message, dura=%d\n", deleted_timer->req.timer_id, g_timer_response_buf.duration_in_ms);
+            printf("del timer_id:%d, and send back message, dura=%d\n", g_deleted_timer->req.timer_id, g_timer_response_buf.duration_in_ms);
 #endif
         if (do_restart)
         {
             //re-insert
-            deleted_timer->curr_repeat_counts = 0;
-            Timer48_Insert(deleted_timer);
+            g_deleted_timer->curr_repeat_counts = 0;
+#if ENABLE_2_CELL
+            g_2nd_cell_act = 1;
+#else
+            Timer48_Insert(g_deleted_timer);
+#endif
         }
         else
         {
-            TIMER48_INSERT_LAST(UNUSED_LIST, deleted_timer);
+            TIMER48_INSERT_LAST(UNUSED_LIST, g_deleted_timer);
         }
     }
     else
     {
         //CAN_NOT_FIND_TIMER
     }
+    //g_deleted_timer = NULL;
 }
+
+#if ENABLE_2_CELL
+void Timer48_Message_In_Delete_Timer_2nd_Cell(void)
+{
+    g_2nd_cell_act = 0;
+#if ENABLE_PC_DEBUG
+    Timer48_Message_In_Delete_Timer();
+#else
+    uint16_t req = 0;
+    MPX_Send( &req, 1, MPX_INT, CONN_ID_2ND_CELL_REQ, MPX_DMA );
+    MPX_Recv( &req, 1, MPX_INT, CONN_ID_2ND_CELL_RES, MPX_DMA );
+#endif
+    Timer48_Message_Out(g_comm_id);
+    if (g_2nd_cell_act == 1)
+    {
+        Timer48_Insert(g_deleted_timer);
+    }
+}
+#endif
 
 void Timer48_Message_In_Add_Timer(void)
 {
@@ -986,14 +1054,17 @@ void Timer48_Message_In_Add_Timer(void)
     new_node = (struct timer_request_node *)LLIST_HEAD(UNUSED_LIST);
     if (new_node == NULL)
     {
-        g_timer_request_buf.command_flags = TIMER_MEMORY_RAN_OUT;
+        //g_timer_request_buf.command_flags = TIMER_MEMORY_RAN_OUT;
         //TBD??
     }
     LLIST_REMOVE_FIRST(UNUSED_LIST);
     new_node->comm_id = g_comm_id;
     new_node->curr_repeat_counts = 0;
     new_node->req = g_timer_request_buf;
+
+    new_node->flags = TIMER_FLAG_ADD_COMPENSATE;
     Timer48_Insert(new_node);
+    //g_compensate.lo = 0;
 }
 
 void Timer48_Message_In(void)
@@ -1004,13 +1075,13 @@ void Timer48_Message_In(void)
     {
         Timer48_Message_In_Add_Timer();
     }
-    else if (g_timer_request_buf.command_flags & DEL_TIMER)
+    else if (g_timer_request_buf.command_flags & (DEL_TIMER | RESTART_TIMER))
     {
-        Timer48_Message_In_Delete_Timer(0);
-    }
-    else if (g_timer_request_buf.command_flags & RESTART_TIMER)
-    {
-        Timer48_Message_In_Delete_Timer(1);
+#if ENABLE_2_CELL
+        Timer48_Message_In_Delete_Timer_2nd_Cell();
+#else
+        Timer48_Message_In_Delete_Timer();
+#endif
     }
 }
 
@@ -1092,7 +1163,7 @@ void Timer48_MPX_Cell(void)
     Timer48_Init();
 
     MPX_SetupWake(CONN_ID_TIMER_REQ_00);
-    MPX_Recv( &g_timer_request_buf, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+    MPX_Recv( &g_timer_request_buf1, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
     MPX_SetupWake(CONN_ID_TIMER_REQ_01);
     MPX_Recv( &g_timer_request_buf2, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_01, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
     MPX_SetupWake(CONN_ID_TIMER_REQ_02);
@@ -1107,9 +1178,10 @@ void Timer48_MPX_Cell(void)
             MPX_ResetWMR(CONN_ID_TIMER_REQ_00);
             g_comm_id = CONN_ID_TIMER_REQ_00;
             //Timer48_Get_Elapsed();
+            g_timer_request_buf = g_timer_request_buf1;
             Timer48_Message_In();
             MPX_SetupWake(CONN_ID_TIMER_REQ_00);
-            MPX_Recv( &g_timer_request_buf, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
+            MPX_Recv( &g_timer_request_buf1, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
             //MPX_Print("---E--- RX done : %T %Y, buf[1]=%d", buf[1]);
         }
         if (MPX_Rtest(CONN_ID_TIMER_REQ_01) == 0) {
@@ -1117,6 +1189,7 @@ void Timer48_MPX_Cell(void)
             MPX_ResetWMR(CONN_ID_TIMER_REQ_01);
             g_comm_id = CONN_ID_TIMER_REQ_01;
             //Timer48_Get_Elapsed();
+            g_timer_request_buf = g_timer_request_buf2;
             Timer48_Message_In();
             MPX_SetupWake(CONN_ID_TIMER_REQ_01);
             MPX_Recv( &g_timer_request_buf2, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_01, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
@@ -1127,6 +1200,7 @@ void Timer48_MPX_Cell(void)
             MPX_ResetWMR(CONN_ID_TIMER_REQ_02);
             g_comm_id = CONN_ID_TIMER_REQ_02;
             //Timer48_Get_Elapsed();
+            g_timer_request_buf = g_timer_request_buf3;
             Timer48_Message_In();
             MPX_SetupWake(CONN_ID_TIMER_REQ_02);
             MPX_Recv( &g_timer_request_buf3, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_02, MPX_DONT_RESET_WRR | MPX_NONBLOCKING );
@@ -1156,86 +1230,16 @@ int main()
 
     if (MPX_RANK == 1)
     {
-        /*
-        int x[2];
-        volatile int i = 0;
-        while(i != 300){i++;}
-        x[0] = 72;
-        x[1] = 73;
-        MPX_Send( x, 2, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
-        i = 0;
-        while(i != 300){i++;}
-        x[0] = 94;
-        x[1] = 95;
-        */
-        /*
-        int LibU48_Add48To48(LibU64_t *from, LibU64_t *increment, LibU64_t *result); //return 1 if u64 overflow
-        int LibU48_Sub48To48(LibU64_t *from, LibU64_t *decrement, LibU64_t *result); //return 1 if u64 overflow
-        int LibU48_Mul32To48(u32 a, u32 x, LibU64_t *result);
-        int LibU48_Div32To48(LibU64_t *dividend64, u32 divisor32, LibU64_t *quotient, u32 *remainder);
-        LIB_U64_COMPARE_t LibU48_Diff48(LibU64_t *a, LibU64_t *b, LibU64_t *result, u32 turnaround_mask_63_32);
-        
-        LibU64_t a,b,c,d;
-        uint32_t x,y,z;
-        a.hi=0;a.lo=1;
-        b.hi=1;b.lo=9;
-        MPX_Print("add48 --- S --- : %T %Y");
-        LibU48_Add48To48(&a, &b, &c);
-        MPX_Print("add48 --- E --- : %T %Y");
-        c=c;
-        a.hi=2;a.lo=1;
-        b.hi=1;b.lo=9;
-        MPX_Print("sub48 --- S --- : %T %Y");
-        LibU48_Sub48To48(&a, &b, &c);
-        MPX_Print("sub48 --- E --- : %T %Y");
-        c=c;
-        x=9;y=8;
-        MPX_Print("mul48 --- S --- : %T %Y");
-        LibU48_Mul32To48(x, y, &c);
-        MPX_Print("mul48 --- E --- : %T %Y");
-        c=c;
-        a.hi=1;a.lo=1;
-        x=9;
-        MPX_Print("div48 --- S --- : %T %Y");
-        LibU48_Div32To48(&a, x, &c, &y);
-        MPX_Print("div48 --- E --- : %T %Y");
-        c=c;
-        a.hi=1;a.lo=1;
-        x=9;
-        LIB_U64_COMPARE_t cmp;
-        MPX_Print("diff48 --- S --- : %T %Y");
-        cmp = LibU48_Diff48(&a, &b, &c, 0x00008000);
-        MPX_Print("diff48 --- E --- : %T %Y");
-        c=c;
-        */
         struct timer_request request;
         struct timer_response response;
         volatile int i = 0;
         request.command_flags = ADD_TIMER|REPEAT_INFINITE;
         request.repeat_counts = 2;
         request.timer_id = 1111;
-        request.time_in_ms = 0;
+        request.time_in_ms = 1;
         MPX_Print("---S---1 Times up : %T %Y");
         MPX_Send( &request, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
         //MPX_Print("---S---2 Times up : %T %Y");
-#if 0
-        request.command_flags = ADD_TIMER|REPEAT_INFINITE;
-        request.repeat_counts = 2;
-        request.timer_id = 2222;
-        request.time_in_ms = 2;
-        MPX_Print("---S--- Times up : %T %Y");
-        MPX_Send( &request, 4, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
-#endif
-#if 0
-        while(i != 3000){i++;i=i;}i=0;
-        request.command_flags = RESTART_TIMER;
-        request.repeat_counts = 2;
-        request.timer_id = 1111;
-        request.time_in_ms = 0;
-        //while(i != 300){i++;i=i;}i=0;
-        MPX_Print("---S--- Times up : %T %Y");
-        MPX_Send( &request, 4, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
-#endif
         while (1)
         {
             MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_00, MPX_DMA);
@@ -1244,39 +1248,68 @@ int main()
             MPX_Print("command = %d", response.command_flags);
             MPX_Print("id = %d", response.timer_id);
             MPX_Print("dura = %d", response.duration_in_ms);
-#if 0
-            i++;
-            if (i == 4)
-            {
-                request.command_flags = DEL_TIMER|RETURN_DURATION;
-                request.timer_id = 5555;
-                MPX_Send( &request, 4, MPX_INT, CONN_ID_TIMER_REQ_00, MPX_DMA); //MPX_NONBLOCKING
-            }
-#endif
         }
     }
 
     if (MPX_RANK == 2)
     {
-        struct timer_request request;
-        struct timer_response response;
+        struct timer_request request2;
+        struct timer_response response2;
         volatile int i = 0;
-        request.command_flags = ADD_TIMER|REPEAT_INFINITE;
-        request.repeat_counts = 2;
-        request.timer_id = 1111;
-        request.time_in_ms = 0;
+        request2.command_flags = ADD_TIMER|REPEAT_INFINITE;
+        request2.repeat_counts = 2;
+        request2.timer_id = 2222;
+        request2.time_in_ms = 2;
+        while(i != 300){i++;i=i;}i=0;
         MPX_Print("---S---1 Times up : %T %Y");
-        MPX_Send( &request, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_01, MPX_DMA); //MPX_NONBLOCKING
+        MPX_Send( &request2, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_01, MPX_DMA); //MPX_NONBLOCKING
         //MPX_Print("---S---2 Times up : %T %Y");
         while (1)
         {
-            MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_01, MPX_DMA);
+            MPX_Recv( &response2, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_01, MPX_DMA);
             MPX_Print("---E---  Times up : %T %Y");
             //MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_00, MPX_DMA | MPX_NONBLOCKING);
-            MPX_Print("command = %d", response.command_flags);
-            MPX_Print("id = %d", response.timer_id);
-            MPX_Print("dura = %d", response.duration_in_ms);
+            MPX_Print("command = %d", response2.command_flags);
+            MPX_Print("id = %d", response2.timer_id);
+            MPX_Print("dura = %d", response2.duration_in_ms);
         }
+    }
+
+    if (MPX_RANK == 3)
+    {
+        struct timer_request request3;
+        struct timer_response response3;
+        volatile int i = 0;
+        request3.command_flags = ADD_TIMER|REPEAT_INFINITE;
+        request3.repeat_counts = 2;
+        request3.timer_id = 3333;
+        request3.time_in_ms = 3;
+        while(i != 600){i++;i=i;}i=0;
+        MPX_Print("---S---1 Times up : %T %Y");
+        MPX_Send( &request3, sizeof(struct timer_request)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_REQ_02, MPX_DMA); //MPX_NONBLOCKING
+        //MPX_Print("---S---2 Times up : %T %Y");
+        while (1)
+        {
+            MPX_Recv( &response3, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_02, MPX_DMA);
+            MPX_Print("---E---  Times up : %T %Y");
+            //MPX_Recv( &response, sizeof(struct timer_response)/sizeof(uint16_t), MPX_INT, CONN_ID_TIMER_RES_00, MPX_DMA | MPX_NONBLOCKING);
+            MPX_Print("command = %d", response3.command_flags);
+            MPX_Print("id = %d", response3.timer_id);
+            MPX_Print("dura = %d", response3.duration_in_ms);
+        }
+    }
+
+    if (MPX_RANK == 4)
+    {
+#if ENABLE_2_CELL
+        uint16_t req = 0;
+        while (1)
+        {
+            MPX_Recv( &req, 1, MPX_INT, CONN_ID_2ND_CELL_REQ, MPX_DMA );
+            Timer48_Message_In_Delete_Timer();
+            MPX_Send( &req, 1, MPX_INT, CONN_ID_2ND_CELL_RES, MPX_DMA );
+        }
+#endif
     }
 
     return 0;
