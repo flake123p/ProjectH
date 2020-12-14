@@ -3,7 +3,7 @@
 
 #define ENABLE_PC_DEBUG ( 1 )
 
-#define USE_DOUBLY_LIST ( 1 )
+#define USE_DOUBLY_LIST ( 0 )
 
 #if USE_DOUBLY_LIST
 #define LLIST_NEXT                  DLLIST_NEXT
