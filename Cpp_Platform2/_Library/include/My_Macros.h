@@ -3,6 +3,15 @@
 
 #ifndef _MY_MACROS_H_INCLUDED_
 
+/*
+    Stringizing operator (#)
+    Token-pasting operator (##)
+*/
+// make string
+#define MKSTR(s) #s
+// result = ab
+#define CONCAT(a, b) a##b
+
 /**
 https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
 
