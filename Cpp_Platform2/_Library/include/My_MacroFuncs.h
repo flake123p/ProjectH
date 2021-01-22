@@ -12,12 +12,14 @@
 #define BASIC_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n",__FUNCTION__,__LINE__);while(1){;}}
 #define CALLER_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
 #define CALLER_ASSERT2(caller,a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf(" Assertion failed: in %s(), line %d\n Caller: %s()",__FUNCTION__,__LINE__,caller);while(1){;}}
+#define ASSERT_WHEN_TRUE(cond) if(cond){printf("cond=%d\n");BASIC_ASSERT(0);}
 #else
 #include <assert.h>
 #include "_LibError.hpp"
 #define BASIC_ASSERT assert
 #define CALLER_ASSERT(a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf("Caller: %s()",caller);assert(0);}
 #define CALLER_ASSERT2(caller,a) if(a){;}else{LibError_PrintExtErrorMessage("[EXT ERROR]:");perror("perror()");printf("Caller: %s()",caller);assert(0);}
+#define ASSERT_WHEN_TRUE(cond) if(cond){printf("cond=%d\n");assert(0);}
 #endif
 
 #define NO_ASSERT (0)

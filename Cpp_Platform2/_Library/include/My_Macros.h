@@ -12,6 +12,15 @@
 // result = ab
 #define CONCAT(a, b) a##b
 
+/*
+    // error only 1 argu, e.g.: fo("123"), because it became fo("123",)
+    #define fo(f, ...) printf(f, __VA_ARGS__)
+
+    // use ## to eliminate ','
+    #define foo(f, ...) printf(f, ##__VA_ARGS__)
+*/
+
+
 /**
 https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
 
