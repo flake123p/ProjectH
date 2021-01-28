@@ -5,6 +5,12 @@
 
 #include "SimTime.hpp"
 #include "SimModule.hpp"
+#include "SimTime3.hpp"
+#include "SimCh.hpp"
+
+typedef struct {
+    class SimTime3 *timeDb;
+} SimEngine_Desc;
 
 int SimEngine_Demo(void);
 

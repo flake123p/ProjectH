@@ -7,7 +7,8 @@ int main(int argc, char *argv[])
     //SimTime_Demo();
     //SimEngine_Demo();
 
-    SimTime_SortedList_Demo();
+    //SimTime_SortedList_Demo();
+    SimChSimple32Test();
 
     return 0;
 }

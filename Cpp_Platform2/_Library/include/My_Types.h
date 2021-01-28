@@ -10,6 +10,7 @@ typedef void *Handle_t;
 typedef void (*Void_CB_t)(void);
 typedef int (*Simple_CB_t)(void);
 typedef int (*Common_CB_t)(Handle_t handle);
+typedef int (*Common_CB2_t)(Handle_t cbHdl, Handle_t cbPrivate);
 
 //For argument
 #ifndef IN
