@@ -1,0 +1,74 @@
+V1.0: TODO...
+
+=== === === === === === === === === === === === === === === 
+=== === === === === === === === === === === === === === === 
+TextSymbolMgr
+	keyword <-> callback
+	test keyword @show string
+UniVariable (u8 u16 u32 u64 array string u/s/a/str deci/hex/bin/ascii, using C format?? sounds great)
+	Environment Variable Class (use this with or without TextCall, this is default operation buffer)
+TextMath
+	compare ...
+TextCall (single prototype, @call, TextCall is just like one kind of variable)
+	TextChannel : chan info, how to init?
+	TextThread
+
+g_env_var:
+string var_name; //map index
+type (u8 u16 ... ary ... str)
+u32 retCode
+u32 bufLen
+void *buf
+
+[] -> ignored char
+
+$: LSByte first if needed
+$_: MSByte first if needed
+
+@dump string... $variable
+@dump_detail string... $variable
+
+@var u8 ary %x 01 03 0c fF 0B 2 7 c @end (save to g_env_var)
+
+@var $a u8 ary %x 01 03 0c $_interval 2 7 c @end (save to variable a)
+
+@var $b u8 ary %x 01 03 @var $_a u32 0x00001234 @end 2 7 c @end (save to variables a and b, b contains a with MSB order)
+//below 2 lines are equivalent to above 1 line
+@var $a u32 0x00001234
+@var $b u8 ary %x 01 03 $_a 2 7 c @end (save to variables a and b, b contains a with MSB order)
+
+ary - auto complete rest length:
+
+
+
+thread call back:
+	typedef void *Handle_t;
+	typedef int (*Common_CB_t)(Handle_t handle);
+
+Call example:
+	ThreadAgent_RunTask(AppCB);
+
+ThreadAgent_Init()
+ThreadAgnet_Uninit()
+
+ThreadAgent is function call or a thread?? Ans:flexiable
+
+How to design with ScriptAgent?
+
+//Common function call
+uart_xxx(u32 len, u8 *ary) return: u32 ret, u32 len, u8 ary[]
+h1 : uart_send |
+
+<handle name> : sw <sw_name> <arg0> <arg1> ...... > <ret0> > <retPara0> <retPara1> ...
+s1 : sw mode_app void > void > void
+
+1.predefined parameters for return
+s1 : sw mode_app void > $8ret > $32aryLen $8ary(77)
+s1
+@mode_app
+2.runtime assigned parameter for return
+
+in mod_func1 arg1=0xXXXX arg2=0xXX 0xXX | out mod_func var1==xxx var2==xxx var3==0xXX 0xXX 0xXX
+
+TextCall (uni-format) (SA_Conect)
+line to TextCall

@@ -1,0 +1,9 @@
+Basic Patterns
+Abstract Factory - 87
+Adapter - 139
+Composite - 163
+Decorator - 175
+Factory Method - 107
+Observer - 293
+Strategy - 315
+Template Method - 325

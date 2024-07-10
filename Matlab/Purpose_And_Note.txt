@@ -1,0 +1,6 @@
+[[[ PURPOSE ]]]
+1. Demo common example.
+
+Ref:
+PDF - MATLAB 7.0 Basics (P. Howard)
+

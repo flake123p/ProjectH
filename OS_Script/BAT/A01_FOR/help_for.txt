@@ -1,0 +1,130 @@
+對一組檔案中的每個檔案執行指定的命令。
+
+FOR %variable IN (set) DO 命令 [command-parameters]
+
+  %variable  指定一個可以取代的參數。
+  (set)      指定由一或多個檔案組成的檔案組。您可使用通配字元。
+  command    指定命令來執行每一個檔案。
+  command-parameters
+             為所指定的命令指定變數或參數。
+
+如果要在批次程式中使用 FOR 命令，請指定 %%variable，而不要指定
+%variable。變數名稱有大小寫的區分，所以 %i 不同於 %I。
+
+如果您啟用擴充命令，則額外支援下列的 FOR 命令格式:
+
+FOR /D %variable IN (set) DO command  [command-parameters]
+
+    如果 set 中包含萬用字元，則指定與目錄名稱相符，
+    而不是與檔案名稱相符。
+
+FOR /R [[drive:]path] %variable IN (set) DO command  [command-parameters]
+
+    在樹狀目錄中切換 [drive:] 路徑，並於樹狀目錄的每
+    一個目錄下執行 FOR 陳述式。如果未在 /R 之後指定
+    目錄規格，則採用目前的目錄。如果 set 只是單一句
+    點 (.) 字元，則它只會列舉樹狀目錄。
+
+FOR /L %variable IN (start,step,end) DO command [command-parameters]
+
+    set 是從開頭到結尾一次跳一步的連續數字。所以 
+    (1,1,5) 會產生連續值 (1 2 3 4 5) 而 (5,-1,1) 
+    會產生連續值 (5 4 3 2 1)
+
+FOR /F ["options"] %variable IN (file-set) DO command [command-parameters]
+FOR /F ["options"] %variable IN ("string") DO command [command-parameters]
+FOR /F ["options"] %variable IN ('command') DO command [command-parameters]
+
+    或，如果使用 usebackq 選項:
+
+FOR /F ["options"] %variable IN (file-set) DO command [command-parameters]
+FOR /F ["options"] %variable IN ('string') DO command [command-parameters]
+FOR /F ["options"] %variable IN (`command`) DO command [command-parameters]
+
+    file-set 可以是一或多個檔案名稱。繼續進行 file-set 中的下個
+    檔案之前，都已開啟、讀取及處理過每個檔案。處理程序包括讀取
+    檔案、將它分割成獨立的文字行，然後將每一行剖析成零或多個語
+    法。使用已設成找到之語法字串的變數值，呼叫 For 迴圈的內容。
+    依照預設，/F 會從每個檔案的每一行傳送第一個以空格分隔的權
+    杖。空白行會被略過。您可以指定選擇性的 "options" 參數來覆寫
+    預設的剖析行為。這是有引號的字串，包含一或多個指定不同剖析
+    選項的關鍵字。關鍵字是:
+
+        eol=c           - 指定一個行尾註解字元 (只有一個)
+        skip=n          - 指定在檔案開頭要略過的行數。
+        delims=xxx      - 指定分隔符號集。這會取代預設的空格
+                          與定位字元的分隔符號集。
+        tokens=x,y,m-n  - 指定每一行的哪些語法應該被傳到 for 
+                          的內部以進行每一個重複操作。這會造
+                          成配置額外的變數名稱。m-n 格式代表 
+                          一個範圍，指定了第 m 個到第 n 個權
+                          杖。如果 tokens= 字串的最後一個字
+                          元是星號，則會配置一個額外的變數並
+                          在最後一個語法被剖析後接收該行中的
+                          其他文字。
+        usebackq        - 指定新語義開始作用。其中反括號的字
+                          串會被當作命令來執行，而單引號字串
+                          是純文字字串命令，並且允許使用雙引
+                          號來引用 file-set 中的檔名。
+
+    以下是一個範例:
+
+FOR /F "eol=; tokens=2,3* delims=, " %i in (myfile.txt) do @echo %i %j %k
+
+    這會剖析 myfile.txt 檔案中的每一行，它不會去管以分號開頭的行數
+    ，直接將第 2 個及第 3 個語法從每一行傳到 for 主體，而其語法是
+    用逗號和/或空格分開的。請注意，for 主體陳述式參照 %i 以取得第
+    二個語法，參照 %j 以取得第三個語法，使用 %k 取得第三個語法之
+    後的剩餘字串。因為檔案名稱含有空格，您必須用雙引號來括住檔案名
+    稱。要這樣使用雙引號，您必須使用 usebackq 參數。否則雙引號會被
+    解譯成用來定義一般文字。
+
+    使用 %i 明白地在 for 陳述式中宣告，並透過 tokens= option 使用
+    %j 作暗示性的宣告。您可以藉由 tokens= line 來指定最多 26 個語
+    法，前提是它宣告的變數不能高於字母 'z' 或 'Z'。請記住，FOR 變
+    數是單一字元的，同時在任一時間內，您不能同時使用超過 52 個 FOR
+    變數。
+
+    您也可以使用 FOR /F 命令在立即字串中剖析邏輯，方法是將括弧之間的
+    file-set 變成一個引號字串。它會被視為從檔案輸入的單行，並加
+    以剖析。
+
+    最後，您可以使用 FOR /F 命令來剖析一個命令的輸出。方法是將括弧
+    內的 file-set 變成單引號字串。它將被視為一個命令列，這個命令
+    行將會傳到子 CMD.EXE，而輸出將會被擷取到記憶體中，當成檔案來分
+    析。所以下列的範例:
+
+        FOR /F "delims==" %i IN ('set') DO @echo %i
+
+    將列舉目前環境中的環境變數名稱。
+
+此外，已經加強了 FOR 變數參考的取代功能。
+您現在可以選用下列選擇性的語法:
+
+    %~I         - 展開 %I 且移除包圍的引號 (")
+    %~fI        - 展開 %I 為一個完整合格路徑名稱
+    %~dI        - 只展開 %I 為磁碟機代號
+    %~pI        - 只展開 %I 為路徑
+    %~nI        - 只展開 %I 為檔名
+    %~xI        - 只展開 %I 為副檔名
+    %~sI        - 展開的路徑只包含短檔名
+    %~aI        - 展開 %I 為檔案的檔案屬性
+    %~tI        - 展開 %I 為檔案的日期/時間
+    %~zI        - 展開 %I 檔案的長度
+    %~$PATH:I   - 搜尋所有列在 PATH 環境變數內的目錄且展開 %I
+                  為第一個找到的完全符合檔名。如果沒有定義環境
+                  變數名稱或是搜尋找不到檔案，則這個修飾元會展
+                  開為空字串。
+
+修飾元可以合併使用以獲得綜合的結果:
+
+    %~dpI       - 只展開 %I 為磁碟機代號與路徑
+    %~nxI       - 只展開 %I 為檔名與副檔名
+    %~fsI       - 只展開 %I 為含短檔名的完全路徑
+    %~dp$PATH:I - 為 %I 搜尋所有列在 PATH 環境變數內的目錄
+                  且展開第一個找到的項目為磁碟機代號及路徑。
+    %~ftzaI     - 展開 %I 為像 DIR 一樣的輸出行
+
+在上面的範例中 %I 和 PATH 能用其他的合法值取代。%~ 語法是由合法的
+FOR 變數名稱來終止。如果選用像 %I 的大寫名稱可以增加可讀性而且避免
+和修飾元的混淆，因為這些並不區分大小寫。

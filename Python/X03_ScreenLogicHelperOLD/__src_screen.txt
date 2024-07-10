@@ -1,0 +1,2 @@
+Scrn 00 Main Menu
+Scrn 10 Slot Entry

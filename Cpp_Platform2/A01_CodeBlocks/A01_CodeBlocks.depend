@@ -1,0 +1,315 @@
+# depslib dependency file v1.0
+1492250599 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_lib51hex.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1512310220 d:\ws\workspace\projecth\cpp_platform2\_library\include\everything_lib_mgr.hpp
+	<stdio.h>
+	<string.h>
+	<stdint.h>
+	<stdlib.h>
+	<stdarg.h>
+	"My_Basics.hpp"
+	"_LibLinkedList.hpp"
+	"_LibMemory.hpp"
+	"_LibMenu.hpp"
+	"_LibString.hpp"
+	"_Lib51Hex.hpp"
+	"_LibError.hpp"
+	"_LibSyntex.hpp"
+	"LibUart.hpp"
+	"LibTime.hpp"
+	"LibFileIO.hpp"
+	"LibFileIO2.hpp"
+	"LibUtility.hpp"
+	"LibOs.hpp"
+	"LibTui.hpp"
+	"LibSysCmd.hpp"
+	"LibScreenLogic.hpp"
+	"LibSharedMemory.hpp"
+	"LibEvent.hpp"
+	"LibBuffer.hpp"
+	"LibThread.hpp"
+	"LibBT_HCI.hpp"
+	"LibArgParser.hpp"
+	"LibSimpleFS.hpp"
+	"LibEncrypt.hpp"
+	"LibPacket.hpp"
+
+1486113537 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_basics.hpp
+	"My_Basics.h"
+
+1529905056 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_basics.h
+	"My_Macros.h"
+	"My_MacroFuncs.h"
+	"My_Types.h"
+
+1494575307 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_macros.h
+
+1500361837 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_macrofuncs.h
+	<stdio.h>
+	"_LibError.hpp"
+	<assert.h>
+	"_LibError.hpp"
+	<stdint.h>
+
+1493630937 d:\ws\workspace\projecth\cpp_platform2\_library\include\my_types.h
+	<stdint.h>
+
+1531384255 d:\ws\workspace\projecth\cpp_platform2\_library\include\_liblinkedlist.hpp
+	"My_Types.h"
+
+1490426582 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libmenu.hpp
+	<vector>
+	<string>
+	"My_Types.h"
+
+1521548291 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libstring.hpp
+	<vector>
+	<string>
+	<locale>
+	"My_Types.h"
+
+1529996984 d:\ws\workspace\projecth\cpp_platform2\_library\include\_lib51hex.hpp
+	"_LibLinkedList.hpp"
+
+1523352071 d:\ws\workspace\projecth\cpp_platform2\_library\include\libuart.hpp
+	<stdint.h>
+	<stddef.h>
+	"My_Types.h"
+	<string>
+
+1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libtime.hpp
+	<time.h>
+
+1498817125 d:\ws\workspace\projecth\cpp_platform2\_library\include\libfileio.hpp
+	<stdio.h>
+	<stdarg.h>
+	"LibBuffer.hpp"
+	<string.h>
+
+1516675007 d:\ws\workspace\projecth\cpp_platform2\_library\include\libutility.hpp
+	"My_Types.h"
+	"My_Macros.h"
+
+1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libos.hpp
+
+1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libtui.hpp
+
+1516675007 d:\ws\workspace\projecth\cpp_platform2\_library\include\libsyscmd.hpp
+
+1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libscreenlogic.hpp
+	"My_Basics.hpp"
+
+1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libsharedmemory.hpp
+	<stdarg.h>
+	"My_Types.h"
+
+1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libevent.hpp
+
+1494314777 d:\ws\workspace\projecth\cpp_platform2\_library\include\libbuffer.hpp
+	"stdio.h"
+	"stdarg.h"
+	"My_Basics.hpp"
+
+1533795718 d:\ws\workspace\projecth\cpp_platform2\_library\include\libthread.hpp
+	<stdarg.h>
+	"My_Types.h"
+
+1491794149 d:\ws\workspace\projecth\cpp_platform2\_library\include\libbt_hci.hpp
+	"My_Types.h"
+
+1490431701 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_liblinkedlist.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1489222070 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libmenu.cpp
+	"Everything_Lib_Mgr.hpp"
+	<iostream>
+
+1501411411 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libstring.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1494558043 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libargparsermgr.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1523879394 d:\ws\workspace\projecth\cpp_platform2\_library\include\libargparser.hpp
+	"My_Types.h"
+	<string.h>
+	<map>
+	<vector>
+
+1491794157 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libbt_hci_mgr.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1494315401 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libbuffermgr.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1484790935 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libeventmgr.cpp
+
+1499509865 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libfileiomgr.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1488795902 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libosmgr.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1494065604 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libscreenlogicmgr.cpp
+	<stdio.h>
+	"My_Basics.hpp"
+	"_LibError.hpp"
+	"LibEvent.hpp"
+	"LibScreenLogic.hpp"
+
+1494065740 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libscreenlogicmgr_getevent.cpp
+	<stdio.h>
+	"My_Basics.hpp"
+	"_LibError.hpp"
+	"_LibString.hpp"
+	"LibBuffer.hpp"
+	"LibEvent.hpp"
+	"LibScreenLogic.hpp"
+	"LibScreenLogic_GetEvent.hpp"
+
+1490851665 d:\ws\workspace\projecth\cpp_platform2\_library\include\libscreenlogic_getevent.hpp
+	"My_Basics.hpp"
+	"LibBuffer.hpp"
+
+1494065705 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libsharedmemorymgr.cpp
+	<cstdio>
+	<iostream>
+	<string.h>
+	<stdint.h>
+	"My_Basics.hpp"
+	"_LibError.hpp"
+	"LibSharedMemory.hpp"
+	"LibEvent.hpp"
+	"LibOs.hpp"
+
+1482652901 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libsyscmdmgr.cpp
+
+1502531546 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libthreadmgr.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1492400190 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libtimemgr.cpp
+	<stdio.h>
+	<time.h>
+	"LibTime.hpp"
+	"My_Basics.hpp"
+
+1490432768 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libtuimgr.cpp
+	"Everything_Lib_Mgr.hpp"
+	<curses.h>
+	"LibTui.hpp"
+
+1504755012 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libuartmgr.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1512309627 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libutilitymgr.cpp
+	<stdio.h>
+	<string.h>
+	<stdint.h>
+	<stdlib.h>
+	<time.h>
+	"_LibError.hpp"
+	"LibUtility.hpp"
+	"My_Basics.hpp"
+
+1484747239 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libevent.cpp
+	<conio.h>
+
+1488189697 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libos.cpp
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	"LibOs.hpp"
+	"My_Basics.hpp"
+
+1494065785 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libsharedmemory.cpp
+	<cstdio>
+	<iostream>
+	<string.h>
+	<stdint.h>
+	<windows.h>
+	<tchar.h>
+	"My_Basics.hpp"
+	"_LibError.hpp"
+	"LibSharedMemory.hpp"
+
+1484747642 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libsyscmd.cpp
+	<Windows.h>
+
+1502532513 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libthread.cpp
+	"Everything_Lib_Win.hpp"
+
+1494065815 d:\ws\workspace\projecth\cpp_platform2\_library\include\everything_lib_win.hpp
+	<stdio.h>
+	<string.h>
+	<stdint.h>
+	<Windows.h>
+	"My_Basics.hpp"
+	"_LibError.hpp"
+	"LibUart.hpp"
+	"LibThread.hpp"
+
+1484747933 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libtime.cpp
+	<windows.h>
+	<stdio.h>
+	<time.h>
+	"LibTime.hpp"
+	"My_Basics.hpp"
+
+1493378385 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_win\libuart.cpp
+	"Everything_Lib_Win.hpp"
+
+1512310300 source:d:\ws\workspace\projecth\cpp_platform2\a01_main\src\main.c
+	"Everything_App.hpp"
+
+1488191025 d:\ws\workspace\projecth\cpp_platform2\a01_main\include\everything_app.hpp
+	"Everything_Lib_Mgr.hpp"
+
+1490338795 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libalgomem.hpp
+	"My_Types.h"
+
+1490339698 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libalgomem.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1523968094 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libmemory.hpp
+	"My_Types.h"
+	"_LibLinkedList.hpp"
+
+1494558043 d:\ws\workspace\projecth\cpp_platform2\_library\include\_liberror.hpp
+	<stdarg.h>
+
+1491628942 d:\ws\workspace\projecth\cpp_platform2\_library\include\_libsyntex.hpp
+	"My_Types.h"
+	<string>
+	<vector>
+
+1501139430 d:\ws\workspace\projecth\cpp_platform2\_library\include\libfileio2.hpp
+	<map>
+	<string>
+	"My_Types.h"
+	"LibFileIO.hpp"
+
+1495274991 d:\ws\workspace\projecth\cpp_platform2\_library\include\libsimplefs.hpp
+	"My_Types.h"
+
+1495076055 d:\ws\workspace\projecth\cpp_platform2\_library\include\libencrypt.hpp
+	"My_Types.h"
+
+1516675007 d:\ws\workspace\projecth\cpp_platform2\_library\include\libpacket.hpp
+	"My_Types.h"
+
+1490770336 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libtest.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1494575307 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_liberror.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1494557605 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libmemory.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1494575304 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\_libsyntex.cpp
+	"Everything_Lib_Mgr.hpp"
+
+1495275420 source:d:\ws\workspace\projecth\cpp_platform2\_library\lib_mgr\libsimplefs.cpp
+	"Everything_Lib_Mgr.hpp"
+

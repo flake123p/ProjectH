@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="S02_CodeBlocks" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/S02_CodeBlocks" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-std=c++11" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="D:/WS/workspace/ProjectH/Cpp_Platform2/S02/include" />
+			<Add directory="D:/WS/workspace/ProjectH/Cpp_Platform2/_Library/include" />
+		</Compiler>
+		<Unit filename="../S02_CpuX/include/CpuX.hpp" />
+		<Unit filename="../S02_CpuX/include/Everything_App.hpp" />
+		<Unit filename="../S02_CpuX/src/CpuX.cpp" />
+		<Unit filename="../S02_CpuX/src/main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../_Library/include/Everything_Lib_Linux.hpp" />
+		<Unit filename="../_Library/include/Everything_Lib_Mgr.hpp" />
+		<Unit filename="../_Library/include/Everything_Lib_Win.hpp" />
+		<Unit filename="../_Library/include/LibArgParser.hpp" />
+		<Unit filename="../_Library/include/LibBT_HCI.hpp" />
+		<Unit filename="../_Library/include/LibBuffer.hpp" />
+		<Unit filename="../_Library/include/LibEncrypt.hpp" />
+		<Unit filename="../_Library/include/LibEvent.hpp" />
+		<Unit filename="../_Library/include/LibFileIO.hpp" />
+		<Unit filename="../_Library/include/LibFileIO2.hpp" />
+		<Unit filename="../_Library/include/LibOs.hpp" />
+		<Unit filename="../_Library/include/LibPacket.hpp" />
+		<Unit filename="../_Library/include/LibScreenLogic.hpp" />
+		<Unit filename="../_Library/include/LibScreenLogic_GetEvent.hpp" />
+		<Unit filename="../_Library/include/LibSharedMemory.hpp" />
+		<Unit filename="../_Library/include/LibSimpleFS.hpp" />
+		<Unit filename="../_Library/include/LibSysCmd.hpp" />
+		<Unit filename="../_Library/include/LibThread.hpp" />
+		<Unit filename="../_Library/include/LibTime.hpp" />
+		<Unit filename="../_Library/include/LibTui.hpp" />
+		<Unit filename="../_Library/include/LibUart.hpp" />
+		<Unit filename="../_Library/include/LibUtility.hpp" />
+		<Unit filename="../_Library/include/My_Basics.h" />
+		<Unit filename="../_Library/include/My_Basics.hpp" />
+		<Unit filename="../_Library/include/My_MacroFuncs.h" />
+		<Unit filename="../_Library/include/My_Macros.h" />
+		<Unit filename="../_Library/include/My_Types.h" />
+		<Unit filename="../_Library/include/_Lib51Hex.hpp" />
+		<Unit filename="../_Library/include/_LibError.hpp" />
+		<Unit filename="../_Library/include/_LibLinkedList.hpp" />
+		<Unit filename="../_Library/include/_LibMemory.hpp" />
+		<Unit filename="../_Library/include/_LibMenu.hpp" />
+		<Unit filename="../_Library/include/_LibString.hpp" />
+		<Unit filename="../_Library/include/_LibSyntex.hpp" />
+		<Unit filename="../_Library/include/_LibTest.hpp" />
+		<Unit filename="../_Library/lib_mgr/LibArgParserMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibBT_HCI_Mgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibBufferMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibEncrypt.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibEventMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibFileIOMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibFileIOMgr2.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibOsMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibPacketMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibScreenLogicMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibScreenLogicMgr_GetEvent.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibSharedMemoryMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibSimpleFS.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibSysCmdMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibThreadMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibTimeMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibTuiMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibUartMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/LibUtilityMgr.cpp" />
+		<Unit filename="../_Library/lib_mgr/_Lib51Hex.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibError.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibLinkedList.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibMemory.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibMenu.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibString.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibSyntex.cpp" />
+		<Unit filename="../_Library/lib_mgr/_LibTest.cpp" />
+		<Unit filename="../_Library/lib_win/LibEvent.cpp" />
+		<Unit filename="../_Library/lib_win/LibOs.cpp" />
+		<Unit filename="../_Library/lib_win/LibSharedMemory.cpp" />
+		<Unit filename="../_Library/lib_win/LibSysCmd.cpp" />
+		<Unit filename="../_Library/lib_win/LibThread.cpp" />
+		<Unit filename="../_Library/lib_win/LibTime.cpp" />
+		<Unit filename="../_Library/lib_win/LibUart.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

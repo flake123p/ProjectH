@@ -1,0 +1,5 @@
+Please install Anaconda3 in "C:\" like:
+C:\Anaconda3
+
+Shell example: (in _evn_conda.bat, this example install Anaconda in D:\)
+@SET Path=D:\Anaconda3;D:\Anaconda3\DLLs;D:\Anaconda3\Scripts;D:\Anaconda3\Library\bin;%Path%

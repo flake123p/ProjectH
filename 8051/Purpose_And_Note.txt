@@ -1,0 +1,24 @@
+[[[ PURPOSE ]]]
+Demo little tricks and create a practicing example to observe result.
+----------------------------------------------------------------------
+
+
+[[[ 8051 Note ]]]
+Memory Window - Memory Types
+Address "C:0" for code memory
+Address "D:0" for internal ram and SFR (direct access)
+Address "I:0" for internal ram (indirect access)
+Address "X:0" for external ram
+Address "B02:0" for bank 2
+Address "B03:0" for bank 3 ...
+
+----------------------------------------------------------------------
+C project will calculate ?STACK(stack pointer) automatically,
+you can see it in xxx.M51 file.
+
+----------------------------------------------------------------------
+int = 2 bytes
+long = 4 bytes
+float = 4 bytes
+
+----------------------------------------------------------------------

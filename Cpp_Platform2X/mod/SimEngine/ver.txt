@@ -1,0 +1,29 @@
+Simtimer.c
+	tree? list?
+	struct: u32 relative time in unit (or absolute?)
+	timer struct in open sources
+SimSandBox.c
+SimChannel.c
+
+SimPriority.c
+
+Task - priority sim
+H to L to H
+3 to 1 to 2 to 3 to 1 to 3
+
+33333 11 11 12222 233 333 11 11133 333
+33333 11 22 33333 222 111 11 33333 111
+
+4x8 HCI block???
+
+
+time slice
+task sim(ISR, Thread, execution time)
+module sim?
+RF sim / Uart sim / CPU sim / USB sim / DSP sim / TCP IP sim
+BT sim / input sim
+
+sim time
+sim module - ej45 module / rf module / uart module / ble bb module / cpu_sw module()
+	clock based input output
+	input module?? how to input?? input through uart? input through sw

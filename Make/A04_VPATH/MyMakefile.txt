@@ -1,0 +1,7 @@
+#
+# Indicate search folder for prerequisite, in this case it is "a.txt".
+#
+VPATH = SomeDir : SomeDir2 : SomeDir3
+
+xxx: a.txt
+	@echo hihi

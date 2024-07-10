@@ -1,0 +1,7 @@
+CPP PF3 TODO:
+	Replace CXXFLAGS(-g -Wall -std=c++11) with OFS.
+	Add ProjectSetting.h in application!!
+
+20180822:
+	Add "OFS_XXXX" compile capability. OFS for "Options From Shell". (Windows)
+	Add "OFS_XXXX" compile capability. OFS for "Options From Shell". (Linux)

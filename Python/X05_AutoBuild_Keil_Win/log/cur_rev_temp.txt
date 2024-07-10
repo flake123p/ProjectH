@@ -1,0 +1,13 @@
+Path: .
+Working Copy Root Path: E:\_AUTO_BUILD_
+URL: http://10.160.48.153/svn/BT_FW_BT5511/BT5511/BT_Controller/trunk
+Relative URL: ^/BT5511/BT_Controller/trunk
+Repository Root: http://10.160.48.153/svn/BT_FW_BT5511
+Repository UUID: a86dd2d7-8549-e611-9e2f-3464a9958a14
+Revision: 2295
+Node Kind: directory
+Schedule: normal
+Last Changed Author: yifeng
+Last Changed Rev: 2295
+Last Changed Date: 2018-01-31 23:18:01 +0800 (Wed, 31 Jan 2018)
+

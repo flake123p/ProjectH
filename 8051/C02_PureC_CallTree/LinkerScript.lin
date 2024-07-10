@@ -1,0 +1,33 @@
+
+RAMSIZE(256) 
+
+OVERLAY (
+	;
+	; Creating New Root Segments: OVERLAY (* ! sfname)
+	; Usage example: Create different Overlay Root for ISR OS function and High level Task
+	;
+	; Root v.s. Root: """NOT""" OVERLAY EACH-OTHER !!!!!!!!!Very Important!!!!!!!!!
+	;
+	*!DummyMain,
+	*!func4,
+	
+	; Add to tree
+	DummyMain !	(
+		func1,
+		func2,
+		func3
+	),
+	
+	; Add to tree
+	func4 ! (
+		func41,
+		func42
+	),
+	
+	; Remove from tree
+	func11~func41,
+	func21~func42,
+	
+	; Excluding Segments from Overlay Analysis: OVERLAY (sfname ! *)
+	func5!*
+)

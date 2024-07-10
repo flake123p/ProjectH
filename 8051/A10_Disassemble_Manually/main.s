@@ -1,0 +1,16 @@
+;Reset vector(0x0000) to MAIN
+CSEG AT 0
+	MOV 0A0h,R7
+	MOV 0A0h,A
+	MOV A,R5
+	MOV 0A1h,#0FFh
+	MOV 0A0h,#0
+	MOV 0A0h,#0D1h
+	MOV R0,#0A9H
+	MOVX A, @R0
+	MOV 0A0h,A
+	MOV 0A0h,#0D2h
+	MOV 0A0h,#0h
+	; TEST END
+	DB 0C0h, 0E0h, 0C0h, 00h, 078h, 0A5h, 0E2h, 078h, 0A9h, 0F2h, 0D0h, 00h, 0D0h, 0E0h, 090h, 09Ch, 0A1h, 0F0h
+END

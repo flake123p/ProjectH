@@ -1,0 +1,29 @@
+;
+; This example has two warnings:
+; *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+;    SEGMENT: ?PR?_FUNC?FUNC
+; *** WARNING L10: CANNOT DETERMINE ROOT SEGMENT
+;
+; WARNING L10 will be fixed in example A03
+;
+
+PROG SEGMENT CODE
+
+EXTRN CODE (_func)
+
+;Reset vector(0x0000) to MAIN
+CSEG AT 0
+	JMP MAIN
+CSEG AT 3
+	JMP DUMMY
+
+;select a generic segment: PROG
+RSEG  PROG
+DUMMY:
+    JMP DUMMY
+MAIN:
+    INC A
+    INC A
+    LCALL _func
+
+END

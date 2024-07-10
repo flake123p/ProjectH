@@ -1,0 +1,241 @@
+20200730
+
+array index allows var
+array write
+array compare
+
+### saving all string ...
+@while i > j
+raw 01 81 fc 06 05 00 60 00 00 F0
+@if i > k
+@breakwhile
+@else
+@endif
+@endwhile
+
+while 
+array asign
+array compare
+nested if/else while
+==================================================
+5 compare types: > < >= <= ==
+@if i > j
+ ...
+@else
+ ...
+@endif
+==================================================
+SINGAL EXISTED ELEMENT MATH
+(@add @sub @mux @div @mod @and @or @xor @<< @>> @lshift @rshift): "to" <- "from"
+(@not @cmpl): only "to", no "from"
+@add i j
+@add i %d 12
+@add i[6] j[7]
+@not i
+@not i[7]
+==================================================
+Description:
+[ ]thread simutanious read/write
+[ ]function call, function which receive input in script, LOOPBACK mode!!(middle ware:uart/usb...)
+[ ]switchable middle ware syntax!!
+[ ]auto test, test case friendly
+[ ]is this a script language??
+[ ]Can this transform to a script language??
+[ ]open file, save file syntax!! <= implement with sw interface
+
+Systems:
+	Script agent ScriptAgent.hpp //integration
+		channel system SA_Channel.hpp
+		variable system  SA_Variable.hpp
+		Uni-Format system SA_UniFormat.hpp
+		function import system SA_SwLib.hpp
+		string parsing system  SA_String.hpp //section, each line, ... parsing
+		content system SA_Content.hpp
+
+//	Environment variables:
+//		_aryCurr, _aryLenCurr, 
+//		_aryCurrInfo //combines $aryLenCurr(in front & u32 format) & $aryCurr in an array
+//		_ary0Curr //handle
+//		_32retCode
+
+//
+// <Uni-Format>
+//		--x : parameter in simple hex array, e.g.: 01 03 0c fF 0B 2 7 c
+//		--d : parameter in simple decimal array, e.g.: 01 03 09 77 0 2 7 9
+//		--s : parameter in simple signed decimal array, e.g.: 1 2 3 -3 -5
+//		--X8 : 0x1a, 0x1A, 0X1a, 0X1a,
+//		--X16 : 0x001a, 0x001A, 0X001a, 0X001a,
+//		--X32 : 0x0000001a, 0x0000001A, 0X0000001a, 0X0000001a,
+//		--X16MSB : 0x001a, 0x001A, 0X001a, 0X001a, (read MSB frist)
+//		--X32MSB : 0x0000001a, 0x0000001A, 0X0000001a, 0X0000001a, (read MSB frist)
+//		--add <decimal/hexadecimal/variable>
+//		--sub <decimal/hexadecimal/variable>
+//		--mul <decimal/hexadecimal/variable>
+//		--div <decimal/hexadecimal/variable>
+//		--mod <decimal/hexadecimal/variable>
+//		--sw <sw_name> <multiple variables> (1st argument is auto generated u32 as array length)
+//			produce, _32retCode & _ary0Curr..., and pass out _ary0Curr
+//	dynamic length rest of array:
+//		--dLen8 --add 1          // dynamic length is 1byte with increament 1
+//		--dLen8 --add <variable> // dynamic length is 1byte plus <variable>
+//		--dLen16, --dLen16MSB, --dLen32, --dLen32MSB
+//		e.g.:
+//			--x : 01 02 --dLen16 --add 1, 0A 0B 0C 0D
+//			--x : 01 02 05 00 0A 0B 0C 0D (same as above)
+//			--x : 01 02 --dLen16MSB 0A 0B 0C 0D
+//			--x : 01 02 00 04 0A 0B 0C 0D (same as above)
+
+
+//
+// Channel_Info_Source : Inherit or This or External file start with ", e.g.: "../synEnv.txt" or "syn1.txt"
+//	e.g.:
+//		Channel_Info_Source=Inherit
+//		Channel_Info_Source = This
+//		Channel_Info_Source ="syn1.txt"
+// External_Variable_File : None or External file start with ", e.g.: "../synEnv.txt" or "syn1.txt"
+//	e.g.:
+//		External_Variable_File=None
+//		External_Variable_File ="syn1.txt"
+//
+[GLOBAL_FLAGS]
+Global_Verbose_Level = 0 // 0 for nothing, 1 for least verbos message, 2, 3, ... 9 for max verbos message
+Channel_Info_Source = This
+External_Variable_File = None
+
+
+//
+//  1. [VARIABLES] rules is available in [CONTENT] section
+//  2. [VARIABLES] section can be used by external call, but the [CONTENT] section is NOT!!
+//	3. Using same name is not allowed.
+//
+//	variables must start with:
+//		1. $8<name>, $s8<name>, $16<name>, $s16<name>, $32<name>, $s32<name>, $ary<name>, $str<name>
+//		2. auto generated variable for arrays and strings: $aryLen<name>, $strLen<name>
+//		3. auto generated array info: $aryInfo<name>: first 4 bytes is $aryLen<name> and the rest is $ary<name>
+//		4. auto generated array handle: $ary0<name>
+//		4. $0<handle name>: handle or pointer
+//	use variable:
+//		--from --fromLSB, --fromMSB, --to --toLSB, --toMSB, (array[0] is LSB)
+//	declare varaible:
+//		declare <variable> <Uni-Format>
+//		e.g.:
+//			declare $aryIUT_BD_ADDR --x 11 12 13 1a 1b 1C
+//			declare $16CONN_0_INTERVAL --X16 0x0006
+//	declare array pattern:
+//		ary_pattern @<pattern name> --x 04 --dummy8 /*evt id*/ --rLen8 $8evtLen
+//	assign varaible:
+//		1. assign <variable 0> : <variable 1> <Uni-Format>
+//		2. assign <variable 0> --from/--fromLSB/fromMSB <variable 1>
+//		3. assign can be used with "declare"
+[VARIABLES]
+declare $aryIUT_BD_ADDR --x 11 12 13 1a 1b 1C
+declare $16CONN_0_INTERVAL --X16 0x0006
+declare $16CONN_1_INTERVAL --X16 0x0007
+declare $aryREVERS_BD_ADDR assign $aryREVERS_BD_ADDR --fromMSB $aryIUT_BD_ADDR
+declare $8i --d 1
+declare $8j --d 2
+declare $16k $8i --add $8j //$16k is 3 now
+declase $8evtLen
+ary_pattern @hci_evt --x 04 --dummy8 /*evt id*/ --rLen8 $8evtLen
+
+//
+// [Channel_INFO]
+// <user define handle> : <uart> <com port string> <baud rate> ... <TBD>
+// <user define handle> : <usb> ... <TBD>
+// <user define handle> : <sw> <sw_func_id> <para_str_1> <para_str_2> ...
+//
+//	Common flags before symbol ':':
+//		-v0 : verbose level: 0 for nothing, 1 for least verbos message, 2, 3, ... 9 for max verbos message
+//		-v1 : verbose level: 0 for nothing, 1 for least verbos message, 2, 3, ... 9 for max verbos message
+//		[TBD]-V : Big V for dump version information in initialization stage.//	Common flags before symbol ':':
+//
+//	Common flags after symbol ':':
+//		-f : input file name which contains the channel info
+//		-s : sw_func_id for changing setting in runtime
+//
+//	symbol '|' : merge mutilple declaration in one line, switch syntax is in [CONTENT] section,
+//		for example:
+//		h1 -v9 : uart COM14 115200 | s1 simPeer1 | usb1 ... | uart -s uartTester1
+//		h2 -v0 : uart COM4  115200 | s1 simPeer2 | usb2 ... | uart -s uartTester2
+//
+[Channel_INFO]
+u1 : uart COM14 115200
+u2 : uart COM4  115200
+u3 : uart -f uart.ini
+
+
+//	[CONTENT]
+//	keywords:
+//		dump_all_information
+//		dump_all_variables
+//		dump <variables> 
+//		use_declaration <options> 1 // use mutilple declaration 1, range:1~9999
+//			options:
+//				-p : print log
+//		wait 100 ms // s, ms, us, ns, ps, ext (for external_clock_domain)
+//		compare <option> <variable1> <variable2>
+//			options:
+//				--exit_on_false  --exit_on_true
+//				--break_on_false  --break_on_true
+//				--assert_on_false  --assert_on_true
+//	syntax for using channel:
+//  	<user define handle> <single character flags> <flags start with dash(-)> <parameter...>
+//		symbol '|' : concatenate 2 sentances into one line, for example:
+//			sw_in1 1 2 3 | sw_out1 8 9
+//			sw_in1 1 2 4 | sw_out1 8 99
+//			sw_in1 1 2 5 | sw_out1 8 999
+//		dynamic read length (read out byte by byte, same as --dLen8...):
+//			--rLen8 <variable> --add <number or variable>
+//			see also: --rLen16LSB <variable>, --rLen32LSB <variable>, --rLen16MSB <variable>, --rLen32MSB <variable>
+//		read out a variable & naming:
+//			--ret8LSB <variable>, --ret16LSB <variable>, --ret32LSB <variable>
+//			--ret8MSB <variable>, --ret16MSB <variable>, --ret32MSB <variable>
+//			--retAry <num of bytes> <variable>
+//		dummy read:
+//			--dummy8, --dummy16, --dummy32, --dummyAry <num of bytes>
+//
+//	single character flag:
+//  	w : default channel write/output/tx
+//  	r : default channel read/input/rx 
+//
+//	flags start with dash(-):
+//		[TBD]--ps : print something in the start
+//		[TBD]--pe : print something in the end
+//
+[CONTENT]
+u1 w --x 01 03 0c 00
+@call bt_hci_cmd_print _aryCurrInfo
+u1 r @hci_evt
+dump _ary0Curr
+compare --exit_on_false _ary0Curr --x 04 0c 00 00
+
+u1 w --sw ble_create_connection_lite $aryIUT_BD_ADDR $16CONN_0_INTERVAL
+u1 cr @hci_evt --sw ble_connection_established_evt_check _aryCurr
+compare --break_on_true _32retCode --d 0
+
+continue
+
+TODO:
+menu mode: TBD
+console mode
+execution mode
+
+TODO:  use external (let external app use channel system)
+sequential input mid-ware & syntax:
+ext_file_handle efh0 -efh:flashHdr
+skip efh0 2 //skip 2 line
+
+TODO:  used by external
+external app(flash file system) using this module as realUart/simUart switch
+external app(simulator) using this module as input output
+
+TODO: muti-thread syntax (open mp?)
+
+TODO:
+sleep syntax (clock domain??)
+repeat syntax
+if/else syntax
+jump syntax
+
+TODO:
+assert syntax

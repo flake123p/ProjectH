@@ -1,0 +1,79 @@
+#TODO: complete func: ParseVarOrConst()
+#TODO: Use new func: GetVarVal32()
+#TODO: Use new func: ImportSingleConstNumByString()
+@var i u32 %d 9 3
+@var j str "1235"
+@dump i
+@dump j
+@print i
+@exit
+
+@var u8 i %x 1 2 a b c d
+@var u32 j %x 3 2 1 f e d c b a
+@var u16 k %d 5 4
+@add i[0] k[0]
+@printn %x i[0-e]
+@printn %x j[0-e]
+@printn %x k[0-e]
+@exit
+
+NOTE: S ================================================================================
+Variable declare: @var <name> <(0)u8/u32...> %d 7 8 9
+	@var i u32 %d 9
+	@var x str "ffddaa"
+	@var x "ffddaa"
+Use varialbe:
+	@add i j
+Use constant: <(o)u8/u32...> %d 7
+	@set i %d 9
+	@append i %d 8
+	@if i > %d 8
+
+#TODO: complete func: ParseVarOrConst()
+NOTE: E ================================================================================
+@var u8 i %x 2
+@var u32 k %d 2
+@lshift i k
+@printn "i = " i " k = " k
+@dump k
+
+@exit
+
+@var u32 i %u 13
+@if %d 14 >  i
+@printn "abc"
+@else
+@printn "def"
+@endif
+@printn "ccaa"
+@exit
+
+@var s8 i %x 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A
+@var u32 j %d 2 8
+
+@printn "before : " %02X i[0-E]
+@set i[1] j[1]
+@not i
+@cmpl i[2]
+@printn "after  : " %02X i[0-E]
+@exit
+
+#@dump i
+@printn i
+@printn i[0-100]
+@exit
+ @_var u32 j 0x%x 0xFF123456 0xAABBCCDD
+     @dump j
+@call FuncHAHAHA i j
+@print "abc var = " 0x%08X j[0-E] " FuncHAHAHA = " 0x%08X FuncHAHAHA " END"
+@nl
+@exit
+@dumpAll
+
+@sub i[1] %d 3
+@mux i[2] j
+@div i[3] %d 3
+@mod i[4] %d 3
+@and i[5] %x F7
+@or  i[6] %d 5
+@xor i[7] %d 1

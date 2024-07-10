@@ -1,0 +1,73 @@
+Make Call
+Make Extension Call
+MMI Action
+Event Filter Setting
+Music Control
+Change Device Name
+Change PIN Code
+BTM Parameter Setting
+Read BTM Version
+NULL
+Vendor AT Cmd
+AVC Vendor Dependent Cmd
+AVC Group Navigation
+Read Link Status
+Read Paired Device Record
+Read Local BD Address
+Read Local Device Name
+NULL
+Send SPP iAP Or LE Data
+BTM Utility Function
+Event Ack
+Additional Profile Link Setup
+Read Linked Device Information
+Profile Link Back
+Disconnect
+NULL
+User Confirm SSP Req Reply
+Set HF Speaker Gain Level
+EQ Mode Setting
+DSP NR CTRL
+GPIO CTRL
+MCU UART Rx Buffer Size
+Voice Prompt Cmd
+NULL
+NULL
+Set Overall Gain
+Read BTM Setting
+Read BTM Battery Charger Status
+MCU Update Cmd
+Report Battery Capacity
+LE ANCS Service Cmd
+LE Signaling Cmd
+nSPK Vendor Cmd
+Read nSPK Link Status
+nSPK Sync Audio Effect
+LE GATT CMD
+NULL
+LE App Cmd
+DSP Runtime Program
+Read Vendor Eeprom Data
+Read IC Version Info
+Voice Prompt Ind Cmd
+Read BTM Link Mode
+Configure Vendor Parameter
+NULL
+nSPK Exchange Link Info Cmd
+nSPK Set GIAC
+READ FEATURE LIST
+Personal MSPK GROUP Control
+UART CMD TEST DEVICE
+
+
+
+
+
+
+
+
+
+
+
+
+

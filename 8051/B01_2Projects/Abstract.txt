@@ -1,0 +1,15 @@
+The Keil PK51 Professional Developers Kit Version 8 provides several tool extensions
+that help you to develop multi-application projects. Such projects are required when 
+you need to load specific application extensions at execution time of a boot application.
+
+For demonstration of the toolchain features the following project shows you how to
+combine a Boot_Loader and Application part within the same uVision project. Therefore
+this project contains two targets:
+
+ - Boot_Loader is the bootstrap or root application that calls functions in Application. 
+   The Boot_Loader part is intended to perform CPU initialization and contains functions 
+   and global variables that are accessed from Application.
+
+ - Application is developed independent of Boot_Loader and is intended to extent the 
+   Boot_Loader functions. Therefore Application accesses variables and functions of
+   Boot_Loader.

@@ -1,0 +1,75 @@
+=== === === === === === === === === === === === === === === 
+=== === === === === === === === === === === === === === === 
+SymbolMgr (allow recursive call !!!IMPORTANT!!!)
+Job List
+{
+	next,
+	string rest_of_line,
+	p_in_var
+	p_out_var
+}
+multi-set, default is number 0, out_var is a list
+{
+	{WHOLE_WORD,   "@show", show_cb},
+	{STRING_AHEAD, "[",     mid_parentheses_cb},
+	{EMPTY_LINE,   "dummy", empty_line_cb},
+}
+internal call SymbolMgr
+SymbolMgr(set_index, string, &out_var)
+Callbacks(flags, string, &out_var)
+
+@var
+@_var (use it with MSB order, just like $_)
+@len
+@_len (use it with MSB order, like $_)
+@end
+@dump
+$u8 $_u8 $u16 $_u16 $u32 $_u32
+$s8 $_s8 $s16 $_s16 $s32 $_s32
+$str $_str
+
+4 Exmaples with same result
+@var(u8 ary %x 01 03 04 34 12 00 0A)
+@var u8 ary %x 01 03 04 34 12 00 0A
+@var u8 ary %x 01 03 04 $u32  0x0A001234
+@var u8 ary %x 01 03 04 $_u32 0x3412000A
+@var u8 ary %x 01 03 04 @var  $x  u32 0x0A001234
+@var u8 ary %x 01 03 04 @var  $_x u32 0x3412000A
+@var u8 ary %x 01 03 04 @_var $x  u32 0x3412000A
+@var u8 ary %x 01 03 04 $_u32 0x3412000A
+@var u8 ary %x 01 03 @len u8 @end 34 12 00 0A
+@var u8 ary %x 01 03 @len u8 @end @var u8 ary %x 34 12 00 0A
+@var u8 ary %x 01 03 @len $i u8 @end @var u8 ary %x 34 12 00 0A @end
+@var u8 ary %x 01 03 @len $i u8 @end @var u8 ary %x 34 12 00 0A @end @end
+@var u8 ary %x 01 03 @len($i u8)     @var u8 ary %x 34 12 00 0A @end @end
+
+Multi-Link:
+2:7.5
+4:15
+over4:30
+
+---- 20200630 ----
+text:
+var, call, val, any else??
+val is a decaded variable which name is global_var, and the rest nested val is using random name.
+new rule:
+() - state/end
+[] - dynamic length only used in array type
+@var <name> u8 ary %x 01 03
+@var <name> u8 ary %d 01 03
+@var <name> u8 ary 0x%x 0x01 0x03
+@val u8 ary %x 01 02 @val(u8 %x 07 08) [u16] 03 04 05 = 01 02 07 08 03 00 03 04 05
+split with ()[]{}
+using var: $<name>
+
+text call:
+	@call <name> $i $j $k (varialbe chain)
+	return: errorlevel  & return var chain
+$ret
+$retNum
+$retVar[0]
+$retVar[1]
+$retVar[2]
+...
+$retVar[10] (variable chain)
+
